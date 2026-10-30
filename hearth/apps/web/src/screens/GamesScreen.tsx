@@ -149,9 +149,7 @@ function GamesContent({ home }: { home: string }) {
             <FailureState onRetry={() => void puzzle.refetch()} />
           )}
           <p className="games-source">
-            {catalogue.data.source === 'original-demo'
-              ? 'Original demo puzzles.'
-              : 'NYT puzzle archive supplied by this household. Not affiliated with The New York Times.'}{' '}
+            {catalogue.data.source === 'original-demo' ? 'Original demo puzzles. ' : null}
             Progress stays on this device.
           </p>
           {archiveOpen ? (
