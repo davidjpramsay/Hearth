@@ -23,7 +23,7 @@ export const LEGACY_BRIDGE_MODULE_IDS: ModuleId[] = [
 ];
 const BridgeModuleIdsSchema = z
   .array(ModuleIdSchema)
-  .max(13)
+  .max(14)
   .refine((ids) => new Set(ids).size === ids.length)
   .default(LEGACY_BRIDGE_MODULE_IDS);
 

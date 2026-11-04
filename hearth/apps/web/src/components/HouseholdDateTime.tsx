@@ -4,6 +4,7 @@ export function HouseholdDateTime({ placement }: { placement: 'rail' | 'mobile' 
   const householdDateTime = useHouseholdDateTime();
   return (
     <div
+      role={placement === 'rail' ? undefined : 'region'}
       aria-label={`${householdDateTime.date}, ${householdDateTime.time}`}
       className={`household-date-time household-date-time--${placement}`}
     >

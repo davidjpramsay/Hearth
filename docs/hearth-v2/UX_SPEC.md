@@ -1,5 +1,24 @@
 # Hearth v2 television and companion UX specification
 
+## Fitness (D-128)
+
+Fitness appears in the TV rail and phone More only while enabled. Select a person, see their goals,
+current/best scheduled-day streak and weekly session count, then choose a day and open a workout.
+Four labelled activity icons identify running, swimming, weights and fitness classes. Show four
+session cards per page, explicit remaining pages, rest days and honest future-day read-only details.
+The modal shows notes and an ordered Exercise / kg / Sets / Reps table; a focusable scrolling region
+keeps long instructions accessible with arrows, plus Close/Back and exact card focus restoration.
+Phones scroll naturally; never squeeze exercise names into unreadable TV text.
+
+Adult Fitness settings has explicit participant selection, a person selector, long-term goals with
+optional target date/achieved status, weekly focus and expandable workout editors. Choose weekdays;
+enter optional minutes/km and exercises with optional kg/sets/reps. Empty means unspecified. Exercise
+move-up/down is available without dragging. No person is selected automatically. Drafts survive reads,
+unknown outcomes retain the exact request, and conflicts offer deliberate Load latest. First save
+starts today; later edits clearly start tomorrow. Streak copy explains all sessions/rest days and no
+penalty until today's local midnight. Module disabled, empty, loading, stale/offline/error and save
+feedback use existing Hearth patterns; shared screens receive no administration link.
+
 ## Guided household setup (D-127)
 
 A successful initial owner claim opens Welcome to Hearth → Get started. Existing owner replacement

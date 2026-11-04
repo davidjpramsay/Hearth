@@ -1,5 +1,13 @@
 # Hearth v2 implementation roadmap
 
+## Fitness (D-128) — requested 2026-11-04
+
+Implement the optional end-to-end module: explicit participants, long-term goals, recurring weekly
+workouts and details, TV checks, scheduled-day streaks, history-safe editing and adult setup. Verify
+shared/core validation, SQLite/migration/atomic retry/access isolation, UI state recovery, supported
+responsive sizes and D-pad/Back. Keep hosted publication, private release and real phone/TV viewing
+as separate open gates. No health provider, wearable, HA workout control or live household seed.
+
 ## Shareable setup (D-127)
 
 Implement a guarded fresh-server installer, explicit portable update/checkpoint/rollback command,

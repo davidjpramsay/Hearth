@@ -93,6 +93,10 @@ Component 1.3.0 adds the optional NBA module switch. A fresh adult approval free
 screen navigation is shared. Upgrade/install/restart and adult reconnection are separate from
 the local source change. Backward-compatible old-server responses default NBA off and unapproved.
 
+Component 1.5.0 adds the optional Fitness module switch after a fresh adult approval including
+`fitness`. Existing grants stay unchanged. It does not grant workout reads/checks or a Fitness
+navigation option; Fitness works independently of HA.
+
 Component 1.4.0 adds Morning Routine's module switch and `morning_routine` visible-tab option.
 The module starts off. This tab/switch needs fresh adult approval including `morningRoutine`;
 existing grants never gain it silently. No checklist contents or completion writes enter HA.

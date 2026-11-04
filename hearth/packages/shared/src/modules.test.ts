@@ -17,10 +17,10 @@ describe('fixed household modules contract', () => {
     expect(moduleForPath('/ADMIN/PHOTOS')).toBe('photos');
     expect(moduleForPath('/%61dmin/connections/calendar')).toBe('calendar');
     for (const id of MODULE_IDS) {
-      expect(DEFAULT_MODULE_FLAGS[id]).toBe(!['nba', 'morningRoutine'].includes(id));
+      expect(DEFAULT_MODULE_FLAGS[id]).toBe(!['nba', 'morningRoutine', 'fitness'].includes(id));
       expect(
         ModuleFlagsSchema.safeParse({ ...DEFAULT_MODULE_FLAGS, [id]: undefined }).success,
-      ).toBe(['nba', 'morningRoutine'].includes(id));
+      ).toBe(['nba', 'morningRoutine', 'fitness'].includes(id));
       expect(ModuleFlagsSchema.safeParse({ ...DEFAULT_MODULE_FLAGS, [id]: 0 }).success).toBe(false);
     }
     expect(

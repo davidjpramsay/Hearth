@@ -7,7 +7,7 @@ availability, never a substitute for authentication or household authorization.
 ## Fixed modules and core
 
 `calendar`, `weather`, `reminders`, `chores`, `lists`, `meals`, `home`, `photos`, `games`, `notices`,
-`dailyVerse`, `nba` (D-113), `morningRoutine` (D-120). Morning Routine is independent of Chores.
+`dailyVerse`, `nba` (D-113), `morningRoutine` (D-120), `fitness` (D-128). Morning Routine is independent of Chores.
 It defaults off; missing legacy fields also mean off. Chores includes its existing routine groups,
 occurrences and pocket money. Home means the outbound Home
 controls feature, not inbound HA pairing/module management. The original eleven flags default true;
@@ -23,7 +23,7 @@ or an arbitrary layout system.
 
 Source of truth: `hearth/packages/shared/src/modules.ts`.
 
-- `GET /api/v1/households/{householdId}/modules` → `{householdId,enabled:{all thirteen booleans}}`.
+- `GET /api/v1/households/{householdId}/modules` → `{householdId,enabled:{all fourteen booleans}}`.
   Same normal household-read authorization as Today, including paired screens; no module content.
 - Adult `PUT /api/v1/households/{householdId}/modules/{moduleId}`: strict `{requestId,enabled}` →
   `{configuration,audit,replayed}`. Administrator/controller/origin checks remain in force.
@@ -72,7 +72,7 @@ provider configuration, financial settings or arbitrary admin endpoints. Revocat
 all actions, including exact retries. Existing current-feature scopes keep their original meaning.
 
 The matching manual HA component adds only approved household Switch entities (eleven legacy,
-up to twelve after D-113 approval, thirteen after D-120 approval), using observed state,
+up to twelve after D-113 approval, thirteen after D-120 approval, fourteen after D-128 approval), using observed state,
 bounded exact-retry requests and coordinator refresh; no optimistic state. Older server responses
 without module fields mean all enabled and no module-control authority. Updating code alone does
 not install HA files or authorize live switches, pairing, data changes or deployment.
@@ -84,3 +84,7 @@ isolation; all eleven off/on retain existing records; disabled endpoint and aggr
 denial; module-off/pending-navigation and data-read races; no silent HA upgrade; manual and HA
 module writes; phone/TV light/dark, keyboard/D-pad, realtime route exit and all-off recovery.
 Unit/fake/demo/CI proof stays separate from actual iPhone, TV, HA installation and private deployment.
+
+Fitness defaults off, including missing legacy DTO fields. It gates `/fitness`, `/admin/fitness`
+and all Fitness API/settings/completion paths; off retains plans/history. HA 1.5.0 creates its switch
+only with explicit new `fitness` approval. No workout data or completion authority is included.

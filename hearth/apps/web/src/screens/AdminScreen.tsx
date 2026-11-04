@@ -21,6 +21,7 @@ const settingGroups: Array<{ title: string; settings: Setting[] }> = [
   {
     title: 'Family content',
     settings: [
+      { title: 'Fitness settings', icon: 'weights', path: '/admin/fitness' },
       { title: 'Morning Routine', icon: 'sun', path: '/admin/morning-routine' },
       {
         title: 'Manage photos',

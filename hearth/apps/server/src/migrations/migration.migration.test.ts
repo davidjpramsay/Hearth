@@ -11,6 +11,52 @@ import { applyMigrations } from '../database.js';
 
 const temporaryDirectories: string[] = [];
 
+describe('0036 Fitness module', () => {
+  it('preserves existing module choices, plans and pairing grants without enabling Fitness', () => {
+    const database = new Database(':memory:');
+    try {
+      for (const file of readdirSync(fileURLToPath(new URL('.', import.meta.url)))
+        .filter((file) => /^\d{4}_.*\.sql$/.test(file) && Number(file.slice(0, 4)) <= 35)
+        .sort())
+        database.exec(readFileSync(new URL(file, import.meta.url), 'utf8'));
+      database.exec(`INSERT INTO households VALUES ('household_kept','Kept','Australia/Perth','en-AU',1,'now','now');
+        INSERT INTO household_modules VALUES ('household_kept','photos',0,'now'),('household_kept','morningRoutine',1,'now');
+        INSERT INTO household_module_receipts VALUES ('household_kept','member:test','request_kept','hash','{}','now');
+        INSERT INTO morning_routine_settings VALUES ('household_kept',9,'{"schoolDays":{},"weekends":{}}');
+        INSERT INTO paired_devices (id,household_id,name,device_type,credential_reference,scopes_json,paired_at,capabilities_json) VALUES ('device_kept','household_kept','Kept TV','television','sha256:fixture','["household.read"]','now','[]');`);
+      const tables = [
+        'households',
+        'household_modules',
+        'household_module_receipts',
+        'morning_routine_settings',
+        'paired_devices',
+        'controller_phone_connections',
+        'home_assistant_bridge_connections',
+      ];
+      const before = tables.map((table) => database.prepare(`SELECT * FROM ${table}`).all());
+      applyMigrations(database);
+      applyMigrations(database);
+      expect(tables.map((table) => database.prepare(`SELECT * FROM ${table}`).all())).toEqual(
+        before,
+      );
+      for (const table of ['fitness_plans', 'fitness_progress', 'fitness_receipts'])
+        expect(database.prepare(`SELECT * FROM ${table}`).all()).toEqual([]);
+      expect(database.prepare('SELECT max(version) AS n FROM schema_migrations').get()).toEqual({
+        n: 36,
+      });
+      expect(database.pragma('foreign_key_check')).toEqual([]);
+      database
+        .prepare('INSERT INTO household_modules VALUES (?,?,?,?)')
+        .run('household_kept', 'fitness', 1, 'later');
+      expect(
+        database.prepare("SELECT enabled FROM household_modules WHERE module_id='fitness'").get(),
+      ).toEqual({ enabled: 1 });
+    } finally {
+      database.close();
+    }
+  });
+});
+
 describe('0035 Morning Routine profiles', () => {
   it('preserves school settings, dated checks, revisions and exact legacy receipts', () => {
     const database = new Database(':memory:');
@@ -151,7 +197,7 @@ describe('0031 additive connection codes', () => {
       database.prepare('SELECT count(*) AS n FROM controller_phone_invitation_codes').get(),
     ).toEqual({ n: 0 });
     expect(database.prepare('SELECT max(version) AS n FROM schema_migrations').get()).toEqual({
-      n: 35,
+      n: 36,
     });
     expect(database.pragma('foreign_key_check')).toEqual([]);
     database.close();

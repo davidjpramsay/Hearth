@@ -1,5 +1,16 @@
 # Hearth v2 local environment and operations plan
 
+## Fitness (D-128) — local feature, not yet deployed
+
+Migration 0036 adds Fitness and preserves other modules/data. After an approved verified release,
+turn on More → Modules → Fitness, open Fitness settings on an adult phone, select people and enter
+their goals/workouts. No personal plans are seeded. First save applies today; later edits start
+tomorrow in the home's timezone. Check workouts from Fitness on an already connected TV/phone.
+No APK, provider setup, credential or network change is required. Existing SQLite backups cover
+Fitness plans/history; rollback needs the corresponding pre-0036 database. HA's optional matching
+1.5.0 catalogue adds only a switch after fresh approval; installing/reconnecting HA is separate and
+not required for Fitness. No live update or household configuration is claimed by local checks.
+
 ## Install Hearth for another household (D-127)
 
 Use [the portable installer guide](../../hearth/deploy/portable/README.md) for a fresh x86-64 Docker

@@ -15,6 +15,7 @@ export const MODULE_IDS = [
   'dailyVerse',
   'nba',
   'morningRoutine',
+  'fitness',
 ] as const;
 export const ModuleIdSchema = z.enum(MODULE_IDS);
 export type ModuleId = z.infer<typeof ModuleIdSchema>;
@@ -32,6 +33,7 @@ export const MODULE_LABELS: Record<ModuleId, string> = {
   dailyVerse: 'Daily Bible verse',
   nba: 'NBA',
   morningRoutine: 'Morning Routine',
+  fitness: 'Fitness',
 };
 export const DEFAULT_MODULE_FLAGS: Record<ModuleId, boolean> = {
   calendar: true,
@@ -47,6 +49,7 @@ export const DEFAULT_MODULE_FLAGS: Record<ModuleId, boolean> = {
   dailyVerse: true,
   nba: false,
   morningRoutine: false,
+  fitness: false,
 };
 export const ModuleFlagsSchema = z.object({
   calendar: z.boolean(),
@@ -62,6 +65,7 @@ export const ModuleFlagsSchema = z.object({
   dailyVerse: z.boolean(),
   nba: z.boolean().default(false),
   morningRoutine: z.boolean().default(false),
+  fitness: z.boolean().default(false),
 });
 export type ModuleFlags = z.infer<typeof ModuleFlagsSchema>;
 export const ModulesConfigurationSchema = z.object({
@@ -104,6 +108,7 @@ export function moduleForPath(path: string): ModuleId | null {
     [/^\/home(?:\/|$)/, 'home'],
     [/^\/(photos|admin\/photos)(?:\/|$)/, 'photos'],
     [/^\/games(?:\/|$)/, 'games'],
+    [/^\/(fitness|admin\/fitness)(?:\/|$)/, 'fitness'],
     [/^\/(nba|admin\/nba)(?:\/|$)/, 'nba'],
     [/^\/(morning-routine|admin\/morning-routine)(?:\/|$)/, 'morningRoutine'],
     [/^\/admin\/connections\/calendar(?:\/|$)/, 'calendar'],

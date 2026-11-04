@@ -1,5 +1,58 @@
 # Hearth v2 acceptance and definition of done
 
+## Fitness (D-128) — local implementation, 2026-11-04
+
+Optional Fitness is implemented with explicit participants, five long-term goals per person,
+weekly focus and recurring weekday sessions for running, swimming, weights and fitness class.
+The family screen opens exercise / kg / sets / reps details and permits today's check/undo.
+Streaks count consecutive fully completed scheduled days, skip rest days, and keep today open until
+local midnight. First setup applies today; subsequent edits start tomorrow, preserving history.
+The module starts off; enable it in More → Modules, then configure it in Fitness settings.
+Canonical behavior and boundaries: [FITNESS_CONTRACT.md](FITNESS_CONTRACT.md).
+
+Local checks (commands run inside `hearth/`, using isolated demo/test data):
+
+- `pnpm verify:code`: format, lint, typecheck, **761 unit tests** (112 shared, 56 core,
+  120 server, 473 web), **297 API/integration tests**, **31 migration tests**, deployment scaffold,
+  web/server production builds and private fresh boot without HA/credentials.
+- `pnpm verify:ci`: five CI-policy tests and complete non-overlapping inventory of **1,372**
+  browser tests. This inventories the whole suite; it does not run all 1,372.
+- `pnpm audit:dependencies`: no known vulnerabilities.
+- `python3.12 -m unittest discover -s integrations/home_assistant/tests`: **69 passed**;
+  adapter/entity stand-ins, not a live HA installation.
+- `pnpm test:e2e:built tests/e2e/fitness.spec.ts tests/e2e/modules.spec.ts
+  tests/e2e/screen-admin-isolation.spec.ts tests/e2e/phone-navigation.spec.ts
+  tests/e2e/admin.spec.ts tests/e2e/morning-routine.spec.ts tests/e2e/morning-profiles.spec.ts`:
+  **167 passed**. Includes 26 Fitness checks, surrounding adult settings, module gates,
+  screen/admin isolation and both Morning Routine profiles.
+- `git diff --check`: passed (Homebrew Git).
+
+Fitness browser proof includes empty initial setup through a saved workout and streak, adult
+goal/day/exercise editing, future-day read-only detail, check/undo/reload, exact lost-response retry,
+offline saved content, draft retention/discard guard, module-off route exit, long instructions,
+14-session paging, D-pad edge escape and modal focus restoration. Light/dark and Axe checks cover
+1920×1080, 3840×2160, 1366×768, 1280×640, 390×844, 844×390, 820×1180 and 1180×820.
+TV canvases fit vertically; touch layouts scroll naturally. No page/console errors on the visual
+Fitness cases. A small labelled landmark correction covers the existing phone/admin clock.
+
+Screenshots visually inspected: `/tmp/hearth-fitness-evidence/fitness-1920-light.png`,
+`fitness-1920-dark.png`, `fitness-390-light.png`, `details-1920-light.png`,
+`details-390-dark.png` and `settings-phone.png` in the same folder. Repository Playwright was used
+because the Browser plugin was unavailable. Evidence logs: `/tmp/hearth-fitness-code.log`,
+`hearth-fitness-regression.log`, `hearth-fitness-ci.log`, `hearth-fitness-ha.log` and
+`hearth-fitness-audit.log` under `/tmp`.
+
+Resolved during verification: unstylized detail buttons, a native select unsuitable for D-pad exit,
+scroll-region edge trapping, clock landmark coverage, and an obsolete migration-35 browser assertion.
+An earlier regression attempt was interrupted by Chromium `ERR_NETWORK_CHANGED` while loading
+local scripts; trace preserved at `/tmp/hearth-fitness-network-interruption.zip`; the final run
+is reported separately above.
+
+**Not run:** full 1,372-browser execution, physical iPhone/iPad/TV viewing, hosted checks, publication,
+deployment or HA component installation/reconnection. Android source/APK is unchanged. No live
+household plan, device, secret, HA automation, NAS container, backup or networking was changed.
+Migration 0036 preservation/atomic rollback and frozen old HA grants are locally tested.
+
 ## Private release and physical TV update — 2026-11-04
 
 Release `8cb1b244971d76dfe49e2662e700c9138173f2bd` is published on GitHub main and deployed on the

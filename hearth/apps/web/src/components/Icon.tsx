@@ -1,6 +1,10 @@
 import type { SVGProps } from 'react';
 
 export type IconName =
+  | 'running'
+  | 'swimming'
+  | 'weights'
+  | 'fitness-class'
   | 'basketball'
   | 'bell'
   | 'calendar'
@@ -47,6 +51,31 @@ export type IconName =
   | 'wind';
 
 const paths: Record<IconName, React.ReactNode> = {
+  running: (
+    <>
+      <circle cx="15" cy="4" r="2" />
+      <path d="m8 10 4-3 3 5 5 1M12 7l-2 7 5 3-1 5M10 14l-5 6H2" />
+    </>
+  ),
+  swimming: (
+    <>
+      <circle cx="18" cy="8" r="2" />
+      <path d="m5 12 5-5 6 6M10 7 7 4l-4 2M2 17q2-2 5 0t5 0 5 0 5 0M2 21q2-2 5 0t5 0 5 0 5 0" />
+    </>
+  ),
+  weights: (
+    <>
+      <path d="M7 12h10M3 8v8M21 8v8" />
+      <rect x="4" y="5" width="3" height="14" rx="1" />
+      <rect x="17" y="5" width="3" height="14" rx="1" />
+    </>
+  ),
+  'fitness-class': (
+    <>
+      <circle cx="12" cy="5" r="2" />
+      <path d="M5 9h14M12 7v7m-5 7 5-7 5 7M2 4v6M22 4v6" />
+    </>
+  ),
   basketball: (
     <>
       <circle cx="12" cy="12" r="10" />

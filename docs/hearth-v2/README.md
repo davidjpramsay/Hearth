@@ -1,5 +1,11 @@
 # Hearth v2 specifications
 
+## Fitness
+
+[FITNESS_CONTRACT.md](FITNESS_CONTRACT.md) defines D-128: optional personal goals, recurring weekly
+workouts, detailed exercises and scheduled-workout-day streaks. Local implementation and release/
+physical acceptance are tracked independently.
+
 Hearth is a private family command centre designed for a wall-mounted Google TV, D-pad remote and
 phone browser. It owns reminders, chores, routines, pocket money, lists, meals, notices and photos;
 connected calendars remain provider-owned.

@@ -1,5 +1,17 @@
 # Hearth v2 architecture
 
+## Fitness service (D-128)
+
+`FitnessService` uses the existing SQLite connection and injected household clock, shared Zod wire
+schemas and pure core schedule/streak functions. Effective-dated configuration replaces only a
+pending next-day plan, so current/past schedules do not change with later edits. Progress is keyed
+by home/date/person/workout, with compare-and-swap versions and atomic actor-scoped hash-bound
+receipts/audits. Reads calculate bounded seven-day sessions and streaks from retained plan periods
+and completed dates; they do not materialize arbitrary history. Writer leases, module gates, adult
+settings isolation and `fitness.changed` reuse existing infrastructure. React uses lazy routes,
+query invalidation, draft protection and no new dependency, provider, background worker or secret.
+See [FITNESS_CONTRACT.md](FITNESS_CONTRACT.md).
+
 ## Shareable setup boundary (D-127)
 
 The new installer operates only on a fresh private directory and its unique Docker Compose project.

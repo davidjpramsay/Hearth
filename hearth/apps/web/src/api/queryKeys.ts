@@ -11,6 +11,12 @@ export const queryKeys = {
     const runtime = getHearthRuntime();
     return [householdId(runtime), 'daily-verse', runtime.localDate] as const;
   },
+  get fitness() {
+    return [householdId(getHearthRuntime()), 'fitness'] as const;
+  },
+  get fitnessSettings() {
+    return [householdId(getHearthRuntime()), 'fitness-settings'] as const;
+  },
   get morningRoutine() {
     return [householdId(getHearthRuntime()), 'morning-routine'] as const;
   },

@@ -1,5 +1,22 @@
 # Hearth v2 decision record
 
+## D-128 — Personal Fitness plans with scheduled-day streaks
+
+- Date: 2026-11-04
+- Status: user-requested local implementation; release and physical acceptance separate
+- Choice: Optional initially-off Fitness with explicit participants, long-term goals, weekly focus,
+  four activity types and recurring weekday sessions with editable exercise/kg/sets/reps details.
+  The owner chose consecutive scheduled workout days (all sessions completed), with rest days
+  skipped, current/best streak and no early failure of today's unfinished work. TV checks/undo;
+  adult phone setup. No connection to chores or money.
+- History: First plan starts today; later edits start tomorrow and can replace only the pending
+  next-day snapshot. Preserve past/current plans and progress. Atomic versions, scoped exact
+  receipts, safe audit, household timezone and module/access gates use existing infrastructure.
+- Consequences: Migration 0036 and new lazy family/admin routes, no provider/dependency/credential
+  or network change. HA may switch the new module only after deliberate new approval; no workout
+  data/check scope or new navigation command. No live HA/TV/NAS action follows from implementation.
+  [FITNESS_CONTRACT.md](FITNESS_CONTRACT.md) is canonical.
+
 ## D-127 — Make private setup shareable without requiring Home Assistant
 
 Accepted 2026-10-29 at the owner's request. Keep the existing private setup/recovery and screen/adult

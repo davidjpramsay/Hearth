@@ -221,6 +221,7 @@ export function moduleForApiRoute(route: string): ModuleId | null {
   if (/^photo/.test(suffix)) return 'photos';
   if (/^games(?:\/|$)/.test(suffix)) return 'games';
   if (/^nba(?:\/|$)/.test(suffix)) return 'nba';
+  if (/^fitness(?:\/|$)/.test(suffix)) return 'fitness';
   if (/^morning-routine(?:\/|$)/.test(suffix)) return 'morningRoutine';
   if (/^daily-verse(?:\/|$)/.test(suffix)) return 'dailyVerse';
   if (/^notices(?:\/|$)/.test(suffix)) return 'notices';

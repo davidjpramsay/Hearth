@@ -1165,6 +1165,9 @@ export const AuditSummarySchema = z.object({
   actorId: OpaqueIdSchema,
   source: z.enum(['tv', 'companion', 'voice', 'automation', 'sync', 'system']),
   action: z.enum([
+    'fitness.settings.update',
+    'fitness.complete',
+    'fitness.reopen',
     'morning-routine.settings.update',
     'morning-routine.complete',
     'morning-routine.reopen',
@@ -1417,6 +1420,7 @@ export const RealtimeEventSchema = z.object({
     'reminders.changed',
     'modules.changed',
     'nba.changed',
+    'fitness.changed',
     'morning-routine.changed',
   ]),
   householdId: OpaqueIdSchema,

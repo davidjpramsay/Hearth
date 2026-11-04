@@ -90,7 +90,7 @@ class SchemaTests(unittest.TestCase):
         expected = {
             **fixture,
             "permissions": {**fixture["permissions"], "controlModules": False, "moduleIds": list(client.LEGACY_MODULE_IDS)},
-            "modules": {**dict.fromkeys(client.LEGACY_MODULE_IDS, True), "nba": False, "morningRoutine": False},
+            "modules": {**dict.fromkeys(client.LEGACY_MODULE_IDS, True), "nba": False, "morningRoutine": False, "fitness": False},
         }
         self.assertEqual(validated, expected)
 

@@ -1,5 +1,17 @@
 # Hearth v2 domain and data model
 
+## Fitness — migration 0036 (D-128)
+
+Add `fitness` to the fixed household module constraint; missing means off. Three separate tables:
+`fitness_plans` (household, effective local date, increasing revision, validated configuration JSON),
+`fitness_progress` (household/date/member/workout, completed flag, version, updated instant), and
+`fitness_receipts` (household/actor scope/request ID, exact input hash, original result). Foreign
+household references cascade only with the existing household lifecycle; this change deletes no
+existing feature data. Each settings/check/audit/receipt write is transactional. First plan starts
+today; subsequent saves replace tomorrow's pending plan, retaining older periods. Unselected/archived
+people's histories remain. No exercise/goal text is copied into audit summaries. Backups include all
+three tables; rollback to v35 requires its matching database backup. Wire details: FITNESS_CONTRACT.
+
 ## Installation records (D-127)
 
 The portable installer keeps a protected external `installation.json` with format, pinned release,

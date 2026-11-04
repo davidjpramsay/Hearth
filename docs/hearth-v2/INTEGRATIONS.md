@@ -1,5 +1,14 @@
 # Hearth v2 integration contracts
 
+## Fitness boundary (D-128)
+
+Fitness is Hearth-owned and works without Home Assistant or any external service. It exposes no
+HealthKit, wearable, workout upload, calendar event or automatic exercise advice integration.
+The optional HA component 1.5.0 includes a Fitness module switch only for a fresh adult approval
+whose immutable moduleIds includes `fitness`. Existing grants keep their original scope. HA cannot
+read goals/exercises or check workouts; no Fitness navigation tab is added here. Local source changes
+neither install HA files nor reconnect a household. No provider credential or network change.
+
 ## Optional connections and installation (D-127)
 
 Hearth works without HA. Connections explains independent calendar, location-based outdoor weather,

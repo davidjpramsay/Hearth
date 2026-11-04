@@ -1,6 +1,7 @@
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify';
 import { BrowserAccess } from './browser-access.js';
 import { NbaService } from './nba-service.js';
+import { FitnessService } from './fitness-service.js';
 import { MorningRoutineService } from './morning-routine-service.js';
 import { IndoorClimateService, createDemoIndoorService } from './indoor-climate-service.js';
 import { RestIndoorProvider } from './integrations/indoor-climate-provider.js';
@@ -14,6 +15,10 @@ import {
   IndoorSettingsResultSchema,
 } from '@hearth/shared';
 import {
+  FitnessOverviewSchema,
+  FitnessSettingsSchema,
+  UpdateFitnessSettingsSchema,
+  SetFitnessCompletionSchema,
   MorningOverviewSchema,
   MorningSettingsSchema,
   MorningSettingsCommandSchema,
@@ -410,6 +415,7 @@ export interface BuildServerOptions {
   readiness?: () => Promise<void> | void;
   gamesArchive?: GamesArchive;
   nba?: NbaService;
+  fitness?: FitnessService;
   morningRoutine?: MorningRoutineService;
   indoorClimate?: IndoorClimateService;
   nbaBoxScore?: NbaBoxScoreProvider;
@@ -448,6 +454,7 @@ export function buildServer(options: BuildServerOptions = {}): FastifyInstance {
     () => runtime.clock.now(),
   );
   const modules = options.modules ?? new ModulesService(undefined, () => runtime.clock.now());
+  const fitness = options.fitness ?? new FitnessService(undefined, () => runtime.clock.now());
   const morningRoutine =
     options.morningRoutine ?? new MorningRoutineService(undefined, () => runtime.clock.now());
   const moduleLeases = new ModuleRequestLeases();
@@ -2473,6 +2480,66 @@ export function buildServer(options: BuildServerOptions = {}): FastifyInstance {
     });
   });
 
+  server.get('/api/v1/households/:householdId/fitness', async (request, reply) => {
+    reply.header('Cache-Control', 'private, no-store').header('Vary', 'Cookie, Authorization');
+    const params = parse(HouseholdParamsSchema, request.params, reply);
+    if (!params) return reply;
+    return run(reply, async () =>
+      FitnessOverviewSchema.parse(
+        fitness.overview(await adminRepository.getHousehold(params.householdId)),
+      ),
+    );
+  });
+  server.get('/api/v1/households/:householdId/fitness/settings', async (request, reply) => {
+    reply.header('Cache-Control', 'private, no-store').header('Vary', 'Cookie, Authorization');
+    const params = parse(HouseholdParamsSchema, request.params, reply);
+    if (!params) return reply;
+    return run(reply, async () => {
+      const overview = await adminRepository.getOverview(
+        params.householdId,
+        actorId(request.headers, options),
+      );
+      return FitnessSettingsSchema.parse(fitness.getSettings(overview.household));
+    });
+  });
+  server.put('/api/v1/households/:householdId/fitness/settings', async (request, reply) => {
+    reply.header('Cache-Control', 'private, no-store');
+    const params = parse(HouseholdParamsSchema, request.params, reply);
+    const body = parse(UpdateFitnessSettingsSchema, request.body, reply);
+    if (!params || !body) return reply;
+    return run(reply, async () => {
+      const overview = await adminRepository.getOverview(
+        params.householdId,
+        actorId(request.headers, options),
+      );
+      const result = fitness.update(
+        overview.household,
+        body,
+        commandActor(request.headers, options, adminRepository),
+      );
+      if (!result.replayed)
+        realtime.publish(params.householdId, 'fitness.changed', params.householdId);
+      return result;
+    });
+  });
+  server.put('/api/v1/households/:householdId/fitness/completion', async (request, reply) => {
+    reply.header('Cache-Control', 'private, no-store');
+    const params = parse(HouseholdParamsSchema, request.params, reply);
+    const body = parse(SetFitnessCompletionSchema, request.body, reply);
+    if (!params || !body) return reply;
+    return run(reply, async () => {
+      const home = await adminRepository.getHousehold(params.householdId);
+      const result = fitness.complete(
+        home,
+        body,
+        commandActor(request.headers, options, adminRepository),
+      );
+      if (!result.replayed)
+        realtime.publish(params.householdId, 'fitness.changed', params.householdId);
+      return result;
+    });
+  });
+
   server.get('/api/v1/households/:householdId/morning-routine', async (request, reply) => {
     reply.header('Cache-Control', 'private, no-store').header('Vary', 'Cookie, Authorization');
     const params = parse(HouseholdParamsSchema, request.params, reply);
@@ -3734,6 +3801,7 @@ export function buildServer(options: BuildServerOptions = {}): FastifyInstance {
     server.post('/api/v1/demo/reset', async (_request, reply) => {
       modules.reset();
       nba.reset();
+      fitness.reset();
       morningRoutine.reset();
       nbaGames.reset();
       homeAssistantPairings.reset();

@@ -10,6 +10,7 @@ const settingsTitles: Record<string, string> = {
   '/admin/photos': 'Manage photos',
   '/admin/planning': 'Family planning',
   '/admin/routines': 'Routines and chores',
+  '/admin/fitness': 'Fitness',
   '/admin/morning-routine': 'Morning Routine',
   '/admin/chore-day': 'Chores this week',
   '/admin/pocket-money': 'Pocket money',

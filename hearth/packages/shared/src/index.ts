@@ -11,3 +11,4 @@ export * from './modules.js';
 export * from './nba.js';
 export * from './morning-routine.js';
 export * from './photo-uploads.js';
+export * from './fitness.js';

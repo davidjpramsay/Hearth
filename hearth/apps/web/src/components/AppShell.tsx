@@ -27,6 +27,7 @@ interface AdminNavigationItem {
 
 const baseNavigation: NavigationItem[] = [
   { label: 'Today', path: '/today', icon: 'today', enabled: true },
+  { label: 'Fitness', path: '/fitness', icon: 'weights', enabled: true },
   { label: 'Morning', path: '/morning-routine', icon: 'sun', enabled: true },
   { label: 'Calendar', path: '/calendar/agenda', icon: 'calendar', enabled: true },
   { label: 'Weather', path: '/weather', icon: 'cloud-sun', enabled: true },
@@ -53,6 +54,7 @@ const adminNavigationGroups: Array<{ label: string; items: AdminNavigationItem[]
       { label: 'Today', path: '/admin/today', icon: 'today' },
       { label: 'Photos', path: '/admin/photos', icon: 'image' },
       { label: 'NBA teams', path: '/admin/nba', icon: 'basketball' },
+      { label: 'Fitness', path: '/admin/fitness', icon: 'weights' },
       { label: 'Morning Routine', path: '/admin/morning-routine', icon: 'sun' },
       {
         label: 'Planning',
@@ -287,6 +289,7 @@ function PhoneNavigation() {
       '/reminders',
       '/games',
       '/nba',
+      '/fitness',
       '/morning-routine',
     ].includes(pathname);
   return (

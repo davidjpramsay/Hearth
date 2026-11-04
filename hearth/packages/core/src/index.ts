@@ -6,3 +6,4 @@ export * from './home.js';
 export * from './pocket-money.js';
 export * from './appliance-recovery.js';
 export * from './morning-routine.js';
+export * from './fitness.js';

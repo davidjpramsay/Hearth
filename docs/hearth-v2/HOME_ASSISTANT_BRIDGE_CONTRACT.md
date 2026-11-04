@@ -1,5 +1,11 @@
 # Home Assistant → Hearth bridge v1 (D-108)
 
+## Fitness catalogue extension (D-128)
+
+Component 1.5.0 adds only the `fitness` module switch (off by default). Approval accepts up to fourteen
+IDs, without changing frozen legacy IDs or existing grants. No workout read/check or Fitness tab
+command is granted. No new installed component/reconnect is implied by local source verification.
+
 ## Morning Routine extension (D-120)
 
 Component 1.4.0 adds `morning_routine` → `/morning-routine` and module `morningRoutine` (off by

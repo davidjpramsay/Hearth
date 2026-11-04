@@ -1,5 +1,15 @@
 # Hearth v2 product specification
 
+## Fitness (D-128)
+
+Add optional Fitness for explicitly selected family members. Adult phones manage long-term goals,
+weekly focus, recurring weekday workouts and ordered exercise details (kg, sets, reps). Shared screens
+can check/undo today's sessions. Running, swimming, weights and fitness class have distinct icons
+and text labels. Streaks count consecutive scheduled days with every session completed, skipping rest
+days; no chores/earnings coupling or ranking. First setup begins today; later plan edits begin tomorrow
+to preserve historical streaks. Household-visible content, no wearable/health provider or prescription.
+See [the canonical contract](FITNESS_CONTRACT.md).
+
 ## Shareable private setup (D-127)
 
 Core family features work without Home Assistant. Offer a guided fresh-server installer, a private

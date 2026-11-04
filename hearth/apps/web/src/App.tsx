@@ -20,6 +20,12 @@ const NbaScreen = lazy(async () => ({ default: (await import('./screens/NbaScree
 const CreditsScreen = lazy(async () => ({
   default: (await import('./screens/CreditsScreen')).CreditsScreen,
 }));
+const FitnessScreen = lazy(async () => ({
+  default: (await import('./screens/FitnessScreen')).FitnessScreen,
+}));
+const FitnessSettingsScreen = lazy(async () => ({
+  default: (await import('./screens/FitnessSettingsScreen')).FitnessSettingsScreen,
+}));
 const MorningRoutineScreen = lazy(async () => ({
   default: (await import('./screens/MorningRoutineScreen')).MorningRoutineScreen,
 }));
@@ -216,6 +222,7 @@ export function App() {
             <Route path="/credits" element={<CreditsScreen />} />
             <Route path="/games" element={<GamesScreen />} />
             <Route path="/nba" element={<NbaScreen />} />
+            <Route path="/fitness" element={<FitnessScreen />} />
             <Route path="/morning-routine" element={<MorningRoutineScreen />} />
             <Route path="/appearance" element={<AppearanceSettingsScreen />} />
             <Route path="/admin/appearance" element={<Navigate replace to="/appearance" />} />
@@ -234,6 +241,7 @@ export function App() {
                 path="/admin/connections/indoor-sensors"
                 element={<IndoorSensorsSettingsScreen />}
               />
+              <Route path="/admin/fitness" element={<FitnessSettingsScreen />} />
               <Route path="/admin/morning-routine" element={<MorningRoutineSettingsScreen />} />
               <Route path="/admin/household" element={<HouseholdSettingsScreen />} />
               <Route path="/admin/people" element={<PeopleSettingsScreen />} />
