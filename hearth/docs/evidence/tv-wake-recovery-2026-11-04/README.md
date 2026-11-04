@@ -1,8 +1,10 @@
 # TV wake/start recovery — 4 November 2026
 
 Local branch `codex/tv-wake-recovery`, based on `e7a84e2` (the pending Games footer removal).
-Native version **0.1.3 / code 4**. This is local build/browser/emulator proof, not an installation
-or a reproduction of the household TV's wake-time network delay.
+Native version **0.1.3 / code 4**. This page records the original local build/browser/emulator
+checkpoint. The subsequent approved GitHub release, deployment and physical TV installation are
+recorded separately in [the release evidence](RELEASE.md). Neither reproduces the household TV's
+intermittent wake-time network delay.
 
 ## Behaviour
 
@@ -60,7 +62,10 @@ Screenshots contain isolated test UI only. Native outage copy “Fixture unavail
 the fictional server. Text and controls fit the rendered bounds; the native focused action remains
 visible and Right/Left navigation reaches both actions. The phone and TV gates fit their viewports.
 
-## Not run / installation boundary
+## Original local checkpoint / installation boundary
+
+These were the boundaries before the approved rollout; see [RELEASE.md](RELEASE.md) for current
+passed and unverified checks.
 
 - No GitHub push, merge, hosted workflow, NAS deployment, live HA change or physical-TV APK update.
 - No physical standby/wake or Wi-Fi-delay proof, no actual household revocation/certificate test.

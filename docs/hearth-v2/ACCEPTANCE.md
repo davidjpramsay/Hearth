@@ -1,5 +1,23 @@
 # Hearth v2 acceptance and definition of done
 
+## Private release and physical TV update — 2026-11-04
+
+Release `8cb1b244971d76dfe49e2662e700c9138173f2bd` is published on GitHub main and deployed on the
+private NAS after all eight jobs in [run 41753581056](https://github.com/davidjpramsay/hearth-v2/actions/runs/41753581056)
+passed. This includes **1,346 browser tests**, a clean dependency audit, 749 unit tests, 290
+integration tests, 30 migration tests, 69 HA component tests, Android checks and exact image
+publication. External readiness/health/runtime return HTTP 200/private; health matches that SHA.
+The normal bounded updater verified the preserved bridge/DNS policy.
+
+The physical TCL was updated in place to **0.1.3-debug / code 4**, with matching APK hashes and
+unchanged encrypted pairing-file digest. Cold launch, real household render and Home/warm resume
+passed. Left/Right/Back did not crash; individual focus transitions were not captured. After the
+sleep command, ADB became unavailable and remote wake did not restore it. Therefore physical
+deep-standby recovery, final Android power-state readback, delayed-Wi-Fi wake and forced live
+network-loss recovery remain **unverified**, despite passing emulator recovery tests. No alarm,
+music, volume, network setting or household data was changed. File editor was stopped afterward.
+Exact commands, rollback and limitations: [release evidence](../../hearth/docs/evidence/tv-wake-recovery-2026-11-04/RELEASE.md).
+
 ## Release dependency gate — 2026-11-04
 
 The first published wake-recovery candidate `cd57dd9` was blocked before release publication by
@@ -12,7 +30,7 @@ compatibility, expansion bounds and continued accessibility-rule enforcement. In
 run: 10/10 security-dependency tests and clean `pnpm audit:dependencies`; full release results follow
 in the approved deployment evidence. Details: [dependency patch](../../hearth/patches/README.md).
 
-## TV wake/start recovery — local, 2026-11-04
+## TV wake/start recovery — original local checkpoint, 2026-11-04
 
 Native 0.1.3 / code 4 now uses a foreground-only five-attempt/30-second recovery window for
 transient validation and page failures. Pause/Back cancel scheduled work, late callbacks are rejected,
@@ -31,9 +49,10 @@ production builds and no-HA fresh boot); Android 28 JVM tests, both lint variant
 checks; CI policy/shard inventory and `git diff --check`. Native lint has 19 non-blocking warnings
 per variant, zero errors. Screenshots visually inspected at 390px phone and 1920px TV/native UI.
 
-**Not run:** full 1,346-browser suite, GitHub publication, deployment, physical-TV install or a real
+**Not run at this original checkpoint:** full 1,346-browser suite, GitHub publication, deployment, physical-TV install or a real
 standby/wake reproduction. The user's symptom remains consistent with delayed network readiness,
 not a captured physical diagnosis. Existing household devices and networking were untouched.
+The approved release evidence above supersedes these original publication/installation boundaries.
 See [exact commands, results and screenshots](../../hearth/docs/evidence/tv-wake-recovery-2026-11-04/README.md).
 
 ## Indoor chart copy cleanup — local, 2026-10-30
