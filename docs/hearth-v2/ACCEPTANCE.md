@@ -1,5 +1,17 @@
 # Hearth v2 acceptance and definition of done
 
+## Fitness release gate — 2026-11-04
+
+The owner approved publication and private deployment. Initial hosted run
+[41797787517](https://github.com/davidjpramsay/hearth-v2/actions/runs/41797787517) passed
+Web/server, Android and Synology image checks, but stopped at an ambiguous older Calendar test:
+the phone More menu now intentionally has both the Connections puzzle and Connections settings.
+The candidate was not deployed. The test now checks their separate focus IDs, accessible labels
+and destinations. Both the changed Calendar check and existing service-settings navigation passed
+locally: `pnpm test:e2e:built tests/e2e/calendar.spec.ts tests/e2e/admin.spec.ts --grep
+'phone Calendar exposes|Connections contains only'` (**2 passed**). No application behaviour,
+assertion threshold or workflow gate was relaxed. Final hosted and live evidence follows separately.
+
 ## Fitness demonstrations — D-129, local proof 2026-11-04
 
 Implemented reusable adult exercise library, private optional MP4s, explicit plan references,
