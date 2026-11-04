@@ -1,0 +1,23 @@
+diff --git a/dist/commonjs/index.js b/dist/commonjs/index.js
+index ec1981d9a738ecf28d63190e27506ff0e600bf79..98a315e1e88b6268b010ca097b018d7c5fc763e9 100644
+--- a/dist/commonjs/index.js
++++ b/dist/commonjs/index.js
+@@ -1509,4 +1509,6 @@ Object.defineProperty(exports, "unescape", { enumerable: true, get: function ()
+ exports.minimatch.Minimatch = Minimatch;
+ exports.minimatch.escape = escape_js_1.escape;
+ exports.minimatch.unescape = unescape_js_1.unescape;
++// Retain legacy callable require() for the existing ESLint/accessibility tools.
++module.exports = Object.assign(exports.minimatch, exports);
+ //# sourceMappingURL=index.js.map
+\ No newline at end of file
+diff --git a/dist/esm/index.js b/dist/esm/index.js
+index ab804c2db6951836630594a59844233756d3957c..2df4c6ead4d1dd630cf514d90a7bdc59c50e4460 100644
+--- a/dist/esm/index.js
++++ b/dist/esm/index.js
+@@ -1498,4 +1498,6 @@ export { unescape } from './unescape.js';
+ minimatch.Minimatch = Minimatch;
+ minimatch.escape = escape;
+ minimatch.unescape = unescape;
++// Retain the legacy default import; all named exports stay available.
++export default minimatch;
+ //# sourceMappingURL=index.js.map

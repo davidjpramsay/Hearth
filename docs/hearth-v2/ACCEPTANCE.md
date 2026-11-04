@@ -1,5 +1,17 @@
 # Hearth v2 acceptance and definition of done
 
+## Release dependency gate — 2026-11-04
+
+The first published wake-recovery candidate `cd57dd9` was blocked before release publication by
+hosted run `41752393110`: two transitive minimatch copies were covered by
+[GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249). No failed release was deployed.
+The corrected dependency tree uses upstream 11.0.1 plus a four-line export-compatibility patch for
+existing lint tooling, with no changes to the upstream security logic or the audit threshold.
+The Docker build copies the tracked patch before installing. Three regressions cover import
+compatibility, expansion bounds and continued accessibility-rule enforcement. Initial focused
+run: 10/10 security-dependency tests and clean `pnpm audit:dependencies`; full release results follow
+in the approved deployment evidence. Details: [dependency patch](../../hearth/patches/README.md).
+
 ## TV wake/start recovery — local, 2026-11-04
 
 Native 0.1.3 / code 4 now uses a foreground-only five-attempt/30-second recovery window for

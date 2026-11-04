@@ -1,4 +1,6 @@
 import { createRequire } from 'node:module';
+import { pathToFileURL } from 'node:url';
+import { Linter, type ESLint } from 'eslint';
 import { describe, expect, it } from 'vitest';
 
 interface UriParts {
@@ -17,6 +19,50 @@ interface UriParser {
 // Exercise both installed majors at their real dependency boundary, not a test-only copy.
 const require = createRequire(import.meta.url);
 const fastify = createRequire(require.resolve('fastify'));
+describe('patched lint glob dependency', () => {
+  const eslint = createRequire(require.resolve('eslint'));
+  const glob = eslint('minimatch') as {
+    (path: string, pattern: string): boolean;
+    minimatch(path: string, pattern: string): boolean;
+    Minimatch: new (
+      pattern: string,
+      options: { optimizationLevel: number; braceExpandMax: number },
+    ) => { globParts: string[][] };
+  };
+  it('uses the upstream fix with both old callable and new named imports', async () => {
+    expect(eslint('minimatch/package.json').version).toBe('11.0.1');
+    expect(glob('src/app.ts', '**/*.ts')).toBe(true);
+    expect(glob.minimatch('src/app.js', '**/*.ts')).toBe(false);
+    const entry = new URL(
+      './dist/esm/index.js',
+      pathToFileURL(eslint.resolve('minimatch/package.json')),
+    );
+    const esm = await import(entry.href);
+    expect(esm.default).toBe(esm.minimatch);
+    expect(esm.default('src/app.ts', '**/*.ts')).toBe(true);
+  });
+  it('keeps upstream amplification limits in force', () => {
+    const result = new glob.Minimatch('**/../a/b/'.repeat(12) + '*', {
+      optimizationLevel: 2,
+      braceExpandMax: 64,
+    });
+    expect(result.globParts.length).toBeLessThanOrEqual(64);
+  });
+  it('still checks accessible labels with wildcard custom controls', () => {
+    const lint = new Linter();
+    const config: Linter.Config = {
+      languageOptions: { parserOptions: { ecmaFeatures: { jsx: true } } },
+      plugins: { 'jsx-a11y': require('eslint-plugin-jsx-a11y') as ESLint.Plugin },
+      rules: { 'jsx-a11y/label-has-associated-control': ['error', { controlComponents: ['My*'] }] },
+    };
+    expect(lint.verify('const App = () => <label>Child <MyInput /></label>', config)).toHaveLength(
+      0,
+    );
+    expect(
+      lint.verify('const App = () => <label>Child</label>', config).map((m) => m.ruleId),
+    ).toContain('jsx-a11y/label-has-associated-control');
+  });
+});
 describe('build/test source-map dependency', () => {
   it('uses the patched consumer and preserves ordinary source mappings', () => {
     const vitest = createRequire(require.resolve('vitest'));

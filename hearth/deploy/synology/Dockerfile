@@ -10,6 +10,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 RUN corepack enable && corepack prepare pnpm@10.33.2 --activate
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
+COPY patches patches
 COPY apps/server/package.json apps/server/package.json
 COPY apps/web/package.json apps/web/package.json
 COPY packages/core/package.json packages/core/package.json
