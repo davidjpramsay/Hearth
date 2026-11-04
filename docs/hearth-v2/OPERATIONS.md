@@ -1,5 +1,18 @@
 # Hearth v2 local environment and operations plan
 
+## Public product website (D-130)
+
+The GitHub Pages site is built only from `hearth/site/` by `.github/workflows/pages.yml`.
+`node hearth/scripts/verify-public-site.mjs <empty-staging-directory>` validates a fixed file
+allowlist and copies only those public files. The deployment job has Pages/OIDC permission only
+on main; no NAS or household secret is configured. Enable repository Pages with GitHub Actions as
+the source. Changes to the site, validator or workflow on main publish that static artifact.
+
+Rollback by reverting the website commit and allowing Pages to publish the prior static files.
+This does not update, roll back or expose a private Hearth installation. Keep the `hearth-v2`
+repository and existing image package names until the coordinated rename plan in
+[PUBLIC_RELEASE_READINESS.md](PUBLIC_RELEASE_READINESS.md) is explicitly approved and verified.
+
 ## Fitness demonstration setup and storage (D-129)
 
 After an approved release, an adult opens Fitness settings → Exercise library, saves an exercise

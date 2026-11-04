@@ -1031,12 +1031,15 @@ target CPU architecture, rather than trusting a prebuilt binary from a different
 GitHub Actions verifies that `linux/amd64` compilation alongside the code and Android gates.
 Four isolated single-worker browser shards test the same run's compiled application; each uses a
 disposable demo database, never private data or a shared live development server. Only after every
-gate succeeds does the cache-backed publisher publish the server/web images to private GitHub
+gate succeeds does the cache-backed publisher publish the server/web images to public GitHub
 Container Registry packages tagged with the full
 Git commit. Production Compose is pull-only; the DS920+ does not install pnpm dependencies or
 compile native code during an ordinary update. A separate Compose override retains source builds
 only as an explicit recovery fallback. Image publication is an outbound package operation and does
 not give GitHub Actions network or credential access to the private household deployment.
+Public package visibility permits installation by other households; it does not expose runtime
+data. The separate `hearth/site/` GitHub Pages preview publishes only allowlisted static assets and
+fictional demo captures, with no household API connection or secret-bearing deployment context.
 `GET /api/v1/health` reports process liveness; `GET /api/v1/readiness` verifies SQLite and the latest
 migration. The stable private hostname and trusted certificate remain commissioning inputs because
 adult phone enrollment is constrained to that origin. See D-031 and D-102.

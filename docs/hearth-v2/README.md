@@ -1,5 +1,12 @@
 # Hearth v2 specifications
 
+## Public sharing
+
+[Public release readiness](PUBLIC_RELEASE_READINESS.md) records the early-release boundary,
+remaining security/setup checks and repository rename plan. The public product name is **Hearth**;
+the repository/image identities remain unchanged. The isolated static preview lives in
+[`hearth/site/`](../../hearth/site/) (D-130).
+
 ## Fitness
 
 [FITNESS_CONTRACT.md](FITNESS_CONTRACT.md) defines D-128: multiple personal goals with their own weekly

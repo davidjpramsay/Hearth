@@ -21,7 +21,7 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ['apps/web/public/hearth-bootstrap.js'],
+    files: ['apps/web/public/hearth-bootstrap.js', 'site/site.js'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'script',

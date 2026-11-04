@@ -1,5 +1,18 @@
 # Hearth v2 decision record
 
+## D-130 — Public Hearth preview, private household runtime
+
+- Date: 2026-11-04. Status: user-requested public README and GitHub Pages website.
+- Use Hearth as the public product name. Preserve `hearth-v2` repository/image identities until a
+  separately approved migration verifies installed updater and rollback compatibility.
+- Publish only an allowlisted static directory with original branding, licensed font and actual
+  fictional-demo screenshots. No backend, private data, credentials, tracking or household links.
+  Pages deployment permissions belong only to its main-branch deployment job. Pull requests can
+  validate but cannot publish. Existing application release gates remain unchanged.
+- Describe an assisted early release with private HTTPS/amd64/operator requirements and optional
+  Home Assistant. A green CI run is not an independent security review or consumer-readiness proof.
+  The owner selected MIT; wider-release gaps are in [PUBLIC_RELEASE_READINESS.md](PUBLIC_RELEASE_READINESS.md).
+
 ## D-129 — Reusable local Fitness demonstrations
 
 - Date: 2026-11-04. Status: user-authorized local implementation; deployment and physical proof open.

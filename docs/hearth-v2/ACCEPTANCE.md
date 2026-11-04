@@ -1,5 +1,16 @@
 # Hearth v2 acceptance and definition of done
 
+## Public website and sharing boundary — 2026-11-04 (D-130)
+
+The public README and static GitHub Pages preview use the Hearth name and the owner-selected MIT
+licence. Preview captures are fictional local demo data. Static-file allowlisting, local assets,
+keyboard gallery controls and responsive layouts at 1440, 820, 390 and 320 CSS pixels passed local
+checks; details are in [public-site evidence](../../hearth/docs/evidence/public-site-2026-11-04/README.md).
+Pages publication is separate from a household application deployment. Existing application
+release gates are unchanged. A public website does not close independent security review, a
+second-household recovery drill or physical-device acceptance gaps; see
+[public release readiness](PUBLIC_RELEASE_READINESS.md).
+
 ## Fitness release gate — 2026-11-04
 
 **Deployed:** application `4168955730e5362b1d9e674479e4290f668e4880`, following all eight hosted
