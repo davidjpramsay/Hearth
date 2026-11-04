@@ -1,3 +1,6 @@
+import { FitnessVideo } from '../components/FitnessVideo';
+import { fitnessLibraryApi } from '../api/fitnessLibrary';
+import type { FitnessLibraryExercise } from '@hearth/shared';
 import { useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { localDateInTimezone } from '@hearth/core';
@@ -300,13 +303,12 @@ function FitnessBoard({
             ) : null}
           </footer>
           {session ? (
-            <FitnessDialog title={session.workout.title} onClose={() => setOpened(null)}>
+            <FitnessWorkoutDialog session={session} onClose={() => setOpened(null)}>
               <p className="fitness-detail-type">
                 <Icon name={fitnessIcon(session.workout.activity)} />
                 {FITNESS_ACTIVITY_LABELS[session.workout.activity]} · {fitnessDate(day!.localDate)}
                 {fitnessTarget(session.workout) ? ` · ${fitnessTarget(session.workout)}` : ''}
               </p>
-              <WorkoutDetails session={session} />
               {feedback}
               {day?.localDate !== data.localDate ? (
                 <p className="fitness-detail-help">Checks are available on the scheduled day.</p>
@@ -324,7 +326,7 @@ function FitnessBoard({
                 <Icon name="check" />
                 {session.isCompleted ? 'Undo completed workout' : 'Mark workout done'}
               </button>
-            </FitnessDialog>
+            </FitnessWorkoutDialog>
           ) : null}
           {peopleOpen ? (
             <FitnessDialog title="Choose a person" onClose={() => setPeopleOpen(false)}>
@@ -463,7 +465,85 @@ function FitnessFeedback({
     </div>
   );
 }
-function WorkoutDetails({ session }: { session: FitnessSession }) {
+function FitnessWorkoutDialog({
+  session,
+  onClose,
+  children,
+}: {
+  session: FitnessSession;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  const library = useQuery({
+    queryKey: queryKeys.fitnessLibrary,
+    queryFn: ({ signal }) => fitnessLibraryApi.get(signal),
+    retry: false,
+  });
+  const [watch, setWatch] = useState<string | null>(null);
+  const opener = useRef<HTMLButtonElement | null>(null);
+  const exercise = library.data?.exercises.find((e) => e.id === watch);
+  const back = () => {
+    setWatch(null);
+    requestAnimationFrame(() => {
+      if (opener.current?.isConnected) opener.current.focus();
+      else document.querySelector<HTMLElement>('.fitness-dialog .fitness-detail-scroll')?.focus();
+    });
+  };
+  return (
+    <FitnessDialog
+      title={watch && exercise ? exercise.name : session.workout.title}
+      closeLabel={watch ? 'Back to exercises' : 'Close'}
+      onClose={watch ? back : onClose}
+      video={watch !== null}
+    >
+      <div hidden={watch !== null} className="fitness-workout-detail-body">
+        <WorkoutDetails
+          session={session}
+          library={library.data?.exercises ?? []}
+          onWatch={(id, button) => {
+            opener.current = button;
+            setWatch(id);
+          }}
+        />
+        {library.isError ? (
+          <p className="fitness-detail-help">
+            Demonstrations could not refresh. Your workout details are still here.{' '}
+            <button
+              type="button"
+              className="button focusable"
+              onClick={() => void library.refetch()}
+            >
+              Retry library
+            </button>
+          </p>
+        ) : null}
+        {children}
+      </div>
+      {watch && !exercise?.demonstration ? (
+        <p role="status">
+          This demonstration was removed. Go back to your exercises; your workout is unchanged.
+        </p>
+      ) : null}
+      {watch && exercise?.demonstration ? (
+        <FitnessVideo
+          key={exercise.demonstration.id}
+          assetId={exercise.demonstration.id}
+          name={exercise.name}
+          instructions={exercise.instructions}
+        />
+      ) : null}
+    </FitnessDialog>
+  );
+}
+function WorkoutDetails({
+  session,
+  library,
+  onWatch,
+}: {
+  session: FitnessSession;
+  library: FitnessLibraryExercise[];
+  onWatch: (id: string, button: HTMLButtonElement) => void;
+}) {
   return (
     <FitnessScrollRegion label="Workout instructions">
       {session.goal ? <p className="fitness-detail-goal">Goal: {session.goal.title}</p> : null}
@@ -481,14 +561,35 @@ function WorkoutDetails({ session }: { session: FitnessSession }) {
             </tr>
           </thead>
           <tbody>
-            {session.workout.exercises.map((e) => (
-              <tr key={e.id}>
-                <th scope="row">{e.name}</th>
-                <td>{e.weightKg ?? '—'}</td>
-                <td>{e.sets ?? '—'}</td>
-                <td>{e.reps ?? '—'}</td>
-              </tr>
-            ))}
+            {session.workout.exercises.map((e) => {
+              const entry = library.find((x) => x.id === e.libraryExerciseId);
+              return (
+                <tr key={e.id}>
+                  <th scope="row">
+                    {entry?.demonstration ? (
+                      <button
+                        className="button focusable fitness-exercise-watch"
+                        type="button"
+                        data-focus-id={`exercise-watch-${e.id}`}
+                        aria-label={`Watch ${e.name} demonstration`}
+                        onClick={(event) => onWatch(entry.id, event.currentTarget)}
+                      >
+                        {e.name}
+                        <small>▶ Demonstration</small>
+                      </button>
+                    ) : (
+                      e.name
+                    )}
+                    {entry?.instructions ? (
+                      <small className="fitness-exercise-instructions">{entry.instructions}</small>
+                    ) : null}
+                  </th>
+                  <td>{e.weightKg ?? '—'}</td>
+                  <td>{e.sets ?? '—'}</td>
+                  <td>{e.reps ?? '—'}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       ) : !session.workout.notes ? (
@@ -507,6 +608,7 @@ function FitnessScrollRegion({ label, children }: { label: string; children: Rea
       role="region"
       aria-label={label}
       onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) return;
         const region = event.currentTarget;
         const down = event.key === 'ArrowDown';
         const up = event.key === 'ArrowUp';
@@ -530,7 +632,11 @@ function FitnessDialog({
   title,
   onClose,
   children,
+  closeLabel = 'Close',
+  video = false,
 }: {
+  closeLabel?: string;
+  video?: boolean;
   title: string;
   onClose: () => void;
   children: React.ReactNode;
@@ -548,7 +654,7 @@ function FitnessDialog({
   return (
     <dialog
       ref={ref}
-      className="fitness-dialog"
+      className={`fitness-dialog${video ? ' fitness-dialog--video' : ''}`}
       aria-labelledby="fitness-detail-title"
       onCancel={(e) => {
         e.preventDefault();
@@ -564,7 +670,7 @@ function FitnessDialog({
           data-focus-id="fitness-close"
           onClick={onClose}
         >
-          Close
+          {closeLabel}
         </button>
       </header>
       {children}

@@ -1165,6 +1165,10 @@ export const AuditSummarySchema = z.object({
   actorId: OpaqueIdSchema,
   source: z.enum(['tv', 'companion', 'voice', 'automation', 'sync', 'system']),
   action: z.enum([
+    'fitness.library.save',
+    'fitness.library.upload',
+    'fitness.library.remove-video',
+    'fitness.library.archive',
     'fitness.settings.update',
     'fitness.complete',
     'fitness.reopen',

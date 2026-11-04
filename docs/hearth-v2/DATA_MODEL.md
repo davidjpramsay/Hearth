@@ -1,5 +1,15 @@
 # Hearth v2 domain and data model
 
+## Fitness demonstration records (D-129)
+
+Migration 0037 adds `fitness_exercise_library` (home/exercise keyed versioned JSON),
+`fitness_library_receipts` (home/actor/request with immutable hash/result) and
+`fitness_library_retired` (deleted IDs cannot acquire new meaning). Plans gain optional nullable
+`libraryExerciseId`, preserving omitted fields and existing snapshots/hashes. Name/kg/sets/reps
+remain in each plan; current shared instructions/clip resolve separately. Safe audit contains no
+exercise contents or filenames. Clips are private generated files in the data volume, not SQLite
+BLOBs. Removing a library entry never cascades into plans, progress or streaks. See FITNESS_CONTRACT.
+
 ## Fitness — migration 0036 (D-128)
 
 Add `fitness` to the fixed household module constraint; missing means off. Three separate tables:

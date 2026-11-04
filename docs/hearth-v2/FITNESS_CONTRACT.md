@@ -81,3 +81,67 @@ phone/tablet/TV light/dark, long/empty/error states and keyboard/D-pad detail/Ba
 published release, private deployment and actual phone/TV acceptance are distinct. Rollback before
 0036 requires the matching pre-upgrade database backup. No runtime/network or deployment change is
 part of local development.
+
+## Exercise demonstrations — D-129
+
+An explicit narrow exception to the general media-player exclusion: Hearth can play adult-uploaded
+exercise demonstrations inside Fitness. No provider search, streaming-service embedding, external
+URL, Jellyfin, Music Assistant, Cast, Android intent, native full-screen playback or HA command is
+added. No clips are preloaded; the committed test MP4 is an original generated test pattern only.
+
+A household owns one reusable library of up to 100 named exercises with optional plain-text
+instructions and one optional clip each. `exercise.libraryExerciseId` is optional/nullable; omission
+stays omitted, preserving earlier plan/receipt hashes. Linking is explicit, never by name. The editor
+copies the library name into the workout; kg/sets/reps remain personal plan values. Selecting a link
+uses the existing first-save/next-day plan boundary. Library instruction/clip replacements apply
+immediately to all references. Removing a library entry/clip preserves plan names, quantities,
+completion history and streaks. Retired IDs cannot be reused; unchanged historical links may remain
+in edited plans but a new invalid/foreign link is rejected. Missing clips fall back to instructions.
+
+Shared schemas: `fitness-library.ts`. Migration 0037 adds library entries, actor-scoped receipt and
+retired-ID tables. `FitnessLibraryService` stores metadata/receipts/audits in SQLite; clips live in
+`fitness-media/` beside the database, inside the existing data volume. Generated names, directory
+mode 0700 and file mode 0600; no original filename or arbitrary path is stored. Metadata commit
+follows writing and flushing the bounded file and directory; transaction failure removes the new file. Successful replacement
+removes old bytes; startup sweeps only generated unreferenced files in that directory. A crash can
+leave an inaccessible orphan until restart. No background worker or extra container mount.
+
+Adult controller commands (all under `/api/v1/households/{householdId}/fitness`):
+
+- `GET /exercises`: household library. `PUT /exercises/{exerciseId}`:
+  `{requestId,expectedVersion,name,instructions}`; version 0 creates.
+- `PUT /exercises/{exerciseId}/demonstration`: raw `video/mp4` with `X-Hearth-Request-Id` and
+  `X-Hearth-Exercise-Version`. Maximum 25 MiB per clip, ten minutes, 512 MiB active clips per home.
+  Container validation accepts a self-contained nonfragmented H.264/avc1 video (up to 3840 px per
+  axis), optional AAC/mp4a audio. It rejects external data references, encrypted/other sample types,
+  malformed box bounds and unsupported tracks. This is bounded structure validation, not decoding
+  or transcoding; browsers can still reject damaged/unsupported bitstreams with a recoverable error.
+- `POST /exercises/{exerciseId}/remove-video` and `/archive`:
+  `{requestId,expectedVersion}`. Return `{exercise,replayed}` (null for archive).
+- `GET`/`HEAD /demonstrations/{assetId}`: household and module gated, same-origin MP4, single byte
+  range 206 or unsatisfiable 416; private/no-store and nosniff. No secret in URLs. Module off blocks
+  every new media request and closes the UI player. Bytes already delivered cannot be recalled.
+
+Mutations authorize adult/household/module before upload allocation, then recheck before execution.
+At most two upload requests in flight per server; 120-second upload deadline. Playback responses have
+an absolute 30-second deadline to bound module leases; range retries support slow/interrupted clients.
+Exact commands hash metadata plus exact uploaded bytes and replay the original receipt; changed
+reuse and stale versions conflict. Files are not duplicated on retry. Every successful new command
+has a content-free audit and `fitness.changed`; no workout completion side effect. No offline queue.
+
+Adult `/admin/fitness/exercises` has create/search/edit, upload/replace/remove, draft protection and
+exact in-memory retry after an ambiguous failure. Reloading loses an in-flight file/request; refresh
+library state before making a new change. Workout editors choose the reusable entry. A connected
+screen has watch-only access. Exercise rows open an in-page dialog with Play/Pause, Replay and Back.
+Explicit playback only, inline on phones, silent with visible written instructions; no autoplay.
+Media events determine control state. Back returns focus/scroll to the same exercise; closing,
+page-hidden or unmount pauses/releases the clip without resuming automatically. Removed clips leave
+a clear Back path. All ordinary instructions remain available without a video.
+
+Backup/rollback: a SQLite-only backup contains metadata, **not** clips. Back up the complete stopped
+data directory including `fitness-media/` for a consistent recoverable library. Portable installer
+checkpoints already copy the complete data tree; Synology's protected update rollback is database
+only, so it is not a demonstration-library backup. Before an approved upgrade take matching full
+media/data backup as well. Do not restore an older metadata database against a newer media tree;
+old referenced files might have been replaced, and startup orphan cleanup follows the restored DB.
+Downgrading below 0037 requires its matching pre-upgrade database/media snapshot.

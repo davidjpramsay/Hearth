@@ -19,6 +19,10 @@ export const activityFilters: Array<{ id: ActivityFilter; label: string }> = [
 ];
 
 const actionPresentations: Record<AuditSummary['action'], ActivityPresentation> = {
+  'fitness.library.save': family('Exercise library updated', 'weights'),
+  'fitness.library.upload': family('Exercise demonstration updated', 'weights'),
+  'fitness.library.remove-video': family('Exercise demonstration removed', 'weights'),
+  'fitness.library.archive': family('Library exercise removed', 'weights'),
   'fitness.settings.update': family('Fitness plan updated', 'weights'),
   'fitness.complete': family('Workout checked', 'weights'),
   'fitness.reopen': family('Workout reopened', 'weights'),

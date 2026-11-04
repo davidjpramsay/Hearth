@@ -1,5 +1,15 @@
 # Hearth v2 television and companion UX specification
 
+## Fitness exercise demonstrations (D-129)
+
+Adult Fitness settings links to Exercise library: search/create a named exercise, add written
+instructions, then optionally upload an MP4. A workout chooses this shared entry explicitly while
+retaining its own quantities. Family workout rows expose a labelled Demonstration button only when
+one exists. One dialog keeps the workout beneath the video panel; Play/Pause and Replay are large
+remote targets, Back restores the exact exercise/scroll, and a second Back closes the workout.
+Clips start only after Play and run silently, with written instructions visible. Show loading and
+recoverable errors without completing or resetting the workout. Ordinary instructions need no clip.
+
 ## Fitness (D-128)
 
 Fitness appears in the TV rail and phone More only while enabled. Select a person, see their goals,

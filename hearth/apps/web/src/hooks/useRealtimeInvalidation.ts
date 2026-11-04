@@ -7,7 +7,7 @@ import { getRealtimeUrl } from '../api/realtime';
 import { hostedReleaseMonitor } from '../runtime/hostedRelease';
 
 export const REALTIME_QUERY_DOMAINS: Record<string, readonly string[]> = {
-  'fitness.changed': ['fitness', 'fitness-settings', 'activity'],
+  'fitness.changed': ['fitness', 'fitness-settings', 'fitness-library', 'activity'],
   'morning-routine.changed': ['morning-routine', 'morning-routine-settings', 'activity'],
   'nba.changed': ['nba', 'nba-settings', 'activity'],
   'modules.changed': [

@@ -1,5 +1,54 @@
 # Hearth v2 acceptance and definition of done
 
+## Fitness demonstrations — D-129, local proof 2026-11-04
+
+Implemented reusable adult exercise library, private optional MP4s, explicit plan references,
+remote Play/Pause/Replay/Back and retained workout/scroll/focus state. Migration 0037 preserves
+plans, progress and earlier request hashes. No real demonstration clip or household setup seeded.
+The sole committed MP4 is an original synthetic test pattern, documented in tests/fixtures/README.md.
+
+Passed in the isolated local Fitness worktree:
+
+- `pnpm verify:code`: format, lint, workspace types, **764 unit tests** (114 shared, 57 core,
+  120 server, 473 web), **309 integration tests**, **32 migration tests**, deployment-scaffold
+  checks, production web/server builds and fresh private backend/setup proof.
+- After final file/directory flush hardening,
+  `pnpm --filter @hearth/server exec vitest run src/fitness-library.integration.test.ts`: **10 passed**;
+  `pnpm --filter @hearth/server build`: passed.
+- `pnpm test:e2e:built tests/e2e/fitness*.spec.ts tests/e2e/modules.spec.ts
+  tests/e2e/menu-focus.spec.ts --max-failures=3 --output=/tmp/hearth-fitness-demonstration-final`:
+  **58 passed**. Includes existing Fitness, module and menu behaviour.
+- After final library input styling and quiet cancellation handling, `pnpm format:check`,
+  `pnpm lint`, `pnpm -r --if-present typecheck`, `pnpm build`, then
+  `pnpm test:e2e:built tests/e2e/fitness-demonstrations.spec.ts
+  --output=/tmp/hearth-fitness-demonstration-polish`: **15 passed**. These overlap the first
+  gate's 14 demonstration cases and add one cancellation/rejected-play case: **59 distinct browser
+  checks across both gates**, not 73 distinct cases.
+- `pnpm verify:ci`: **5 policy tests passed**, **1,390 browser cases inventoried** in disjoint shards.
+  The full 1,390-case browser suite was **not run** locally for this feature.
+- Homebrew `git diff --check`: passed.
+
+Covered durable exact/changed retries, stale edits, unsupported/malformed/oversized clips, storage
+bounds, safe audit, transaction rollback, orphan cleanup, private files, authenticated GET/HEAD/ranges,
+foreign-home/child/screen/mixed/automation/anonymous isolation, module off/on preservation, two people
+reusing one clip, ambiguous upload retry, adult drafts, unavailable/removed clips, actual browser MP4
+decoding, pause/replay, exact Back focus/scroll in a 20-exercise Sunday workout, native presentation
+message/pagehide pause and recoverable rejected/cancelled playback. No playback changes a check.
+
+Browser plugin unavailable; repository Playwright used. Visually inspected current captures in
+`/tmp/hearth-fitness-demonstrations/`: `player-1920-dark.png`, `player-1280-light.png`,
+`player-393-light.png`, `library-phone.png`; additional tablet/light/dark captures are there.
+Automated fitting and axe checks cover player 1920×1080, 1280×720, 393×852 and 768×1024 in both themes.
+Logs: `/tmp/fitness-demonstration-verify.log`, `fitness-demonstration-browser-final2.log`,
+`fitness-demonstration-polish.log`, `fitness-library-durable-final.log`, `fitness-final-*.log` and
+`fitness-demonstration-ci-final.log`.
+
+Failed/blocked: no unresolved local failure. Not run: physical Google TV/iPhone/iPad video playback,
+real-user exercise clips, hosted release verification, push, deployment or live NAS/HA changes.
+No Kotlin changes; native build/device testing is not implied by browser/native-message simulation.
+Before an approved deployment preserve a matching full database/media backup (OPERATIONS/D-129).
+After deployment, test one chosen clip on the actual phone and TV, including suspend/resume and Back.
+
 ## Connections display name — local verification, 2026-11-04
 
 Renamed the Games destination to Connections in the TV rail, phone Family menu, page title,

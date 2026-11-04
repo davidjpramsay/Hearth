@@ -29,6 +29,7 @@ export const FitnessExerciseSchema = z
   .object({
     id: OpaqueIdSchema,
     name: z.string().trim().min(1).max(80),
+    libraryExerciseId: OpaqueIdSchema.nullable().optional(),
     weightKg: z.number().min(0).max(1000).nullable(),
     sets: z.number().int().min(1).max(100).nullable(),
     reps: z.number().int().min(1).max(1000).nullable(),

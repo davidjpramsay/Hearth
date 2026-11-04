@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+import { fitnessLibraryApi } from '../api/fitnessLibrary';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -180,6 +182,9 @@ function FitnessForm({
           </button>
         </div>
       ) : null}
+      <Link className="admin-secondary" to="/admin/fitness/exercises">
+        Exercise library &amp; demonstrations
+      </Link>
       <form className="fitness-settings" onSubmit={(e) => void save(e)}>
         <fieldset disabled={busy || frozen}>
           <legend>Who’s taking part?</legend>
@@ -503,6 +508,11 @@ function WorkoutEditor({
   function exercises(update: (e: FitnessExercise[]) => FitnessExercise[]) {
     change((w) => ({ ...w, exercises: update(w.exercises) }));
   }
+  const library = useQuery({
+    queryKey: queryKeys.fitnessLibrary,
+    queryFn: ({ signal }) => fitnessLibraryApi.get(signal),
+    retry: false,
+  });
   return (
     <details
       className="fitness-workout-editor"
@@ -599,6 +609,43 @@ function WorkoutEditor({
                   }
                 />
               </label>
+              <label>
+                Demonstration / library exercise
+                <select
+                  value={exercise.libraryExerciseId ?? ''}
+                  onChange={(e) => {
+                    const entry = library.data?.exercises.find((x) => x.id === e.target.value);
+                    exercises((items) =>
+                      items.map((x) =>
+                        x.id === exercise.id
+                          ? {
+                              ...x,
+                              libraryExerciseId: entry?.id ?? null,
+                              ...(entry ? { name: entry.name } : {}),
+                            }
+                          : x,
+                      ),
+                    );
+                  }}
+                >
+                  <option value="">None — use workout instructions</option>
+                  {exercise.libraryExerciseId &&
+                  !library.data?.exercises.some((e) => e.id === exercise.libraryExerciseId) ? (
+                    <option value={exercise.libraryExerciseId}>
+                      Saved link (currently unavailable)
+                    </option>
+                  ) : null}
+                  {library.data?.exercises.map((entry) => (
+                    <option key={entry.id} value={entry.id}>
+                      {entry.name}
+                      {entry.demonstration ? ' · video' : ''}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {library.isError ? (
+                <p>Demonstrations could not refresh. Existing links are kept.</p>
+              ) : null}
               <div className="fitness-settings__numbers">
                 {(['weightKg', 'sets', 'reps'] as const).map((field) => (
                   <NumberField

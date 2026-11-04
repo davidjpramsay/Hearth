@@ -1,5 +1,18 @@
 # Hearth v2 decision record
 
+## D-129 — Reusable local Fitness demonstrations
+
+- Date: 2026-11-04. Status: user-authorized local implementation; deployment and physical proof open.
+- Choice: adult-managed household exercise library, optional explicit links from plan exercises,
+  short protected MP4 uploads and an inline remote-friendly silent player. Shared instructions and
+  demonstrations update centrally; personal kg/sets/reps, historical plans and ticks stay unchanged.
+- Boundary: this is the specifically authorized exception to Hearth's general media-player ban.
+  No external player/provider, URL fetching, Cast/native-app launch, new HA control or credential.
+- Storage: migration 0037 and private generated files inside the existing data volume. Bounded
+  uploads, range reads, CAS versions, exact byte-hash receipts, safe audits and module/auth gates.
+  Full matching database/media backups are required; SQLite alone does not back up clips.
+- Canonical details and acceptance limits: [FITNESS_CONTRACT.md](FITNESS_CONTRACT.md#exercise-demonstrations--d-129).
+
 ## D-128 — Personal Fitness plans with scheduled-day streaks
 
 - Date: 2026-11-04

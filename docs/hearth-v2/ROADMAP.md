@@ -1,5 +1,13 @@
 # Hearth v2 implementation roadmap
 
+## Fitness demonstrations (D-129) — requested 2026-11-04
+
+Add and verify reusable exercise library, optional plan links, private bounded uploads/range reads,
+adult-only editing, remote playback/Back and unchanged historical plans/ticks. Keep publication,
+private deployment and physical iPhone/Google TV playback separate open gates. The owner will choose
+actual exercise demonstrations later; no clip sourcing, medical instruction or live household
+configuration is part of this implementation. Canonical behavior: FITNESS_CONTRACT.md.
+
 ## Fitness (D-128) — requested 2026-11-04
 
 Implement the optional end-to-end module: explicit participants, multiple long-term goals with their

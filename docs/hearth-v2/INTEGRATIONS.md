@@ -1,5 +1,13 @@
 # Hearth v2 integration contracts
 
+## Fitness demonstration boundary (D-129)
+
+Optional uploaded exercise MP4 clips are served by Hearth itself with household authentication,
+module gates and byte ranges. This explicit Fitness-only exception does not add a general media
+player, arbitrary remote URLs, external video embeds, Jellyfin/MA/Cast, HA playback or native app
+launch. No external provider credentials or services are needed. The adult supplies clips later;
+codec/size limits and privacy/storage rules are in FITNESS_CONTRACT.md.
+
 ## Fitness boundary (D-128)
 
 Fitness is Hearth-owned and works without Home Assistant or any external service. It exposes no

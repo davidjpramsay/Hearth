@@ -150,6 +150,7 @@ export class FitnessService {
     home: HouseholdSummary,
     input: UpdateFitnessSettings,
     actor: CommandActor,
+    libraryHas: (id: string) => boolean = () => false,
   ): FitnessSettingsResult {
     const member = home.members.find((p) => p.id === actor.id);
     if (
@@ -167,6 +168,26 @@ export class FitnessService {
         );
       if (input.configuration.plans.some((p) => !home.members.some((m) => m.id === p.memberId)))
         throw new RepositoryError('VALIDATION_ERROR', 'Choose people from this home.');
+      const previousLinks = new Set(
+        current.configuration.plans.flatMap((p) =>
+          p.workouts.flatMap((w) =>
+            w.exercises.map((e) => JSON.stringify([p.memberId, w.id, e.id, e.libraryExerciseId])),
+          ),
+        ),
+      );
+      for (const p of input.configuration.plans)
+        for (const w of p.workouts)
+          for (const e of w.exercises) {
+            if (
+              e.libraryExerciseId &&
+              !libraryHas(e.libraryExerciseId) &&
+              !previousLinks.has(JSON.stringify([p.memberId, w.id, e.id, e.libraryExerciseId]))
+            )
+              throw new RepositoryError(
+                'VALIDATION_ERROR',
+                'Choose an exercise from this home’s library.',
+              );
+          }
       const effectiveFrom =
         current.revision === 0 ? this.date(home) : addLocalDays(this.date(home), 1);
       const saved = FitnessPlanVersionSchema.parse({

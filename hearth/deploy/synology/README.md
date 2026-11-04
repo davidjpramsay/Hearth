@@ -25,6 +25,10 @@ Keep source and household state separate:
 Never copy the private directory, credentials or photos into Git, images, commands, chat or another
 household. Calendar, Home Assistant and ESV secrets remain external files. Managed photos and
 SQLite backups live under the restricted data directory.
+Fitness demonstrations (D-129) are separate private files in `data/fitness-media/`. SQLite-only backups
+do not contain those clips. Retain a consistent stopped copy of the whole data directory before
+upgrade or rollback; restore matching database and media together. The protected update helper’s
+database checkpoint alone is not a clip backup. No extra mount or network change is required.
 
 ## Validate locally
 

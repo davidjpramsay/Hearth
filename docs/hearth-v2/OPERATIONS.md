@@ -1,5 +1,21 @@
 # Hearth v2 local environment and operations plan
 
+## Fitness demonstration setup and storage (D-129)
+
+After an approved release, an adult opens Fitness settings → Exercise library, saves an exercise
+and its written instructions, then adds a short H.264 MP4. Choose that entry in each workout’s
+Demonstration selector; personal kg/sets/reps stay in the plan. First setup is today, later plan links
+tomorrow; replacing a shared clip applies immediately. Existing phone/screen pairing is sufficient.
+No provider key, HA, new APK, mount or network rule. Clips play inline and silently on explicit Play.
+
+Clips live in `fitness-media/` beside the database within the existing writable data volume (25 MiB
+per clip, ten minutes, 512 MiB per household, 100 library entries). No runtime transcoding. Back up
+that directory together with a consistent SQLite copy; SQLite-only backups and Synology's protected
+release rollback do not include videos. Portable stopped data checkpoints include them. Before an
+upgrade/rollback, retain matching database and media snapshots. Never restore old metadata over
+newer media files; startup sweeps generated files not referenced by its database. See FITNESS_CONTRACT.
+Physical playback and live setup remain not run; no private release is implied by local checks.
+
 ## Fitness (D-128) — local feature, not yet deployed
 
 Migration 0036 adds Fitness and preserves other modules/data. After an approved verified release,

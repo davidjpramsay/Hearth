@@ -740,3 +740,98 @@
 .fitness-goal-routine small {
   color: var(--muted);
 }
+
+.fitness-workout-detail-body:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+.fitness-workout-detail-body[hidden] {
+  display: none;
+}
+.fitness-screen .fitness-exercise-watch {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.fitness-exercise-watch small {
+  font-size: 0.7em;
+  color: var(--eucalyptus);
+}
+.fitness-exercise-instructions {
+  display: block;
+  font-weight: 400;
+  font-size: 0.75em;
+  white-space: pre-wrap;
+  margin-top: 10px;
+}
+.fitness-dialog--video {
+  width: min(1100px, calc(100% - 48px));
+}
+.fitness-video {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  overflow: auto;
+}
+.fitness-video video {
+  display: block;
+  width: 100%;
+  min-height: 120px;
+  max-height: 52dvh;
+  aspect-ratio: 16/9;
+  object-fit: contain;
+  background: #101713;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+.fitness-video-controls {
+  display: flex;
+  gap: 16px;
+}
+.fitness-video-controls > button {
+  flex: 1;
+}
+.fitness-video-status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 18px;
+}
+.fitness-video-instructions {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 22px;
+}
+@media (max-width: 1199px) {
+  .fitness-dialog--video {
+    width: calc(100% - 24px);
+  }
+  .fitness-video-status {
+    font-size: 14px;
+  }
+  .fitness-video-instructions {
+    font-size: 18px;
+  }
+  .fitness-dialog--video > header {
+    align-items: flex-start;
+  }
+}
+
+.fitness-video-instructions {
+  max-height: 120px;
+  overflow: auto;
+  min-height: 28px;
+  padding: 4px;
+  flex-shrink: 0;
+}
+.fitness-video-instructions:focus {
+  outline: 3px solid var(--eucalyptus);
+  outline-offset: -3px;
+}

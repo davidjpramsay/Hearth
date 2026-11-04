@@ -1,5 +1,17 @@
 # Hearth v2 architecture
 
+## Fitness exercise library (D-129)
+
+`FitnessLibraryService` adds separately versioned reusable instructions/clip metadata and private
+files beside SQLite; migration 0037 adds receipts and retired IDs. `FitnessService` validates new
+library links inside its existing exact-retry transaction. The optional stored field has no parser
+default, so earlier hashes remain valid. Same-origin range transport is household/module gated;
+adult-only writes use bounded raw MP4, immutable hashes and content-free transactional audit.
+The React library route stays behind adult/module guards; one workout dialog swaps to a silent
+inline player and preserves its exercise DOM/scroll. Media events drive Play/Pause; Back restores
+focus. No new provider, runtime dependency, background work or native TV bridge. See D-129 and
+[FITNESS_CONTRACT.md](FITNESS_CONTRACT.md) for limits, deletion, backup and error semantics.
+
 ## Fitness service (D-128)
 
 `FitnessService` uses the existing SQLite connection and injected household clock, shared Zod wire

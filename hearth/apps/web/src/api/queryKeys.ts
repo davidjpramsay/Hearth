@@ -14,6 +14,9 @@ export const queryKeys = {
   get fitness() {
     return [householdId(getHearthRuntime()), 'fitness'] as const;
   },
+  get fitnessLibrary() {
+    return [householdId(getHearthRuntime()), 'fitness-library'] as const;
+  },
   get fitnessSettings() {
     return [householdId(getHearthRuntime()), 'fitness-settings'] as const;
   },

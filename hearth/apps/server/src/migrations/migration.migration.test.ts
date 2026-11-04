@@ -42,7 +42,7 @@ describe('0036 Fitness module', () => {
       for (const table of ['fitness_plans', 'fitness_progress', 'fitness_receipts'])
         expect(database.prepare(`SELECT * FROM ${table}`).all()).toEqual([]);
       expect(database.prepare('SELECT max(version) AS n FROM schema_migrations').get()).toEqual({
-        n: 36,
+        n: 37,
       });
       expect(database.pragma('foreign_key_check')).toEqual([]);
       database
@@ -197,7 +197,7 @@ describe('0031 additive connection codes', () => {
       database.prepare('SELECT count(*) AS n FROM controller_phone_invitation_codes').get(),
     ).toEqual({ n: 0 });
     expect(database.prepare('SELECT max(version) AS n FROM schema_migrations').get()).toEqual({
-      n: 36,
+      n: 37,
     });
     expect(database.pragma('foreign_key_check')).toEqual([]);
     database.close();
@@ -1529,4 +1529,36 @@ describe('0001 household core migration', () => {
     expect(database.pragma('foreign_keys', { simple: true })).toBe(1);
     database.close();
   });
+});
+
+it('0037 adds an empty demonstration library without rewriting Fitness plans, checks or receipts', () => {
+  const db = new Database(':memory:');
+  try {
+    for (const file of readdirSync(fileURLToPath(new URL('.', import.meta.url)))
+      .filter((file) => /^\d{4}_.*\.sql$/.test(file) && Number(file.slice(0, 4)) <= 36)
+      .sort())
+      db.exec(readFileSync(new URL(file, import.meta.url), 'utf8'));
+    db.exec(`INSERT INTO households VALUES ('household_kept','Kept','Australia/Perth','en-AU',1,'now','now');
+      INSERT INTO fitness_plans VALUES ('household_kept','2026-11-04',1,'{"selectedMemberIds":[],"plans":[]}');
+      INSERT INTO fitness_progress VALUES ('household_kept','2026-11-04','member_kept','workout_kept',1,2,'now');
+      INSERT INTO fitness_receipts VALUES ('household_kept','member:kept','request_kept','unchanged-hash','{}');`);
+    const before = ['fitness_plans', 'fitness_progress', 'fitness_receipts'].map((table) =>
+      db.prepare(`SELECT * FROM ${table}`).all(),
+    );
+    applyMigrations(db);
+    expect(
+      ['fitness_plans', 'fitness_progress', 'fitness_receipts'].map((table) =>
+        db.prepare(`SELECT * FROM ${table}`).all(),
+      ),
+    ).toEqual(before);
+    for (const table of [
+      'fitness_exercise_library',
+      'fitness_library_receipts',
+      'fitness_library_retired',
+    ])
+      expect(db.prepare(`SELECT count(*) n FROM ${table}`).get()).toEqual({ n: 0 });
+    expect(db.prepare('SELECT max(version) n FROM schema_migrations').get()).toEqual({ n: 37 });
+  } finally {
+    db.close();
+  }
 });

@@ -23,6 +23,9 @@ const CreditsScreen = lazy(async () => ({
 const FitnessScreen = lazy(async () => ({
   default: (await import('./screens/FitnessScreen')).FitnessScreen,
 }));
+const FitnessLibraryScreen = lazy(async () => ({
+  default: (await import('./screens/FitnessLibraryScreen')).FitnessLibraryScreen,
+}));
 const FitnessSettingsScreen = lazy(async () => ({
   default: (await import('./screens/FitnessSettingsScreen')).FitnessSettingsScreen,
 }));
@@ -242,6 +245,7 @@ export function App() {
                 element={<IndoorSensorsSettingsScreen />}
               />
               <Route path="/admin/fitness" element={<FitnessSettingsScreen />} />
+              <Route path="/admin/fitness/exercises" element={<FitnessLibraryScreen />} />
               <Route path="/admin/morning-routine" element={<MorningRoutineSettingsScreen />} />
               <Route path="/admin/household" element={<HouseholdSettingsScreen />} />
               <Route path="/admin/people" element={<PeopleSettingsScreen />} />

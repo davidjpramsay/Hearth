@@ -1,5 +1,14 @@
 # Hearth v2 product specification
 
+## Fitness demonstrations (D-129)
+
+Adults may attach one optional demonstration and written instructions to a reusable household
+exercise. A workout keeps its own weight, sets and reps. Selecting its exercise opens a clean inline
+silent video with Play/Pause, Replay and Back on phone or TV; Back keeps the exercise and workout
+unchanged. No video is required for instructions or completion. This is a narrow approved exception
+to the exclusion of general media playback, with no streaming-provider integration or HA dependency.
+See FITNESS_CONTRACT.md; no real demonstration content is seeded.
+
 ## Fitness (D-128)
 
 Add optional Fitness for explicitly selected family members. Adult phones manage up to five long-term goals

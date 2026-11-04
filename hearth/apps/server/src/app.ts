@@ -1,3 +1,12 @@
+import { FitnessLibraryService } from './fitness-library-service.js';
+import { fitnessByteRange } from './fitness-media.js';
+import {
+  MAX_FITNESS_CLIP_BYTES,
+  FitnessLibrarySchema,
+  FitnessLibraryCommandSchema,
+  FitnessLibraryResultSchema,
+  SaveFitnessLibraryExerciseSchema,
+} from '@hearth/shared';
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify';
 import { BrowserAccess } from './browser-access.js';
 import { NbaService } from './nba-service.js';
@@ -416,6 +425,7 @@ export interface BuildServerOptions {
   gamesArchive?: GamesArchive;
   nba?: NbaService;
   fitness?: FitnessService;
+  fitnessLibrary?: FitnessLibraryService;
   morningRoutine?: MorningRoutineService;
   indoorClimate?: IndoorClimateService;
   nbaBoxScore?: NbaBoxScoreProvider;
@@ -454,6 +464,7 @@ export function buildServer(options: BuildServerOptions = {}): FastifyInstance {
     () => runtime.clock.now(),
   );
   const modules = options.modules ?? new ModulesService(undefined, () => runtime.clock.now());
+  const fitnessLibrary = options.fitnessLibrary ?? new FitnessLibraryService();
   const fitness = options.fitness ?? new FitnessService(undefined, () => runtime.clock.now());
   const morningRoutine =
     options.morningRoutine ?? new MorningRoutineService(undefined, () => runtime.clock.now());
@@ -562,6 +573,9 @@ export function buildServer(options: BuildServerOptions = {}): FastifyInstance {
             redact: [...LOGGER_REDACT_PATHS],
           },
   });
+  server.addContentTypeParser('video/mp4', { parseAs: 'buffer' }, (_request, body, done) =>
+    done(null, body),
+  );
   server.addContentTypeParser(/^image\/.*/i, { parseAs: 'buffer' }, (_request, body, done) => {
     done(null, body);
   });
@@ -2480,6 +2494,167 @@ export function buildServer(options: BuildServerOptions = {}): FastifyInstance {
     });
   });
 
+  const fitnessExerciseParams = HouseholdParamsSchema.extend({ exerciseId: OpaqueIdSchema });
+  const fitnessAssetParams = HouseholdParamsSchema.extend({ assetId: OpaqueIdSchema });
+  const libraryResult = (home: string, result: unknown) => {
+    const parsed = FitnessLibraryResultSchema.parse(result);
+    if (!parsed.replayed) realtime.publish(home, 'fitness.changed', home);
+    return parsed;
+  };
+  server.get('/api/v1/households/:householdId/fitness/exercises', async (request, reply) => {
+    reply.header('Cache-Control', 'private, no-store').header('Vary', 'Cookie, Authorization');
+    const params = parse(HouseholdParamsSchema, request.params, reply);
+    if (!params) return reply;
+    return run(reply, async () => {
+      await adminRepository.getHousehold(params.householdId);
+      return FitnessLibrarySchema.parse({ exercises: fitnessLibrary.list(params.householdId) });
+    });
+  });
+  server.put(
+    '/api/v1/households/:householdId/fitness/exercises/:exerciseId',
+    async (request, reply) => {
+      reply.header('Cache-Control', 'private, no-store');
+      const params = parse(fitnessExerciseParams, request.params, reply);
+      const body = parse(SaveFitnessLibraryExerciseSchema, request.body, reply);
+      if (!params || !body) return reply;
+      return run(reply, async () => {
+        const actor = commandActor(request.headers, options, adminRepository);
+        const home = (
+          await adminRepository.getOverview(params.householdId, actorId(request.headers, options))
+        ).household;
+        return libraryResult(
+          home.id,
+          fitnessLibrary.change(home, params.exerciseId, body, actor, 'save'),
+        );
+      });
+    },
+  );
+  for (const action of ['remove-video', 'archive'] as const)
+    server.post(
+      `/api/v1/households/:householdId/fitness/exercises/:exerciseId/${action}`,
+      async (request, reply) => {
+        reply.header('Cache-Control', 'private, no-store');
+        const params = parse(fitnessExerciseParams, request.params, reply);
+        const body = parse(FitnessLibraryCommandSchema, request.body, reply);
+        if (!params || !body) return reply;
+        return run(reply, async () => {
+          const actor = commandActor(request.headers, options, adminRepository);
+          const home = (
+            await adminRepository.getOverview(params.householdId, actorId(request.headers, options))
+          ).household;
+          return libraryResult(
+            home.id,
+            fitnessLibrary.change(home, params.exerciseId, body, actor, action),
+          );
+        });
+      },
+    );
+  let fitnessUploads = 0;
+  server.put(
+    '/api/v1/households/:householdId/fitness/exercises/:exerciseId/demonstration',
+    {
+      bodyLimit: MAX_FITNESS_CLIP_BYTES,
+      onRequest: async (request, reply) => {
+        const params = parse(fitnessExerciseParams, request.params, reply);
+        if (!params) return reply;
+        await run(reply, async () => {
+          assertControllerRequest(request.headers);
+          const actor = commandActor(request.headers, options, adminRepository);
+          if (actor.type !== 'member' || actor.source !== 'companion')
+            throw new RepositoryError(
+              'FORBIDDEN',
+              'Only an adult controller can upload demonstrations.',
+            );
+          await adminRepository.getOverview(params.householdId, actorId(request.headers, options));
+          modules.assertEnabled(params.householdId, 'fitness');
+          if (fitnessUploads >= 2)
+            throw new RepositoryError(
+              'COMMAND_FAILED',
+              'Another demonstration is uploading. Try again shortly.',
+              true,
+            );
+          fitnessUploads++;
+          let finished = false;
+          const release = () => {
+            if (!finished) {
+              finished = true;
+              fitnessUploads--;
+            }
+          };
+          reply.raw.once('close', release);
+          reply.raw.once('finish', release);
+          request.raw.once('aborted', release);
+          const uploadDeadline = setTimeout(() => {
+            release();
+            request.raw.destroy();
+          }, 120_000);
+          uploadDeadline.unref();
+          reply.raw.once('close', () => clearTimeout(uploadDeadline));
+          reply.raw.once('finish', () => clearTimeout(uploadDeadline));
+        });
+        if (reply.sent) return reply;
+      },
+    },
+    async (request, reply) => {
+      reply.header('Cache-Control', 'private, no-store');
+      const params = parse(fitnessExerciseParams, request.params, reply);
+      const input = parse(
+        FitnessLibraryCommandSchema,
+        {
+          requestId: request.headers['x-hearth-request-id'],
+          expectedVersion: /^\d+$/.test(String(request.headers['x-hearth-exercise-version']))
+            ? Number(request.headers['x-hearth-exercise-version'])
+            : -1,
+        },
+        reply,
+      );
+      if (!params || !input) return reply;
+      return run(reply, async () => {
+        if (request.headers['content-type'] !== 'video/mp4' || !Buffer.isBuffer(request.body))
+          throw new RepositoryError('VALIDATION_ERROR', 'Choose an H.264 MP4 demonstration.');
+        const actor = commandActor(request.headers, options, adminRepository);
+        const home = (
+          await adminRepository.getOverview(params.householdId, actorId(request.headers, options))
+        ).household;
+        return libraryResult(
+          home.id,
+          fitnessLibrary.change(home, params.exerciseId, input, actor, 'upload', request.body),
+        );
+      });
+    },
+  );
+  server.get(
+    '/api/v1/households/:householdId/fitness/demonstrations/:assetId',
+    async (request, reply) => {
+      const params = parse(fitnessAssetParams, request.params, reply);
+      if (!params) return reply;
+      return run(reply, async () => {
+        await adminRepository.getHousehold(params.householdId);
+        const asset = fitnessLibrary.asset(params.householdId, params.assetId);
+        const range = fitnessByteRange(request.headers.range, asset.byteLength);
+        reply
+          .header('Cache-Control', 'private, no-store')
+          .header('Vary', 'Cookie, Authorization')
+          .header('Accept-Ranges', 'bytes')
+          .header('X-Content-Type-Options', 'nosniff')
+          .type('video/mp4');
+        if (range === 'invalid')
+          return reply.code(416).header('Content-Range', `bytes */${asset.byteLength}`).send();
+        const start = range?.start ?? 0,
+          end = range?.end ?? asset.byteLength - 1;
+        if (range)
+          reply.code(206).header('Content-Range', `bytes ${start}-${end}/${asset.byteLength}`);
+        reply.header('Content-Length', end - start + 1);
+        // Bound stalled clients so a module-off operation cannot wait on an endless stream.
+        const deadline = setTimeout(() => reply.raw.destroy(), 30_000);
+        deadline.unref();
+        reply.raw.once('close', () => clearTimeout(deadline));
+        reply.raw.once('finish', () => clearTimeout(deadline));
+        return reply.send(asset.read(start, end));
+      });
+    },
+  );
+
   server.get('/api/v1/households/:householdId/fitness', async (request, reply) => {
     reply.header('Cache-Control', 'private, no-store').header('Vary', 'Cookie, Authorization');
     const params = parse(HouseholdParamsSchema, request.params, reply);
@@ -2516,6 +2691,7 @@ export function buildServer(options: BuildServerOptions = {}): FastifyInstance {
         overview.household,
         body,
         commandActor(request.headers, options, adminRepository),
+        (id) => fitnessLibrary.has(params.householdId, id),
       );
       if (!result.replayed)
         realtime.publish(params.householdId, 'fitness.changed', params.householdId);
@@ -3802,6 +3978,7 @@ export function buildServer(options: BuildServerOptions = {}): FastifyInstance {
       modules.reset();
       nba.reset();
       fitness.reset();
+      fitnessLibrary.reset();
       morningRoutine.reset();
       nbaGames.reset();
       homeAssistantPairings.reset();

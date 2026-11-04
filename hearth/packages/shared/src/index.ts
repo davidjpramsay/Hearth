@@ -12,3 +12,5 @@ export * from './nba.js';
 export * from './morning-routine.js';
 export * from './photo-uploads.js';
 export * from './fitness.js';
+
+export * from './fitness-library.js';

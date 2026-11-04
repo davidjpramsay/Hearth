@@ -1,0 +1,54 @@
+.fitness-library-layout {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(0, 2fr);
+  gap: 24px;
+  align-items: start;
+}
+.fitness-library-list,
+.fitness-library-editor {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.fitness-library-layout label {
+  display: grid;
+  gap: 8px;
+}
+.fitness-library-layout input,
+.fitness-library-layout textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.admin-page .fitness-library-list > button {
+  text-align: left;
+  display: grid;
+  gap: 4px;
+  overflow-wrap: anywhere;
+}
+.fitness-library-list > button span {
+  font-size: 0.85em;
+}
+.fitness-library-list > [aria-pressed='true'] {
+  border-color: var(--eucalyptus);
+  background: var(--eucalyptus-soft);
+}
+.fitness-library-editor fieldset {
+  min-width: 0;
+  display: grid;
+  gap: 16px;
+}
+.fitness-library-editor p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 650px) {
+  .fitness-library-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .fitness-library-list {
+    max-height: 260px;
+    overflow: auto;
+    padding: 4px;
+  }
+}

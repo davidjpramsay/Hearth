@@ -13,6 +13,7 @@ import type { RuntimeMode } from '@hearth/shared';
 import { SqliteAdminRepository } from './admin-repository.js';
 import { createApplianceUpdateRepository } from './appliance-update.js';
 import { buildServer } from './app.js';
+import { FitnessLibraryService } from './fitness-library-service.js';
 import { FitnessService } from './fitness-service.js';
 import { MorningRoutineService } from './morning-routine-service.js';
 import { GamesArchive } from './games-archive.js';
@@ -326,6 +327,12 @@ const homeAssistantPairings = new HomeAssistantPairingService(homeAssistantBridg
 
 const server = buildServer({
   fitness: new FitnessService(database, () => clock.now()),
+  fitnessLibrary:
+    databasePath === ':memory:'
+      ? new FitnessLibraryService()
+      : new FitnessLibraryService(database, join(dirname(databasePath), 'fitness-media'), () =>
+          clock.now(),
+        ),
   morningRoutine: new MorningRoutineService(database, () => clock.now()),
   nba: new NbaService(demoMode ? new DemoNbaProvider() : new EspnNbaProvider(), database, () =>
     clock.now(),
