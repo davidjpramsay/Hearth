@@ -111,7 +111,7 @@ class InstallerTests(unittest.TestCase):
                 return {'jobs': [{'name': name, 'conclusion': 'success'} for name in installer.REQUIRED_JOBS]}
             return {'workflow_runs': [{'id': 12, 'head_sha': SHA, 'head_branch': 'main', 'conclusion': 'success'}]}
         self.assertEqual(installer.latest_verified_release(fetch), SHA)
-        self.assertTrue(all(url.startswith('https://api.github.com/repos/davidjpramsay/hearth-v2/') for url in calls))
+        self.assertTrue(all(url.startswith('https://api.github.com/repos/davidjpramsay/Hearth/') for url in calls))
         def incomplete(url):
             if '/jobs?' in url:
                 return {'jobs': []}

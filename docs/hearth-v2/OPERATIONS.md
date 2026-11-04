@@ -1,5 +1,24 @@
 # Hearth v2 local environment and operations plan
 
+## Repository rename compatibility (D-132)
+
+Canonical source is `davidjpramsay/Hearth`; the original is `davidjpramsay/old_hearth`. New Pages
+links use `https://davidjpramsay.github.io/Hearth/`. Update clone remotes with `git remote set-url`
+without renaming a local checkout, private NAS directory, container or GHCR package.
+
+Before renaming GitHub, root-owner maintenance installs only the tested `release-safety.py`
+policy (and an installer copy if one exists), retaining a root-private rollback copy and exact protected
+configuration/firewall digests. Verify the original target hash and that no update is active.
+The policy tries two fixed names without following redirects and pins repository ID 1327675743;
+wrong/reused repositories cannot authorise an install. Keep the existing latest successful main
+workflow and exact commit checks. After rename, verify the installed policy against GitHub,
+private readiness, Pages and unchanged public image availability.
+
+Existing private release-discovery configuration may retain `hearth-v2`: its HTTP client follows
+GitHub’s rename redirect, while privileged verification is independent. Fresh portable installers
+use the canonical name. Re-download an old portable installer before updating; its deliberate
+no-redirect policy does not migrate an already downloaded file automatically.
+
 ## Public product website (D-130)
 
 The GitHub Pages site is built only from `hearth/site/` by `.github/workflows/pages.yml`.
@@ -9,9 +28,9 @@ on main; no NAS or household secret is configured. Enable repository Pages with 
 the source. Changes to the site, validator or workflow on main publish that static artifact.
 
 Rollback by reverting the website commit and allowing Pages to publish the prior static files.
-This does not update, roll back or expose a private Hearth installation. Keep the `hearth-v2`
-repository and existing image package names until the coordinated rename plan in
-[PUBLIC_RELEASE_READINESS.md](PUBLIC_RELEASE_READINESS.md) is explicitly approved and verified.
+This does not update, roll back or expose a private Hearth installation. Repository naming follows
+D-132 and [PUBLIC_RELEASE_READINESS.md](PUBLIC_RELEASE_READINESS.md); existing container image
+package names remain stable.
 
 ## Fitness demonstration setup and storage (D-129)
 

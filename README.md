@@ -3,7 +3,7 @@
 **Your family’s day, together.** A calm family dashboard for your TV, managed from your phone
 and hosted on your own private server. Home Assistant is optional.
 
-[Explore Hearth](https://davidjpramsay.github.io/hearth-v2/) ·
+[Explore Hearth](https://davidjpramsay.github.io/Hearth/) ·
 [Installation guide](hearth/deploy/portable/README.md) ·
 [Release readiness](docs/hearth-v2/PUBLIC_RELEASE_READINESS.md)
 
@@ -67,5 +67,6 @@ private URLs, setup codes or household data in issues.
 Hearth is available under the [MIT licence](LICENSE). Third-party fonts, assets and provider data
 retain their own terms. The licence does not redistribute household content or private credentials.
 
-This is the current **Hearth** application. The `hearth-v2` repository name remains in use for
-installer and update compatibility; a repository rename is a separate migration.
+This is the current **Hearth** application. The original implementation is preserved in
+[`old_hearth`](https://github.com/davidjpramsay/old_hearth). Existing `hearth-v2-server` and
+`hearth-v2-web` container package names are retained for installation and update compatibility.

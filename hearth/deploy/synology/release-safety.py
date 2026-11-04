@@ -13,11 +13,14 @@ import tempfile
 import select
 import time
 import urllib.request
+import urllib.error
 
 CONFIG = Path('/usr/local/etc/hearth-v2')
 STATE = Path('/volume1/.hearth-v2-state')
 COMMIT = re.compile(r'^[0-9a-f]{40}$')
-REPOSITORY = 'davidjpramsay/hearth-v2'
+REPOSITORY = 'davidjpramsay/Hearth'
+LEGACY_REPOSITORY = 'davidjpramsay/hearth-v2'
+REPOSITORY_ID = 1327675743
 
 
 def open_directory(path, trusted=False):
@@ -137,28 +140,49 @@ def protected_write(name, value):
             os.unlink(temporary)
 
 
+class ReleaseRedirectRefused(ValueError):
+    pass
+
+
 class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, *args):
-        raise ValueError('Release verification cannot follow a redirect.')
+        raise ReleaseRedirectRefused('Release verification cannot follow a redirect.')
 
 
 def verify_release(commit):
     if not COMMIT.fullmatch(commit):
         raise ValueError('Expected a full release commit.')
-    url = f'https://api.github.com/repos/{REPOSITORY}/actions/workflows/verify.yml/runs?branch=main&event=push&status=success&per_page=1'
-    request = urllib.request.Request(url, headers={'Accept': 'application/vnd.github+json', 'User-Agent': 'Hearth-root-release-verifier'})
-    with urllib.request.build_opener(NoRedirect).open(request, timeout=15) as response:
-        raw = response.read(1024 * 1024 + 1)
-        if len(raw) > 1024 * 1024:
-            raise ValueError('Release verification response is too large.')
-        runs = json.loads(raw)['workflow_runs']
-    if not runs:
-        raise ValueError('No verified release is available.')
-    run = runs[0]
-    if (run.get('head_sha') != commit or run.get('head_branch') != 'main' or
-            run.get('event') != 'push' or run.get('status') != 'completed' or
-            run.get('conclusion') != 'success' or run.get('repository', {}).get('full_name') != REPOSITORY):
-        raise ValueError('Only the newest successful approved workflow release can be installed.')
+    # Both names are explicit, fixed GitHub endpoints. Never follow a redirect;
+    # immutable identity prevents the original legacy Hearth repository (or a
+    # future reuse of either name) from becoming an installation authority.
+    for repository in (REPOSITORY, LEGACY_REPOSITORY):
+        url = f'https://api.github.com/repos/{repository}/actions/workflows/verify.yml/runs?branch=main&event=push&status=success&per_page=1'
+        request = urllib.request.Request(url, headers={'Accept': 'application/vnd.github+json', 'User-Agent': 'Hearth-root-release-verifier'})
+        try:
+            with urllib.request.build_opener(NoRedirect).open(request, timeout=15) as response:
+                raw = response.read(1024 * 1024 + 1)
+                if len(raw) > 1024 * 1024:
+                    raise ValueError('Release verification response is too large.')
+                runs = json.loads(raw)['workflow_runs']
+        except ReleaseRedirectRefused:
+            continue
+        except urllib.error.HTTPError as error:
+            if error.code == 404:
+                continue
+            raise
+        if not runs:
+            continue
+        run = runs[0]
+        identity = run.get('repository', {})
+        if identity.get('id') != REPOSITORY_ID:
+            continue
+        if (run.get('head_sha') != commit or run.get('head_branch') != 'main' or
+                run.get('event') != 'push' or run.get('status') != 'completed' or
+                run.get('conclusion') != 'success' or
+                identity.get('full_name', '').lower() != repository.lower()):
+            raise ValueError('Only the newest successful approved workflow release can be installed.')
+        return
+    raise ValueError('No verified release from the approved Hearth repository is available.')
 
 
 def snapshot():

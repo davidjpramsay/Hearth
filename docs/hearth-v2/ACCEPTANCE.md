@@ -1,5 +1,23 @@
 # Hearth v2 acceptance and definition of done
 
+## Repository naming migration — 2026-11-05 (D-132)
+
+The owner completed the private maintenance step. Installed verifier SHA-256 is
+`54c9087ba9dd6d0cd85d06601d6e5dee1a10d64589d896c4a912fc21bdf0daa8`; the protected rollback,
+configuration/firewall preservation, private readiness and no-container-restart checks passed.
+
+GitHub now identifies the current repository as `davidjpramsay/Hearth` (unchanged ID 1327675743)
+and the original as `davidjpramsay/old_hearth` (unchanged ID 1174989270). Current and legacy clone
+remotes were updated without renaming local folders, data paths, containers or image packages.
+The installed privileged verifier accepts existing release `24f6a2c` under the canonical name.
+The unchanged `GitHubVerifiedReleaseProvider` with the old configured `hearth-v2` name followed
+GitHub's redirect and returned that same release. Trusted private readiness remained ready/private.
+
+The prepared policy previously passed 10 isolated Linux-root tests and 14 portable installer tests.
+Canonical public links, Pages publication, matching setup downloads, legacy notice/archive and final
+registry/release verification are completed separately from the naming API operations; evidence
+will be recorded with the resulting canonical release. Source and app contracts remain unchanged.
+
 ## Games release preflight — 2026-11-05
 
 The Games release is separated from the pending repository rename. It retains `hearth-v2`, its

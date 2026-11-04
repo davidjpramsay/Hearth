@@ -4,7 +4,8 @@
 
 [Public release readiness](PUBLIC_RELEASE_READINESS.md) records the early-release boundary,
 remaining security/setup checks and repository rename plan. The public product name is **Hearth**;
-the repository/image identities remain unchanged. The isolated static preview lives in
+the canonical repository is `davidjpramsay/Hearth`, with the original preserved as `old_hearth`.
+Existing container image identities remain unchanged (D-132). The isolated static preview lives in
 [`hearth/site/`](../../hearth/site/) (D-130).
 
 ## Fitness

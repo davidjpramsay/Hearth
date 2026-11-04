@@ -1,6 +1,6 @@
 # Public sharing and release readiness
 
-Assessment: 4 November 2026. Product name: **Hearth**. Repository: `davidjpramsay/hearth-v2`.
+Assessment: 4 November 2026; repository naming verified 5 November 2026. Product name: **Hearth**. Repository: `davidjpramsay/Hearth`.
 
 ## Recommendation
 
@@ -57,22 +57,31 @@ access boundary, not a Hearth installation requirement. The official
 [Codex Security documentation](https://learn.chatgpt.com/docs/security/cli) does not establish a
 universal requirement to buy a particular physical key for the checks listed here.
 
-## Repository naming
+## Repository naming and update compatibility (D-132)
 
-Use **Hearth** in the README and public site now. Keep `hearth-v2` as the technical repository and
-image identity until a coordinated rename is explicitly approved.
+The approved canonical names are **davidjpramsay/Hearth** for this application and
+**davidjpramsay/old_hearth** for the preserved original. GitHub redirects old `hearth-v2` code links
+and Git operations, but project Pages URLs require the new
+[Hearth website address](https://davidjpramsay.github.io/Hearth/).
 
-Suggested future migration: rename the original `hearth` repository to `old_hearth` (or
-`hearth-legacy`), clearly mark it archived, then rename this repository to `hearth`. Before doing so:
+Keep the existing `hearth-v2-server` and `hearth-v2-web` GHCR package names. Local project folders,
+NAS shares, container names, mounts, networking and private origins are not repository identities
+and must not be renamed as part of this migration.
 
-- Inventory installer constants, release polling, protected update helpers, clone remotes, badges,
-  documentation, Actions references and the old repository’s existing Pages site.
-- Keep the existing `hearth-v2-server` and `hearth-v2-web` image package names initially. Repository
-  renaming is not evidence that packages, installed updater allowlists or rollback paths migrated.
-- Verify an existing household can still discover, verify, install and roll back a release. Preserve
-  NAS folders, containers, mounts, hostnames, networking, pairings and credentials.
-- Publish a legacy notice before reusing `hearth`. Reusing that name replaces GitHub’s old-repository
-  redirect, so old clone links could resolve to the new product. Pages URLs do not redirect with a
-  repository rename. See [GitHub’s rename guidance](https://docs.github.com/en/repositories/creating-and-managing-repositories/renaming-a-repository).
+The protected NAS release verifier rejects redirects. Its compatibility policy tries only the
+fixed canonical and former GitHub repository names and accepts immutable repository ID
+`1327675743`, plus the existing main/push/success/latest-commit checks. The original repository
+(ID `1174989270`) cannot become a release authority when its former name is reused. A root-owner
+maintenance step must install this tested policy before GitHub is renamed; configuration and
+networking digests and private readiness must agree afterward. This does not install a new app
+release or change phone/screen access.
 
-No repository rename, archive operation or runtime migration is included in this website change.
+Fresh portable installers use the canonical repository. Anyone retaining an older installer
+should download the current installer before their next update; the old installer deliberately
+rejects redirects. The private server's existing release-discovery client can use GitHub's normal
+rename redirect, while the privileged verifier independently pins repository identity.
+
+Completion and remaining physical/release checks are recorded in [ACCEPTANCE.md](ACCEPTANCE.md).
+GitHub's [rename guidance](https://docs.github.com/en/repositories/creating-and-managing-repositories/renaming-a-repository)
+explains redirect limitations. In particular, the former original `hearth` code URL now identifies
+the current product; use `old_hearth` for the legacy source.

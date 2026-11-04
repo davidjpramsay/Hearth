@@ -121,7 +121,7 @@ class ReleaseSafetyTests(unittest.TestCase):
 
     def test_root_policy_accepts_only_the_latest_successful_fixed_workflow(self):
         run = {'head_sha': 'a' * 40, 'head_branch': 'main', 'event': 'push', 'status': 'completed',
-               'conclusion': 'success', 'repository': {'full_name': safety.REPOSITORY}}
+               'conclusion': 'success', 'repository': {'id': safety.REPOSITORY_ID, 'full_name': safety.REPOSITORY}}
         def response():
             return io.BytesIO(json.dumps({'workflow_runs': [run]}).encode())
         with patch.object(safety.urllib.request, 'build_opener') as opener:
@@ -157,6 +157,48 @@ class ReleaseSafetyTests(unittest.TestCase):
         self.assertEqual(submit(b'x' * 159 + b'\n'), '')
         self.assertEqual(submit(b'request_fixture ' + b'a' * 39 + b'g\n'), '')
         self.assertEqual(submit(b'\xff ' + b'a' * 40 + b'\n'), '')
+
+    def test_repository_rename_accepts_only_the_same_immutable_repository(self):
+        def run(repository, identity=safety.REPOSITORY_ID):
+            return {'head_sha': 'a' * 40, 'head_branch': 'main', 'event': 'push',
+                    'status': 'completed', 'conclusion': 'success',
+                    'repository': {'id': identity, 'full_name': repository}}
+        for renamed in (False, True):
+            calls = []
+            def response(request, timeout):
+                calls.append(request.full_url)
+                if safety.LEGACY_REPOSITORY in request.full_url:
+                    return io.BytesIO(json.dumps({'workflow_runs': [run(safety.LEGACY_REPOSITORY)]}).encode())
+                # Before rename, the requested canonical name belongs to the legacy app.
+                identity = safety.REPOSITORY_ID if renamed else 1174989270
+                return io.BytesIO(json.dumps({'workflow_runs': [run(safety.REPOSITORY, identity)]}).encode())
+            with patch.object(safety.urllib.request, 'build_opener') as opener:
+                opener.return_value.open.side_effect = response
+                safety.verify_release('a' * 40)
+            self.assertEqual(len(calls), 1 if renamed else 2)
+            self.assertTrue(all(url.startswith('https://api.github.com/repos/') for url in calls))
+        with patch.object(safety.urllib.request, 'build_opener') as opener:
+            opener.return_value.open.side_effect = lambda *args, **kwargs: io.BytesIO(json.dumps({'workflow_runs': [run(safety.REPOSITORY, 1174989270)]}).encode())
+            with self.assertRaisesRegex(ValueError, 'approved Hearth repository'):
+                safety.verify_release('a' * 40)
+
+    def test_repository_aliases_do_not_follow_redirects_or_hide_rate_limits(self):
+        valid = {'head_sha': 'a' * 40, 'head_branch': 'main', 'event': 'push',
+                 'status': 'completed', 'conclusion': 'success',
+                 'repository': {'id': safety.REPOSITORY_ID, 'full_name': safety.LEGACY_REPOSITORY}}
+        def response(request, timeout):
+            if safety.LEGACY_REPOSITORY not in request.full_url:
+                raise safety.ReleaseRedirectRefused('redirect refused')
+            return io.BytesIO(json.dumps({'workflow_runs': [valid]}).encode())
+        with patch.object(safety.urllib.request, 'build_opener') as opener:
+            opener.return_value.open.side_effect = response
+            safety.verify_release('a' * 40)
+            error = safety.urllib.error.HTTPError('https://api.github.com/', 403, 'limited', {}, None)
+            opener.return_value.open.side_effect = error
+            with self.assertRaises(safety.urllib.error.HTTPError):
+                safety.verify_release('a' * 40)
+        with self.assertRaises(safety.ReleaseRedirectRefused):
+            safety.NoRedirect().redirect_request(None)
 
 
 if __name__ == '__main__':

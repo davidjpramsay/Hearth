@@ -19,7 +19,7 @@ import urllib.parse
 import urllib.request
 import urllib.error
 
-REPOSITORY = 'davidjpramsay/hearth-v2'
+REPOSITORY = 'davidjpramsay/Hearth'
 REQUIRED_JOBS = {'Web and server', 'Android TV shell', 'Synology container images', 'Browser (1/4)', 'Browser (2/4)', 'Browser (3/4)', 'Browser (4/4)', 'Publish verified Synology images'}
 CAPABILITY_PATH = 'hearth/deploy/portable/setup-format.json'
 
