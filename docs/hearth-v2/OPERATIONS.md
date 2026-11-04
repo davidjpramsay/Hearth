@@ -14,9 +14,11 @@ that directory together with a consistent SQLite copy; SQLite-only backups and S
 release rollback do not include videos. Portable stopped data checkpoints include them. Before an
 upgrade/rollback, retain matching database and media snapshots. Never restore old metadata over
 newer media files; startup sweeps generated files not referenced by its database. See FITNESS_CONTRACT.
-Physical playback and live setup remain not run; no private release is implied by local checks.
+Physical playback and household exercise setup remain not run. The approved private release and
+its separate live-server evidence are recorded in
+[the Fitness release record](../../hearth/docs/evidence/fitness-2026-11-04/RELEASE.md).
 
-## Fitness (D-128) — local feature, not yet deployed
+## Fitness (D-128)
 
 Migration 0036 adds Fitness and preserves other modules/data. After an approved verified release,
 turn on More → Modules → Fitness, open Fitness settings on an adult phone, select people and enter

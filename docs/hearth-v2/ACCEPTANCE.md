@@ -2,6 +2,13 @@
 
 ## Fitness release gate — 2026-11-04
 
+**Deployed:** application `4168955730e5362b1d9e674479e4290f668e4880`, following all eight hosted
+jobs and **1,390 browser tests** passing. Private activation returned readiness; migration 37,
+household counts, module settings and existing network configuration were checked. Exercise storage
+is 0700 on the NAS. Fitness remains off with no real plans/clips seeded. Physical playback and this
+Mac's default-DNS route remain unverified/blocked as detailed in the
+[release record](../../hearth/docs/evidence/fitness-2026-11-04/RELEASE.md).
+
 The owner approved publication and private deployment. Initial hosted run
 [41797787517](https://github.com/davidjpramsay/hearth-v2/actions/runs/41797787517) passed
 Web/server, Android and Synology image checks, but stopped at an ambiguous older Calendar test:
