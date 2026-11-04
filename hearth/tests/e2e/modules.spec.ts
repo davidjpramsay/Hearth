@@ -45,8 +45,8 @@ for (const viewport of [
       await expect(photos).toHaveAttribute('aria-checked', 'false');
       await expect(photos).not.toHaveAttribute('aria-disabled', 'true');
       await page.keyboard.press('ArrowDown');
-      await expect(page.getByRole('switch', { name: 'Games', exact: true })).toBeFocused();
-      await expect(page.getByRole('switch', { name: 'Games', exact: true })).toHaveCSS(
+      await expect(page.getByRole('switch', { name: 'Connections', exact: true })).toBeFocused();
+      await expect(page.getByRole('switch', { name: 'Connections', exact: true })).toHaveCSS(
         'outline-offset',
         '-4px',
       );

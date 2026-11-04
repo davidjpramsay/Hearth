@@ -17,7 +17,7 @@ MODULE_LABELS = {
     "meals": "Meals",
     "home": "Home controls",
     "photos": "Photos",
-    "games": "Games",
+    "games": "Connections",
     "notices": "Notices",
     "dailyVerse": "Daily Bible verse",
     "nba": "NBA",
@@ -64,6 +64,6 @@ TAB_LABELS = {
     "meals": "Meals",
     "home": "Home",
     "photos": "Photos",
-    "games": "Games",
+    "games": "Connections",
     "more": "More",
 }

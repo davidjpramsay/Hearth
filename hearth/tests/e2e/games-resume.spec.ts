@@ -60,7 +60,13 @@ for (const viewport of [
       await page.getByRole('link', { name: 'Today', exact: true }).click();
       if (viewport.name === 'phone')
         await page.getByRole('link', { name: 'More', exact: true }).click();
-      await page.getByRole('link', { name: 'Games', exact: true }).click();
+      await page
+        .locator(
+          viewport.name === 'phone'
+            ? '[data-focus-id="more-games"]'
+            : '[data-focus-id="nav-games"]',
+        )
+        .click();
       await expect(page).toHaveURL(/\/games$/);
       await expect(page.locator('.games-toolbar')).toContainText('#3');
       await expect(page.locator('.games-group')).toHaveCount(1);

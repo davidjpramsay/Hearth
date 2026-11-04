@@ -12,6 +12,7 @@ import { SettingsLink } from './SettingsNavigation';
 import { useModulePathAvailable } from '../modules/context';
 
 interface NavigationItem {
+  focusKey?: string;
   label: string;
   path: string;
   icon: IconName;
@@ -37,7 +38,7 @@ const baseNavigation: NavigationItem[] = [
   { label: 'Meals', path: '/meals', icon: 'meal', enabled: true },
   { label: 'Home', path: '/home', icon: 'home', enabled: true },
   { label: 'Photos', path: '/photos', icon: 'image', enabled: true },
-  { label: 'Games', path: '/games', icon: 'games', enabled: true },
+  { label: 'Connections', path: '/games', icon: 'games', enabled: true, focusKey: 'games' },
   { label: 'NBA', path: '/nba', icon: 'basketball', enabled: true },
 ];
 
@@ -202,7 +203,7 @@ function AppShellLayout({ children }: { children: ReactNode }) {
             data-focus-id="nav-appearance"
             data-focus-left="nav-appearance"
             data-focus-right={`appearance-${preferences.theme}`}
-            data-focus-up={`nav-${navigation.at(-1)?.label.toLowerCase() ?? 'today'}`}
+            data-focus-up={`nav-${navigationKey(navigation.at(-1))}`}
             to="/appearance"
           >
             <Icon name="moon" />
@@ -312,7 +313,7 @@ function PhoneNavigation() {
       <NavLink
         className={`phone-tab${moreActive ? ' phone-tab--active' : ''}`}
         data-focus-id="phone-tab-more"
-        data-focus-left={`phone-tab-${navigation.at(-1)?.label.toLowerCase() ?? 'today'}`}
+        data-focus-left={`phone-tab-${navigationKey(navigation.at(-1))}`}
         data-focus-right="phone-tab-more"
         to="/more"
       >
@@ -321,6 +322,11 @@ function PhoneNavigation() {
       </NavLink>
     </nav>
   );
+}
+
+// Keep focus restoration stable when a visible menu name changes.
+function navigationKey(item: NavigationItem | undefined): string {
+  return item?.focusKey ?? item?.label.toLowerCase() ?? 'today';
 }
 
 function RailItem({
@@ -336,12 +342,12 @@ function RailItem({
 }) {
   const prior = navigation.slice(0, index).findLast((candidate) => candidate.enabled);
   const next = navigation.slice(index + 1).find((candidate) => candidate.enabled);
-  const focusId = `nav-${item.label.toLowerCase()}`;
+  const focusId = `nav-${navigationKey(item)}`;
   const className = `rail-item focusable${item.enabled ? '' : ' rail-item--future'}`;
   const attrs = {
     'data-focus-id': focusId,
-    'data-focus-up': prior === undefined ? focusId : `nav-${prior.label.toLowerCase()}`,
-    'data-focus-down': next === undefined ? 'nav-appearance' : `nav-${next.label.toLowerCase()}`,
+    'data-focus-up': prior === undefined ? focusId : `nav-${navigationKey(prior)}`,
+    'data-focus-down': next === undefined ? 'nav-appearance' : `nav-${navigationKey(next)}`,
     'data-focus-right': 'screen-entry',
   };
   if (!item.enabled) {

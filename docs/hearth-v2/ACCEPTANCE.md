@@ -1,5 +1,37 @@
 # Hearth v2 acceptance and definition of done
 
+## Connections display name — local verification, 2026-11-04
+
+Renamed the Games destination to Connections in the TV rail, phone Family menu, page title,
+Modules settings and matching Home Assistant labels. `games` routes, API/module/HA identifiers,
+archive data and saved progress are unchanged. The TV focus key stays `nav-games`; the longer
+label has room beside a full-size icon through tighter rail spacing, with unchanged text size.
+Service settings remain a separate Connections entry under Manage Hearth.
+
+Passed using isolated local demo data:
+
+- `pnpm format:check`; targeted `pnpm exec eslint` for changed TS/TSX files with
+  `--max-warnings 0`; `pnpm --filter @hearth/web typecheck`; `pnpm build`.
+- `pnpm --filter @hearth/web test:unit`: **473 passed**.
+- `python3.12 -m unittest discover -s integrations/home_assistant/tests`: **69 passed**.
+- `pnpm test:e2e:built tests/e2e/games*.spec.ts tests/e2e/rail-visibility.spec.ts
+  tests/e2e/modules.spec.ts tests/e2e/menu-focus.spec.ts tests/e2e/admin.spec.ts:69
+  tests/e2e/admin.spec.ts:268 --output=/tmp/hearth-connections-rename-results`: **58 passed**.
+  Covers phone/tablet/TV light/dark, D-pad/Back, puzzle resume, module switches, service-settings
+  navigation, focus restoration and explicit checks against icon shrinkage or label overflow.
+- `git diff --check`: passed with Homebrew Git.
+
+Browser plugin not available; repository Playwright used. Visually inspected phone and TV captures
+at `/tmp/hearth-games-phone-light.png` and `/tmp/hearth-games-tv-dark.png`. Additional screenshots
+are in `/tmp/hearth-connections-rename-results`. Final logs: `/tmp/hearth-connections-rename-browser-final.log`,
+`hearth-connections-rename-build-final.log`, `hearth-connections-rename-unit.log` and
+`hearth-connections-rename-ha.log` under `/tmp`.
+An initial test selected a hidden TV link on the phone; it now waits for the proper menu focus ID.
+Visual review then caught icon shrinkage from the longer name; corrected and final checks passed.
+
+Not run: full release suite, physical TV/phone, hosted checks, publication/deployment or live HA
+component installation. No household data, network, TV playback or automation changes.
+
 ## Fitness goal routines (D-128) — local refinement, 2026-11-04
 
 Each of up to five long-term goals per person now owns its own weekly focus and recurring workouts.

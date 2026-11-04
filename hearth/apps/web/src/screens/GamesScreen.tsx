@@ -68,7 +68,7 @@ function GamesContent({ home }: { home: string }) {
   }
   return (
     <div className="screen games-screen">
-      <ScreenHeader title="Games" meta="Word groups" />
+      <ScreenHeader title="Connections" meta="Word groups" />
       {catalogue.isPending ? (
         <LoadingState />
       ) : catalogue.data === undefined ? (

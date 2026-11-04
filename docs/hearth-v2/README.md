@@ -11,7 +11,7 @@ phone browser. It owns reminders, chores, routines, pocket money, lists, meals, 
 connected calendars remain provider-owned.
 
 The active product includes Today, Week, Month, Weather, Hearth reminders, Chores, Lists, Meals,
-Home, Photos, local Games and phone administration. Home Assistant remains the authority for physical devices
+Home, Photos, the Connections word puzzle and phone administration. Home Assistant remains the authority for physical devices
 and voice. Native television media apps remain separate.
 
 ## Source of truth
@@ -59,7 +59,7 @@ Today composition follows D-116/D-119: Chores left/before Upcoming, bounded orie
 content-height bottom-aligned text modules, a full-width final verse and natural companion scrolling. Local layout evidence is
 separate from release and actual TV/phone acceptance in ACCEPTANCE.
 
-Games reopens the last successfully loaded puzzle on each device (D-117), preserving existing saves.
+Connections reopens the last successfully loaded puzzle on each device (D-117), preserving existing saves.
 
 Optional NBA follows [NBA_CONTRACT.md](NBA_CONTRACT.md) (D-113): standout-team settings,
 this/next local week, phase-labelled standings and weekly best single-game highlights. It starts

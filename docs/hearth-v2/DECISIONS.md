@@ -779,6 +779,9 @@ casual removal/sign-out, owner People protection and ordinary-QR restrictions re
   supplied JSON lazily behind authenticated household reads, with descriptor/size/schema bounds
   and no external fetch. Keep data outside public source and images. Store replay-validated,
   household-isolated numeric progress on each device; importing a changed board changes its ID.
+- Naming refinement (2026-11-04): At the owner's request, display Connections instead of Games
+  in navigation, the page title, Modules and matching HA labels. Keep `games` routes, module/HA
+  identifiers, focus IDs and saved progress unchanged; this does not introduce an external service.
 - Progress refinement: At the owner's request, start at #1 and discard prior v1 Games progress on
   each browser loading this version. Keep a separate v2 completion index through replays and recent
   attempt eviction. The original earliest-uncompleted entry policy is superseded by D-117's

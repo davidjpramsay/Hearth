@@ -35,7 +35,7 @@ for (const size of sizes)
         theme,
       );
       await page.goto('/games');
-      await expect(page.getByRole('heading', { name: 'Games', exact: true })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Connections', exact: true })).toBeVisible();
       await expect(page.locator('.games-word')).toHaveCount(16);
       await expect(page.locator('.games-word[aria-pressed="true"]')).toHaveCount(0);
       await expect(page.locator('[data-focus-id="games-word-0"]')).toBeFocused();
@@ -52,7 +52,7 @@ for (const size of sizes)
       if (size.width >= 1200) {
         const box = await page.locator('.games-actions').boundingBox();
         expect(box!.y + box!.height).toBeLessThanOrEqual(size.height);
-        await expect(page.getByRole('link', { name: 'Games', exact: true })).toBeInViewport();
+        await expect(page.getByRole('link', { name: 'Connections', exact: true })).toBeInViewport();
       }
       const audit = await new AxeBuilder({ page }).analyze();
       expect(
@@ -129,7 +129,7 @@ test('archive search and switching preserve each puzzle; Back restores the opene
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/more');
-  await page.getByRole('link', { name: 'Games', exact: true }).click();
+  await page.locator('[data-focus-id="more-games"]').click();
   await expect(page.locator('.games-word')).toHaveCount(16);
   for (const word of ['COVER', 'SPINE', 'INDEX', 'CHAPTER'])
     await page.getByRole('button', { name: word, exact: true }).click();
@@ -220,7 +220,7 @@ test('missing archive and failed reads preserve Games chrome and allow recovery'
     route.fulfill({ json: { status: 'unconfigured', source: 'household-archive', puzzles: [] } }),
   );
   await page.goto('/games');
-  await expect(page.getByRole('heading', { name: 'Games', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Connections', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'No puzzles yet' })).toBeVisible();
   await page.unroute(base);
   let fail = true;

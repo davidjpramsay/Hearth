@@ -113,7 +113,7 @@ for (const viewport of [
 
       await menu.getByRole('link', { name: 'Photos', exact: true }).focus();
       await page.keyboard.press('ArrowDown');
-      await expect(menu.getByRole('link', { name: 'Games', exact: true })).toBeFocused();
+      await expect(menu.locator('[data-focus-id="more-games"]')).toBeFocused();
       await page.keyboard.press('ArrowDown');
       await expect(menu.getByRole('link', { name: 'Modules', exact: true })).toBeFocused();
       await page.keyboard.press('ArrowDown');

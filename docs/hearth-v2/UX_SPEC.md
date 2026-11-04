@@ -250,7 +250,7 @@ Primary commands are Up, Down, Left, Right, Select and Back.
   On short displays, scroll only the rail's navigation region to reveal the current destination
   without moving the clock, footer or page. On resize, a focused navigation row takes precedence
   over the active destination so the remote user's focus never disappears.
-  Up/Down follows that single column's menu order through Games before the fixed Appearance footer;
+  Up/Down follows that single column's menu order through Connections before the fixed Appearance footer;
   clipped rows are not skipped merely because the footer is geometrically closer.
 - Moving between regions is deterministic; no focus trap or unpredictable jump is acceptable.
 - Arrow navigation follows rendered control positions, not fixed cross-screen links; responsive
@@ -624,9 +624,13 @@ Imported-original protection, cancellation and partial-failure behavior remain u
   that they need another try. Every action is D-pad reachable. The optional
   Synology folder-import row is secondary and absent as a prerequisite for normal phone uploads.
 
-### Games
+### Connections (word puzzle)
 
-- Games opens Word groups, with a four-column board, a clear selected state and explicit Submit.
+The displayed name is Connections in the TV rail, phone Family menu, module switch and matching
+Home Assistant labels. The route/module/HA identifiers stay `games` so saved puzzle progress and
+automations remain valid. Service settings remain a separate Connections entry under Manage Hearth.
+
+- Connections opens Word groups, with a four-column board, a clear selected state and explicit Submit.
   Selecting four tiles never submits automatically. Correct groups replace their row; four misses
   reveal the remaining answers. Repeating the same group does not consume another mistake.
 - Shuffle preserves tile identity and selections. A three-correct guess reports **One away**.
