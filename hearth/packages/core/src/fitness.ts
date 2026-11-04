@@ -10,10 +10,13 @@ export function fitnessWorkouts(plans: FitnessPlanVersion[], memberId: string, d
   const plan = fitnessPlanForDate(plans, date);
   if (!plan?.configuration.selectedMemberIds.includes(memberId)) return [];
   const day = FITNESS_DAYS[(new Date(`${date}T12:00:00Z`).getUTCDay() + 6) % 7]!;
+  const person = plan.configuration.plans.find((p) => p.memberId === memberId);
   return (
-    plan.configuration.plans
-      .find((p) => p.memberId === memberId)
-      ?.workouts.filter((w) => w.days.includes(day)) ?? []
+    person?.workouts.filter(
+      (w) =>
+        w.days.includes(day) &&
+        (w.goalId == null || person.goals.some((g) => g.id === w.goalId && !g.achieved)),
+    ) ?? []
   );
 }
 /** Checks only seven candidate days per effective period, not every day in years of history. */

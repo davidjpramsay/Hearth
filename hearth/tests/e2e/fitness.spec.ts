@@ -1,6 +1,109 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
+test('goals show their own routines and daily cards keep their goal labels', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto('/fitness');
+  await expect(page.locator('.fitness-workout-goal')).toHaveText([
+    'Run a comfortable 5 km',
+    'Run a comfortable 5 km',
+    'Build full-body strength',
+    'Build full-body strength',
+  ]);
+  const goals = page.locator('[data-focus-id="fitness-goals"]');
+  await goals.focus();
+  await page.keyboard.press('Enter');
+  const dialog = page.getByRole('dialog');
+  const running = dialog.getByRole('list', { name: 'Run a comfortable 5 km weekly routine' });
+  const strength = dialog.getByRole('list', { name: 'Build full-body strength weekly routine' });
+  await expect(running.getByRole('listitem')).toHaveCount(2);
+  await expect(running).toContainText('Easy run');
+  await expect(running).not.toContainText('Full-body strength');
+  await expect(strength).toContainText('Mon · Sun');
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({ path: '/tmp/hearth-fitness-goals-evidence/goals-tv.png' });
+  await page.keyboard.press('Escape');
+  await expect(goals).toBeFocused();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await goals.click();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({ path: '/tmp/hearth-fitness-goals-evidence/goals-phone.png' });
+});
+
+test('removing a goal confirms and only removes its own future routine', async ({
+  page,
+  request,
+}) => {
+  await page.goto('/admin/fitness');
+  await page.getByRole('combobox', { name: 'Plan for', exact: true }).selectOption('member_maya');
+  const first = page.locator('.fitness-goal-editor').first();
+  page.once('dialog', (d) => d.dismiss());
+  await first.getByRole('button', { name: 'Remove goal 1', exact: true }).click();
+  await expect(page.locator('.fitness-goal-editor')).toHaveCount(2);
+  page.once('dialog', (d) => d.accept());
+  await first.getByRole('button', { name: 'Remove goal 1', exact: true }).click();
+  await expect(page.locator('.fitness-goal-editor')).toHaveCount(1);
+  await expect(page.getByRole('button', { name: 'Add long-term goal', exact: true })).toBeFocused();
+  await page.getByRole('button', { name: 'Save Fitness', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('updated plan starts tomorrow');
+  const saved = await (await request.get(`${home}/fitness/settings`, { headers: adult })).json();
+  const maya = saved.configuration.plans.find(
+    (p: { memberId: string }) => p.memberId === 'member_maya',
+  );
+  expect(maya.goals.map((g: { id: string }) => g.id)).toEqual(['goal_strength_member_maya']);
+  expect(maya.workouts.map((w: { title: string }) => w.title)).toEqual([
+    'Full-body strength',
+    'Saturday studio',
+  ]);
+  const overview = await (await request.get(`${home}/fitness`)).json();
+  expect(
+    overview.people.find((p: { person: { id: string } }) => p.person.id === 'member_maya').days[0]
+      .sessions,
+  ).toHaveLength(4);
+});
+
+test('earlier unassigned workouts can join a goal without losing identity or current progress', async ({
+  page,
+  request,
+}) => {
+  await request.post(`${api}/demo/reset`);
+  await request.put(`${home}/modules/fitness`, {
+    headers: adult,
+    data: { requestId: 'request_legacy_on', enabled: true },
+  });
+  const legacy = JSON.parse(JSON.stringify(configuration));
+  legacy.plans.forEach((p: { workouts: Array<{ goalId?: string }> }) =>
+    p.workouts.forEach((w) => {
+      delete w.goalId;
+    }),
+  );
+  await request.put(`${home}/fitness/settings`, {
+    headers: adult,
+    data: { requestId: 'request_legacy_settings', expectedRevision: 0, configuration: legacy },
+  });
+  await page.goto('/fitness');
+  await page.getByRole('button', { name: 'Easy run, Running' }).click();
+  await page.getByRole('button', { name: 'Mark workout done' }).click();
+  await expect(page.getByRole('button', { name: 'Undo completed workout' })).toBeVisible();
+  await page.goto('/admin/fitness');
+  await expect(page.getByRole('heading', { name: 'Earlier unassigned routine' })).toBeVisible();
+  await page
+    .getByRole('combobox', { name: 'Goal for Easy run', exact: true })
+    .selectOption('goal_member_ezra');
+  await expect(page.locator('#fitness-goal-goal_member_ezra')).toBeFocused();
+  await page.getByRole('button', { name: 'Save Fitness', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('updated plan starts tomorrow');
+  const saved = await (await request.get(`${home}/fitness/settings`, { headers: adult })).json();
+  const ezra = saved.configuration.plans.find(
+    (p: { memberId: string }) => p.memberId === 'member_ezra',
+  );
+  expect(ezra.workouts[0].id).toBe('workout_member_ezra_0');
+  expect(ezra.workouts[0].goalId).toBe('goal_member_ezra');
+  expect(ezra.workouts[1].goalId).toBeUndefined();
+  await page.goto('/fitness');
+  await expect(page.getByRole('button', { name: 'Easy run, Running, done' })).toBeVisible();
+  await expect(page.locator('.fitness-workout-goal').first()).toHaveText('General fitness');
+});
 const api = 'http://127.0.0.1:4310/api/v1',
   home = `${api}/households/household_hearth_demo`;
 const adult = { 'X-Hearth-Demo-Actor': 'member_maya' };
@@ -11,14 +114,23 @@ const configuration = {
     goals: [
       {
         id: `goal_${memberId}`,
-        title: 'Build strength and run a comfortable 5 km',
+        title: 'Run a comfortable 5 km',
         targetDate: '2026-12-01',
         achieved: false,
+        weeklyFocus: 'Build this goal with regular sessions.',
+      },
+      {
+        id: `goal_strength_${memberId}`,
+        title: 'Build full-body strength',
+        targetDate: null,
+        achieved: false,
+        weeklyFocus: 'Build strength with steady, comfortable sessions.',
       },
     ],
-    weeklyFocus: 'A little stronger, one session at a time.',
+    weeklyFocus: '',
     workouts: ['running', 'swimming', 'weights', 'class'].map((activity, i) => ({
       id: `workout_${memberId}_${i}`,
+      goalId: i >= 2 ? `goal_strength_${memberId}` : `goal_${memberId}`,
       title: ['Easy run', 'Pool session', 'Full-body strength', 'Saturday studio'][i],
       activity,
       days: i === 2 ? ['mon', 'sun'] : ['mon', 'wed'],
@@ -95,9 +207,9 @@ for (const viewport of [
         ).toBe(true);
       expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
       if (viewport.width === 1920 || viewport.width === 390) {
-        await mkdir('/tmp/hearth-fitness-evidence', { recursive: true });
+        await mkdir('/tmp/hearth-fitness-goals-evidence', { recursive: true });
         await page.screenshot({
-          path: `/tmp/hearth-fitness-evidence/fitness-${viewport.width}-${theme}.png`,
+          path: `/tmp/hearth-fitness-goals-evidence/fitness-${viewport.width}-${theme}.png`,
         });
       }
       const opener = page.getByRole('button', { name: 'Full-body strength, Weights' });
@@ -113,7 +225,7 @@ for (const viewport of [
       expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
       if (viewport.width === 1920 || viewport.width === 390)
         await page.screenshot({
-          path: `/tmp/hearth-fitness-evidence/details-${viewport.width}-${theme}.png`,
+          path: `/tmp/hearth-fitness-goals-evidence/details-${viewport.width}-${theme}.png`,
         });
       await page.keyboard.press('Escape');
       await expect(dialog).toHaveCount(0);
@@ -172,6 +284,7 @@ test('phone edits goals, schedule and exercise details with an honest tomorrow b
   await expect(page.getByRole('heading', { name: 'Fitness', exact: true })).toBeVisible();
   await page.getByRole('combobox', { name: 'Plan for', exact: true }).selectOption('member_maya');
   await page.getByLabel('Goal 1', { exact: true }).fill('Finish a fun run');
+  await page.locator('#fitness-goal-goal_strength_member_maya').click();
   await page.getByText('Full-body strength', { exact: true }).click();
   const editor = page.locator('.fitness-workout-editor').filter({ hasText: 'Full-body strength' });
   await editor.getByLabel('Weight (kg)', { exact: true }).first().fill('22.5');
@@ -188,7 +301,7 @@ test('phone edits goals, schedule and exercise details with an honest tomorrow b
   );
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.screenshot({
-    path: '/tmp/hearth-fitness-evidence/settings-phone.png',
+    path: '/tmp/hearth-fitness-goals-evidence/settings-phone.png',
     fullPage: true,
   });
 });
@@ -346,15 +459,34 @@ test('first plan can be created from an empty phone setup and used today', async
   await page.getByLabel('Weight (kg)', { exact: true }).fill('20');
   await page.getByLabel('Sets', { exact: true }).fill('3');
   await page.getByLabel('Reps', { exact: true }).fill('8');
+  await page.getByRole('button', { name: 'Add long-term goal', exact: true }).click();
+  await page.getByLabel('Goal 2', { exact: true }).fill('Run a comfortable 5 km');
+  const runningGoal = page.locator('.fitness-goal-editor').nth(1);
+  await runningGoal.getByRole('button', { name: 'Add workout', exact: true }).click();
+  await runningGoal.getByLabel('Workout title', { exact: true }).fill('Gentle run');
+  await runningGoal.getByRole('checkbox', { name: 'Monday', exact: true }).check();
+  await runningGoal.getByRole('checkbox', { name: 'Wednesday', exact: true }).check();
   await page.getByRole('button', { name: 'Save Fitness', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('Ready to use today');
   await page.goto('/fitness');
+  await expect(page.locator('.fitness-workout-goal')).toHaveText([
+    'Build a steady exercise habit',
+    'Run a comfortable 5 km',
+  ]);
   await page.getByRole('button', { name: 'Strength session, Weights' }).click();
   await expect(page.getByRole('row', { name: 'Squat 20 3 8' })).toBeVisible();
   await page.getByRole('button', { name: 'Mark workout done' }).click();
   await expect(page.getByRole('button', { name: 'Undo completed workout' })).toBeVisible();
   await page.keyboard.press('Escape');
+  await expect(page.locator('.fitness-stat').first().locator('strong')).toHaveText('0');
+  await page.getByRole('button', { name: 'Gentle run, Running' }).click();
+  await page.getByRole('button', { name: 'Mark workout done' }).click();
+  await expect(page.getByRole('button', { name: 'Undo completed workout' })).toBeVisible();
+  await page.keyboard.press('Escape');
   await expect(page.locator('.fitness-stat').first()).toContainText('1');
+  await page.getByRole('button', { name: /Wednesday,.*1 workouts/ }).click();
+  await expect(page.locator('.fitness-workout')).toHaveCount(1);
+  await expect(page.locator('.fitness-workout-goal')).toHaveText('Run a comfortable 5 km');
 });
 test('many workouts page within the TV without losing the later sessions', async ({
   page,
@@ -376,10 +508,8 @@ test('many workouts page within the TV without losing the later sessions', async
   const more = page.getByRole('button', { name: 'More workouts', exact: true });
   for (let i = 0; i < 3; i++) await more.click();
   await expect(page.locator('.fitness-workout')).toHaveCount(2);
-  await page.getByRole('button', { name: 'Session 14, Running', exact: true }).click();
+  await page.getByRole('button', { name: /Session 14, Running/ }).click();
   await expect(page.getByRole('heading', { name: 'Session 14', exact: true })).toBeVisible();
   await page.keyboard.press('Escape');
-  await expect(
-    page.getByRole('button', { name: 'Session 14, Running', exact: true }),
-  ).toBeFocused();
+  await expect(page.getByRole('button', { name: /Session 14, Running/ })).toBeFocused();
 });

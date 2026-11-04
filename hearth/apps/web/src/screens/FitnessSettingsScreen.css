@@ -26,6 +26,14 @@
   min-width: 0;
   max-width: 100%;
   box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+}
+.fitness-settings input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  accent-color: var(--eucalyptus);
 }
 .fitness-settings__people {
   display: grid;
@@ -66,8 +74,6 @@
 }
 .fitness-goal-editor {
   padding: 16px;
-  display: grid;
-  gap: 12px;
   border-radius: 12px;
   background: var(--surface-soft);
 }
@@ -140,4 +146,36 @@
   .fitness-workout-editor {
     padding: 12px;
   }
+}
+
+.fitness-goal-editor > summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  min-height: 48px;
+}
+.fitness-goal-editor > summary strong {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.fitness-goal-editor > summary span {
+  font-size: 14px;
+  color: var(--muted);
+}
+.fitness-goal-editor > summary::after {
+  content: '+';
+}
+.fitness-goal-editor[open] > summary::after {
+  content: '−';
+}
+.fitness-goal-editor__body {
+  display: grid;
+  gap: 16px;
+  padding-top: 16px;
+}
+.fitness-unassigned > div {
+  display: grid;
+  gap: 12px;
 }

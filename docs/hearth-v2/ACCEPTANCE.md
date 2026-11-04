@@ -1,6 +1,47 @@
 # Hearth v2 acceptance and definition of done
 
-## Fitness (D-128) — local implementation, 2026-11-04
+## Fitness goal routines (D-128) — local refinement, 2026-11-04
+
+Each of up to five long-term goals per person now owns its own weekly focus and recurring workouts.
+Fitness opens on the current day and combines due sessions across active goals, retaining the goal
+label on each card/details. The goals dialog lists each routine and weekly progress. Adult settings
+groups workouts under expandable goals; achieving/removing a goal changes future schedules only.
+Streaks still count fully completed scheduled days across all goals. Earlier unassigned workouts,
+stable IDs, current/past progress and exact saved request receipts are preserved. No new migration.
+
+Passed on isolated local data (commands inside `hearth/`):
+
+- `pnpm exec vitest run packages/shared/src/fitness.test.ts packages/core/src/fitness.test.ts
+  apps/server/src/fitness.integration.test.ts`: **24 passed**, including same-person goal validation,
+  independent schedules, combined streaks, achieved-goal handling, dated labels, preserved legacy
+  JSON and exact replay after restart.
+- `pnpm verify:code`: format/lint/types, **764 unit tests** (114 shared, 57 core, 120 server,
+  473 web), **299 API/integration tests**, **31 migration tests**, deployment scaffolds,
+  production web/server builds and private fresh boot passed.
+- `pnpm verify:ci`: five policy checks and non-overlapping inventory of **1,375 browser cases**;
+  this is inventory, not a full-suite browser execution.
+- After the final scoped form styling corrections, `pnpm format:check`, `pnpm build` and
+  `pnpm test:e2e:built tests/e2e/fitness.spec.ts` passed; **29 browser tests** in the final run.
+  Covers two independent goals created on a phone, current-day aggregation/checks/streak, goal
+  removal confirmation/isolation, legacy assignment with preserved checks, eight viewport sizes
+  in light/dark, Axe, no visual-case console errors, modal/Back/D-pad and draft/offline/retry behavior.
+- `git diff --check`: passed using Homebrew Git.
+
+Final screenshot evidence under `/tmp/hearth-fitness-goals-evidence/`: `fitness-1920-dark.png`,
+`fitness-390-light.png`, `goals-tv.png`, `goals-phone.png`, `settings-phone.png` and workout-detail
+captures. TV overview, phone overview/editor and goal dialogs were visually inspected. The final
+phone editor uses standard Hearth controls; the full-page capture places fixed bottom navigation
+at the first viewport edge, not midway through a real scrolling page. Repository Playwright used.
+Logs: `/tmp/hearth-fitness-goals-code.log`, `hearth-fitness-goals-ci.log`,
+`hearth-fitness-goals-final-build.log`, `hearth-fitness-goals-browser-final.log`.
+An initial browser attempt used the wrong accessible name for Remove goal; the corrected test
+and both subsequent full Fitness runs passed. No remaining test failure.
+
+**Not run:** all 1,375 browser cases, physical phone/TV checks, hosted publication or deployment.
+No HA/NAS/TV, network, credential or real household changes. The broader initial checkpoint below
+is historical evidence for the preceding implementation; it is not a new 167-case run of this patch.
+
+## Initial Fitness checkpoint (D-128) — before the goal-routine refinement, 2026-11-04
 
 Optional Fitness is implemented with explicit participants, five long-term goals per person,
 weekly focus and recurring weekday sessions for running, swimming, weights and fitness class.

@@ -2,8 +2,10 @@
 
 ## Fitness (D-128) — requested 2026-11-04
 
-Implement the optional end-to-end module: explicit participants, long-term goals, recurring weekly
-workouts and details, TV checks, scheduled-day streaks, history-safe editing and adult setup. Verify
+Implement the optional end-to-end module: explicit participants, multiple long-term goals with their
+own weekly routines, a combined daily checklist with goal labels, workout details, TV checks,
+scheduled-day streaks, history-safe editing and adult setup. Preserve earlier unassigned routines
+and exact receipts while adding goal associations. Verify
 shared/core validation, SQLite/migration/atomic retry/access isolation, UI state recovery, supported
 responsive sizes and D-pad/Back. Keep hosted publication, private release and real phone/TV viewing
 as separate open gates. No health provider, wearable, HA workout control or live household seed.

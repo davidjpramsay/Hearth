@@ -2,8 +2,10 @@
 
 ## Fitness (D-128)
 
-Add optional Fitness for explicitly selected family members. Adult phones manage long-term goals,
-weekly focus, recurring weekday workouts and ordered exercise details (kg, sets, reps). Shared screens
+Add optional Fitness for explicitly selected family members. Adult phones manage up to five long-term goals
+per person, each with its own weekly focus, recurring weekday workouts and ordered exercise details
+(kg, sets, reps). Today combines all active goals' due workouts and labels each with its goal.
+Achieving a goal stops its future routine at the next-day edit boundary. Shared screens
 can check/undo today's sessions. Running, swimming, weights and fitness class have distinct icons
 and text labels. Streaks count consecutive scheduled days with every session completed, skipping rest
 days; no chores/earnings coupling or ranking. First setup begins today; later plan edits begin tomorrow

@@ -302,3 +302,110 @@ describe('Fitness durable boundary', () => {
     }
   });
 });
+
+it('persists separate goal routines and labels each dated session from its historical plan', async () => {
+  const db = new Database(':memory:');
+  applyMigrations(db);
+  let now = DEMO_NOW;
+  try {
+    const home = await new SqliteAdminRepository(db).getHousehold(DEMO_HOUSEHOLD_ID);
+    const service = new FitnessService(db, () => new Date(now));
+    const config = structuredClone(configuration);
+    const person = config.plans[0]!;
+    person.goals[0]!.weeklyFocus = 'Keep the runs easy';
+    person.goals.push({
+      id: 'goal_strength',
+      title: 'Build strength',
+      targetDate: null,
+      achieved: false,
+      weeklyFocus: 'Two strength sessions',
+    });
+    person.workouts[0]!.goalId = 'goal_first';
+    person.workouts.push({
+      ...person.workouts[0]!,
+      id: 'workout_strength',
+      title: 'Weights',
+      activity: 'weights',
+      days: ['mon', 'tue'],
+      goalId: 'goal_strength',
+    });
+    service.update(home, { ...settings, configuration: config }, actor);
+    const view = service.overview(home).people[0]!;
+    expect(view.goals.map((g) => [g.title, g.routine.map((w) => w.id)])).toEqual([
+      ['Run comfortably', ['workout_one']],
+      ['Build strength', ['workout_strength']],
+    ]);
+    expect(view.days[0]!.sessions.map((s) => s.goal?.title)).toEqual([
+      'Run comfortably',
+      'Build strength',
+    ]);
+    service.complete(home, check, device);
+    expect(service.overview(home).people[0]!.streak.current).toBe(0);
+    service.complete(
+      home,
+      { ...check, requestId: 'request_strength', workoutId: 'workout_strength' },
+      device,
+    );
+    expect(service.overview(home).people[0]!.streak.current).toBe(1);
+    const next = structuredClone(config);
+    next.plans[0]!.goals[0]!.title = 'Run a longer distance';
+    next.plans[0]!.goals[1]!.achieved = true;
+    service.update(
+      home,
+      { requestId: 'request_goal_edit', expectedRevision: 1, configuration: next },
+      actor,
+    );
+    now = '2026-08-04T07:00:00+08:00';
+    const again = new FitnessService(db, () => new Date(now));
+    const after = again.overview(home).people[0]!;
+    expect(after.days[0]!.sessions[0]!.goal?.title).toBe('Run comfortably');
+    expect(after.days[1]!.sessions).toEqual([]);
+    expect(after.days[2]!.sessions[0]!.goal?.title).toBe('Run a longer distance');
+    expect(after.streak.current).toBe(1);
+    expect(() =>
+      again.complete(
+        home,
+        {
+          ...check,
+          requestId: 'request_achieved',
+          localDate: '2026-08-04',
+          planRevision: 2,
+          workoutId: 'workout_strength',
+        },
+        device,
+      ),
+    ).toThrow('not scheduled');
+  } finally {
+    db.close();
+  }
+});
+it('preserves an earlier unassigned routine and its exact receipt without guessing a goal', async () => {
+  const db = new Database(':memory:');
+  applyMigrations(db);
+  try {
+    const home = await new SqliteAdminRepository(db).getHousehold(DEMO_HOUSEHOLD_ID);
+    const service = new FitnessService(db, () => new Date(DEMO_NOW));
+    const original = service.update(home, settings, actor);
+    service.complete(home, check, device);
+    const receipts = db.prepare('SELECT * FROM fitness_receipts').all();
+    const again = new FitnessService(db, () => new Date(DEMO_NOW));
+    expect(again.getSettings(home).configuration).toEqual(configuration);
+    expect(again.overview(home).people[0]!.days[0]!.sessions[0]!.goal).toBeNull();
+    expect(again.update(home, settings, actor)).toEqual({ ...original, replayed: true });
+    expect(db.prepare('SELECT * FROM fitness_receipts').all()).toEqual(receipts);
+    const assigned = structuredClone(configuration);
+    assigned.plans[0]!.workouts[0]!.goalId = 'goal_first';
+    again.update(
+      home,
+      { requestId: 'request_assign', expectedRevision: 1, configuration: assigned },
+      actor,
+    );
+    expect(again.overview(home).people[0]!.days[0]!.sessions[0]!.goal).toBeNull();
+    expect(again.overview(home).people[0]!.days[2]!.sessions[0]!.goal?.title).toBe(
+      'Run comfortably',
+    );
+    expect(again.overview(home).people[0]!.streak.current).toBe(1);
+  } finally {
+    db.close();
+  }
+});

@@ -4,6 +4,7 @@ import { localDateInTimezone } from '@hearth/core';
 import {
   FITNESS_ACTIVITY_LABELS,
   FITNESS_DAY_LABELS,
+  FITNESS_DAYS,
   type FitnessOverview,
   type FitnessSession,
   type SetFitnessCompletion,
@@ -162,14 +163,17 @@ function FitnessBoard({
               data-focus-id="fitness-goals"
               onClick={() => setGoalsOpen(true)}
             >
-              <span className="fitness-kicker">Long-term goals</span>
+              <span className="fitness-kicker">Long-term goals · {person.goals.length}</span>
               <strong>
-                {person.goals.find((g) => !g.achieved)?.title ??
+                {person.goals
+                  .filter((g) => !g.achieved)
+                  .map((g) => g.title)
+                  .join(' · ') ||
                   (person.goals.length ? 'Goals achieved!' : 'A goal to work towards')}
               </strong>
               <span>
                 {person.goals.length
-                  ? `${person.goals.filter((g) => g.achieved).length} of ${person.goals.length} achieved`
+                  ? `View ${person.goals.length === 1 ? 'goal & routine' : `all ${person.goals.length} goals & routines`}`
                   : 'Set your goals on an adult phone'}{' '}
                 <Icon name="chevron-right" />
               </span>
@@ -246,16 +250,22 @@ function FitnessBoard({
                   className={`fitness-workout focusable fitness-workout--${s.workout.activity}${s.isCompleted ? ' fitness-workout--done' : ''}`}
                   data-focus-id={`fitness-workout-${s.workout.id}`}
                   onClick={() => setOpened(s.workout.id)}
-                  aria-label={`${s.workout.title}, ${FITNESS_ACTIVITY_LABELS[s.workout.activity]}${s.isCompleted ? ', done' : ''}`}
+                  aria-label={`${s.workout.title}, ${FITNESS_ACTIVITY_LABELS[s.workout.activity]}${s.isCompleted ? ', done' : ''}${s.goal ? `, Goal: ${s.goal.title}` : ''}`}
                 >
                   <span className="fitness-activity-icon">
                     <Icon name={fitnessIcon(s.workout.activity)} />
                   </span>
                   <span className="fitness-workout__text">
-                    <small>{FITNESS_ACTIVITY_LABELS[s.workout.activity]}</small>
+                    <small className="fitness-workout-goal" title={s.goal?.title}>
+                      {s.goal?.title ?? 'General fitness'}
+                    </small>
                     <strong>{s.workout.title}</strong>
                     <span>
-                      {fitnessTarget(s.workout) || `${s.workout.exercises.length} exercises`}
+                      {FITNESS_ACTIVITY_LABELS[s.workout.activity]} ·{' '}
+                      {fitnessTarget(s.workout) ||
+                        (s.workout.exercises.length
+                          ? `${s.workout.exercises.length} exercises`
+                          : 'View plan')}
                     </span>
                   </span>
                   <Icon name={s.isCompleted ? 'check' : 'chevron-right'} />
@@ -352,7 +362,7 @@ function FitnessBoard({
                       <li key={g.id}>
                         <Icon name={g.achieved ? 'check' : 'star'} />
                         <div>
-                          <strong>{g.title}</strong>
+                          <h3>{g.title}</h3>
                           <p>
                             {g.achieved
                               ? 'Achieved'
@@ -360,6 +370,33 @@ function FitnessBoard({
                                 ? `Target: ${fitnessDate(g.targetDate)}`
                                 : 'One step at a time'}
                           </p>
+                          {g.weeklyFocus ? <p>{g.weeklyFocus}</p> : null}
+                          <p className="fitness-goal-progress">
+                            This week:{' '}
+                            {sessions.filter((s) => s.goal?.id === g.id && s.isCompleted).length} /{' '}
+                            {sessions.filter((s) => s.goal?.id === g.id).length} sessions done
+                          </p>
+                          {g.routine.length ? (
+                            <ul
+                              className="fitness-goal-routine"
+                              aria-label={`${g.title} weekly routine`}
+                            >
+                              {g.routine.map((w) => (
+                                <li key={w.id}>
+                                  <span>{w.title}</span>
+                                  <small>
+                                    {w.days
+                                      .map((d) =>
+                                        FITNESS_DAY_LABELS[FITNESS_DAYS.indexOf(d)]!.slice(0, 3),
+                                      )
+                                      .join(' · ')}
+                                  </small>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p>No weekly workouts yet.</p>
+                          )}
                         </div>
                       </li>
                     ))}
@@ -429,6 +466,7 @@ function FitnessFeedback({
 function WorkoutDetails({ session }: { session: FitnessSession }) {
   return (
     <FitnessScrollRegion label="Workout instructions">
+      {session.goal ? <p className="fitness-detail-goal">Goal: {session.goal.title}</p> : null}
       {session.workout.notes ? (
         <p className="fitness-detail-notes">{session.workout.notes}</p>
       ) : null}

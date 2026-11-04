@@ -119,7 +119,11 @@ export class FitnessService {
             plans.at(-1)?.configuration.plans.find((p) => p.memberId === person.id);
           return {
             person,
-            goals: personal?.goals ?? [],
+            goals:
+              personal?.goals.map((goal) => ({
+                ...goal,
+                routine: personal.workouts.filter((workout) => workout.goalId === goal.id),
+              })) ?? [],
             weeklyFocus: personal?.weeklyFocus ?? '',
             streak: fitnessStreak(plans, checks, person.id, localDate),
             days: dates.map((date) => ({
@@ -127,8 +131,12 @@ export class FitnessService {
               planRevision: fitnessPlanForDate(plans, date)?.revision ?? 0,
               sessions: fitnessWorkouts(plans, person.id, date).map((workout) => {
                 const check = byCheck.get(JSON.stringify([person.id, date, workout.id]));
+                const goal = fitnessPlanForDate(plans, date)
+                  ?.configuration.plans.find((p) => p.memberId === person.id)
+                  ?.goals.find((g) => g.id === workout.goalId);
                 return {
                   workout,
+                  goal: goal ? { id: goal.id, title: goal.title } : null,
                   isCompleted: check?.isCompleted ?? false,
                   version: check?.version ?? 0,
                 };

@@ -59,3 +59,45 @@ it('rejects invalid dates and stale-version shapes before commands', () => {
     }).success,
   ).toBe(false);
 });
+
+it('links workouts only to a goal owned by the same person', () => {
+  const goal = {
+    id: 'goal_run',
+    title: 'Run 5 km',
+    targetDate: null,
+    achieved: false,
+    weeklyFocus: 'Build consistency',
+  };
+  const config = {
+    selectedMemberIds: ['member_a'],
+    plans: [
+      {
+        memberId: 'member_a',
+        weeklyFocus: '',
+        goals: [goal],
+        workouts: [{ ...workout, goalId: goal.id }],
+      },
+      {
+        memberId: 'member_b',
+        weeklyFocus: '',
+        goals: [{ ...goal, id: 'goal_other' }],
+        workouts: [],
+      },
+    ],
+  };
+  expect(FitnessConfigurationSchema.parse(config)).toEqual(config);
+  for (const goalId of ['goal_missing', 'goal_other']) {
+    const changed = {
+      ...config,
+      plans: [{ ...config.plans[0], workouts: [{ ...workout, goalId }] }, config.plans[1]],
+    };
+    expect(FitnessConfigurationSchema.safeParse(changed).success).toBe(false);
+  }
+});
+it('does not inject goal defaults into original commands and change their replay hash', () => {
+  const original = {
+    selectedMemberIds: ['member_a'],
+    plans: [{ memberId: 'member_a', weeklyFocus: 'Kept focus', goals: [], workouts: [workout] }],
+  };
+  expect(JSON.stringify(FitnessConfigurationSchema.parse(original))).toBe(JSON.stringify(original));
+});

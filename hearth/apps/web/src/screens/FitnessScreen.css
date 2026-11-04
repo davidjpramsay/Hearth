@@ -629,7 +629,7 @@
     min-height: 88px;
   }
   .fitness-workout__text small {
-    display: none;
+    font-size: 16px;
   }
   .fitness-person-picker {
     min-height: 54px;
@@ -693,4 +693,50 @@
   .fitness-workouts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+.fitness-workout-goal {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fitness-workout__text > span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fitness-detail-goal {
+  color: var(--eucalyptus);
+  font-weight: 600;
+  margin: 0 0 16px;
+  overflow-wrap: anywhere;
+}
+.fitness-goal-list > li > div {
+  flex: 1;
+  min-width: 0;
+}
+.fitness-goal-list h3 {
+  font-size: inherit;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.fitness-goal-routine {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.fitness-goal-routine li {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.fitness-goal-routine li > span {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.fitness-goal-routine small {
+  color: var(--muted);
 }

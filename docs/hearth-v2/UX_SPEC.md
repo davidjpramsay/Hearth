@@ -3,7 +3,9 @@
 ## Fitness (D-128)
 
 Fitness appears in the TV rail and phone More only while enabled. Select a person, see their goals,
-current/best scheduled-day streak and weekly session count, then choose a day and open a workout.
+current/best scheduled-day streak and weekly session count. Today combines due workouts across all
+active goals; each card and its details show the goal. Open the goals card for each goal's weekly
+routine and session progress, or choose another day and open a workout.
 Four labelled activity icons identify running, swimming, weights and fitness classes. Show four
 session cards per page, explicit remaining pages, rest days and honest future-day read-only details.
 The modal shows notes and an ordered Exercise / kg / Sets / Reps table; a focusable scrolling region
@@ -11,7 +13,10 @@ keeps long instructions accessible with arrows, plus Close/Back and exact card f
 Phones scroll naturally; never squeeze exercise names into unreadable TV text.
 
 Adult Fitness settings has explicit participant selection, a person selector, long-term goals with
-optional target date/achieved status, weekly focus and expandable workout editors. Choose weekdays;
+optional target date/achieved status. Each expandable goal contains its own weekly focus and workout
+editors. New workouts belong to that goal. Removing a goal confirms removal of its future routine
+while preserving history. Earlier unassigned workouts stay separate and can be assigned without
+changing their IDs or today's progress. Achieved goals stop scheduling tomorrow. Choose weekdays;
 enter optional minutes/km and exercises with optional kg/sets/reps. Empty means unspecified. Exercise
 move-up/down is available without dragging. No person is selected automatically. Drafts survive reads,
 unknown outcomes retain the exact request, and conflicts offer deliberate Load latest. First save

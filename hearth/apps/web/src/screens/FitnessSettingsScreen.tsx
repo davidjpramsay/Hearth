@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   FitnessConfigurationSchema,
@@ -146,7 +146,8 @@ function FitnessForm({
   return (
     <AdminPage title="Fitness" backTo="/more" backLabel="Back to More">
       <p>
-        Personal goals and a weekly plan. Workouts and goals are visible to everyone in your home.
+        Personal goals, each with its own weekly routine. Workouts and goals are visible to everyone
+        in your home.
       </p>
       <p className="field-help">
         {latest.revision === 0
@@ -226,69 +227,21 @@ function FitnessForm({
             </label>
             <section>
               <h2>Long-term goals</h2>
+              <p className="field-help">
+                Give each goal its own weekly routine. Today shows what is due across all active
+                goals.
+              </p>
               {plan.goals.map((goal, i) => (
-                <div className="fitness-goal-editor" key={goal.id}>
-                  <label>
-                    Goal {i + 1}
-                    <input
-                      required
-                      maxLength={160}
-                      value={goal.title}
-                      onChange={(e) =>
-                        editPlan((p) => ({
-                          ...p,
-                          goals: p.goals.map((g) =>
-                            g.id === goal.id ? { ...g, title: e.target.value } : g,
-                          ),
-                        }))
-                      }
-                    />
-                  </label>
-                  <div className="fitness-settings__row">
-                    <label>
-                      Target date (optional)
-                      <input
-                        type="date"
-                        value={goal.targetDate ?? ''}
-                        onChange={(e) =>
-                          editPlan((p) => ({
-                            ...p,
-                            goals: p.goals.map((g) =>
-                              g.id === goal.id ? { ...g, targetDate: e.target.value || null } : g,
-                            ),
-                          }))
-                        }
-                      />
-                    </label>
-                    <label className="fitness-settings__check">
-                      <input
-                        type="checkbox"
-                        checked={goal.achieved}
-                        onChange={(e) =>
-                          editPlan((p) => ({
-                            ...p,
-                            goals: p.goals.map((g) =>
-                              g.id === goal.id ? { ...g, achieved: e.target.checked } : g,
-                            ),
-                          }))
-                        }
-                      />
-                      Achieved
-                    </label>
-                    <button
-                      type="button"
-                      className="admin-secondary"
-                      aria-label={`Remove goal ${i + 1}`}
-                      onClick={() =>
-                        editPlan((p) => ({ ...p, goals: p.goals.filter((g) => g.id !== goal.id) }))
-                      }
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
+                <GoalEditor
+                  key={`${person.id}:${goal.id}`}
+                  goal={goal}
+                  index={i}
+                  plan={plan}
+                  editPlan={editPlan}
+                />
               ))}
               <button
+                id="fitness-add-goal"
                 type="button"
                 className="admin-secondary"
                 disabled={plan.goals.length >= 5}
@@ -297,7 +250,13 @@ function FitnessForm({
                     ...p,
                     goals: [
                       ...p.goals,
-                      { id: createRequestId('goal'), title: '', targetDate: null, achieved: false },
+                      {
+                        id: createRequestId('goal'),
+                        title: '',
+                        targetDate: null,
+                        achieved: false,
+                        weeklyFocus: '',
+                      },
                     ],
                   }))
                 }
@@ -305,63 +264,64 @@ function FitnessForm({
                 Add long-term goal
               </button>
             </section>
-            <section>
-              <h2>Weekly goals</h2>
-              <label>
-                This week’s focus (optional)
-                <textarea
-                  maxLength={240}
-                  rows={2}
-                  value={plan.weeklyFocus}
-                  onChange={(e) => editPlan((p) => ({ ...p, weeklyFocus: e.target.value }))}
-                />
-              </label>
-              <p className="field-help">Schedule each session on the days you want it to repeat.</p>
-              {plan.workouts.map((workout, index) => (
-                <WorkoutEditor
-                  key={`${person.id}:${workout.id}`}
-                  workout={workout}
-                  index={index}
-                  change={(update) =>
-                    editPlan((p) => ({
-                      ...p,
-                      workouts: p.workouts.map((w) => (w.id === workout.id ? update(w) : w)),
-                    }))
-                  }
-                  remove={() =>
-                    editPlan((p) => ({
-                      ...p,
-                      workouts: p.workouts.filter((w) => w.id !== workout.id),
-                    }))
-                  }
-                />
-              ))}
-              <button
-                type="button"
-                className="admin-secondary"
-                disabled={plan.workouts.length >= 14}
-                onClick={() =>
-                  editPlan((p) => ({
-                    ...p,
-                    workouts: [
-                      ...p.workouts,
-                      {
-                        id: createRequestId('workout'),
-                        title: '',
-                        activity: 'running',
-                        days: [],
-                        notes: '',
-                        durationMinutes: null,
-                        distanceKm: null,
-                        exercises: [],
-                      },
-                    ],
-                  }))
-                }
-              >
-                Add workout
-              </button>
-            </section>
+            {plan.workouts.some((w) => w.goalId == null) || plan.weeklyFocus ? (
+              <section className="fitness-unassigned">
+                <h2>Earlier unassigned routine</h2>
+                <p className="field-help">
+                  Your earlier workouts are kept here. Choose a goal for each one when you’re ready.
+                </p>
+                {plan.weeklyFocus ? <p>{plan.weeklyFocus}</p> : null}
+                {plan.workouts
+                  .filter((w) => w.goalId == null)
+                  .map((workout, i) => (
+                    <div key={workout.id}>
+                      <label>
+                        Goal for {workout.title}
+                        <select
+                          value=""
+                          onChange={(event) => {
+                            const goalId = event.target.value;
+                            editPlan((p) => ({
+                              ...p,
+                              workouts: p.workouts.map((w) =>
+                                w.id === workout.id ? { ...w, goalId } : w,
+                              ),
+                            }));
+                            requestAnimationFrame(() =>
+                              document.getElementById(`fitness-goal-${goalId}`)?.focus(),
+                            );
+                          }}
+                        >
+                          <option value="" disabled>
+                            Choose a goal
+                          </option>
+                          {plan.goals.map((g) => (
+                            <option key={g.id} value={g.id}>
+                              {g.title || 'New goal'}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <WorkoutEditor
+                        workout={workout}
+                        index={i}
+                        change={(update) =>
+                          editPlan((p) => ({
+                            ...p,
+                            workouts: p.workouts.map((w) => (w.id === workout.id ? update(w) : w)),
+                          }))
+                        }
+                        remove={() =>
+                          editPlan((p) => ({
+                            ...p,
+                            workouts: p.workouts.filter((w) => w.id !== workout.id),
+                          }))
+                        }
+                      />
+                    </div>
+                  ))}
+              </section>
+            ) : null}
           </fieldset>
         ) : (
           <p>Choose a person to begin their plan.</p>
@@ -376,6 +336,156 @@ function FitnessForm({
         </button>
       </form>
     </AdminPage>
+  );
+}
+function GoalEditor({
+  goal,
+  index,
+  plan,
+  editPlan,
+}: {
+  goal: FitnessPersonPlan['goals'][number];
+  index: number;
+  plan: FitnessPersonPlan;
+  editPlan: (update: (p: FitnessPersonPlan) => FitnessPersonPlan) => void;
+}) {
+  const [open, setOpen] = useState(index === 0 || !goal.title);
+  const title = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (title.current?.value === '') title.current.focus();
+  }, []);
+  const workouts = plan.workouts.filter((w) => w.goalId === goal.id);
+  function change(update: Partial<FitnessPersonPlan['goals'][number]>) {
+    editPlan((p) => ({
+      ...p,
+      goals: p.goals.map((g) => (g.id === goal.id ? { ...g, ...update } : g)),
+    }));
+  }
+  return (
+    <details
+      className="fitness-goal-editor"
+      open={open}
+      onToggle={(e) => setOpen(e.currentTarget.open)}
+    >
+      <summary id={`fitness-goal-${goal.id}`}>
+        <strong>{goal.title || `New goal ${index + 1}`}</strong>
+        <span>
+          {goal.achieved
+            ? 'Achieved'
+            : `${workouts.length} weekly ${workouts.length === 1 ? 'workout' : 'workouts'}`}
+        </span>
+      </summary>
+      <div className="fitness-goal-editor__body">
+        <label>
+          Goal {index + 1}
+          <input
+            ref={title}
+            required
+            maxLength={160}
+            value={goal.title}
+            onChange={(e) => change({ title: e.target.value })}
+          />
+        </label>
+        <div className="fitness-settings__row">
+          <label>
+            Target date (optional)
+            <input
+              type="date"
+              value={goal.targetDate ?? ''}
+              onChange={(e) => change({ targetDate: e.target.value || null })}
+            />
+          </label>
+          <label className="fitness-settings__check">
+            <input
+              type="checkbox"
+              checked={goal.achieved}
+              onChange={(e) => change({ achieved: e.target.checked })}
+            />
+            Achieved
+          </label>
+        </div>
+        <h3>Weekly routine</h3>
+        <label>
+          This goal’s weekly focus (optional)
+          <textarea
+            maxLength={240}
+            rows={2}
+            value={goal.weeklyFocus ?? ''}
+            onChange={(e) => change({ weeklyFocus: e.target.value })}
+          />
+        </label>
+        <p className="field-help">
+          Choose the days for each workout. Achieved goals stop scheduling from tomorrow.
+        </p>
+        {workouts.map((workout, i) => (
+          <WorkoutEditor
+            key={workout.id}
+            workout={workout}
+            index={i}
+            change={(update) =>
+              editPlan((p) => ({
+                ...p,
+                workouts: p.workouts.map((w) => (w.id === workout.id ? update(w) : w)),
+              }))
+            }
+            remove={() =>
+              editPlan((p) => ({ ...p, workouts: p.workouts.filter((w) => w.id !== workout.id) }))
+            }
+          />
+        ))}
+        <button
+          type="button"
+          className="admin-secondary"
+          disabled={plan.workouts.length >= 14}
+          onClick={() =>
+            editPlan((p) => ({
+              ...p,
+              workouts: [
+                ...p.workouts,
+                {
+                  id: createRequestId('workout'),
+                  goalId: goal.id,
+                  title: '',
+                  activity: 'running',
+                  days: [],
+                  notes: '',
+                  durationMinutes: null,
+                  distanceKm: null,
+                  exercises: [],
+                },
+              ],
+            }))
+          }
+        >
+          Add workout
+        </button>
+        {plan.workouts.length >= 14 ? (
+          <p className="field-help">
+            This person has 14 workouts across their goals. Each workout can repeat on several days.
+          </p>
+        ) : null}
+        <button
+          type="button"
+          className="admin-danger"
+          aria-label={`Remove goal ${index + 1}`}
+          onClick={() => {
+            if (
+              workouts.length &&
+              !window.confirm('Remove this goal and its weekly routine? Past progress is kept.')
+            )
+              return;
+            editPlan((p) => ({
+              ...p,
+              goals: p.goals.filter((g) => g.id !== goal.id),
+              workouts: p.workouts.filter((w) => w.goalId !== goal.id),
+            }));
+            requestAnimationFrame(() => document.getElementById('fitness-add-goal')?.focus());
+          }}
+        >
+          Remove goal
+        </button>
+      </div>
+    </details>
   );
 }
 function WorkoutEditor({
@@ -552,7 +662,7 @@ function WorkoutEditor({
         >
           Add exercise
         </button>
-        <button type="button" className="admin-destructive" onClick={remove}>
+        <button type="button" className="admin-danger" onClick={remove}>
           Remove workout
         </button>
       </div>

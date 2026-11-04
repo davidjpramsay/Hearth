@@ -37,6 +37,8 @@ export const FitnessExerciseSchema = z
 export const FitnessWorkoutSchema = z
   .object({
     id: OpaqueIdSchema,
+    // Absent/null is a preserved workout from the original ungrouped plan.
+    goalId: OpaqueIdSchema.nullable().optional(),
     title: z.string().trim().min(1).max(80),
     activity: z.enum(FITNESS_ACTIVITIES),
     days: z
@@ -66,6 +68,7 @@ export const FitnessPersonPlanSchema = z
             title: z.string().trim().min(1).max(160),
             targetDate: LocalDateSchema.nullable(),
             achieved: z.boolean(),
+            weeklyFocus: z.string().trim().max(240).optional(),
           })
           .strict(),
       )
@@ -90,6 +93,16 @@ export const FitnessConfigurationSchema = z
         code: 'custom',
         message: 'People, goals and workouts need unique identifiers.',
       });
+    for (const [i, person] of v.plans.entries()) {
+      for (const [j, workout] of person.workouts.entries()) {
+        if (workout.goalId != null && !person.goals.some((g) => g.id === workout.goalId))
+          ctx.addIssue({
+            code: 'custom',
+            path: ['plans', i, 'workouts', j, 'goalId'],
+            message: 'Choose a goal belonging to this person.',
+          });
+      }
+    }
     if (v.selectedMemberIds.some((id) => !people.includes(id)))
       ctx.addIssue({
         code: 'custom',
@@ -142,8 +155,12 @@ export const FitnessCompletionResultSchema = FitnessProgressSchema.extend({
   audit: AuditSummarySchema,
   replayed: z.boolean(),
 });
+export const FitnessGoalOverviewSchema = FitnessPersonPlanSchema.shape.goals.element.extend({
+  routine: z.array(FitnessWorkoutSchema).max(14),
+});
 export const FitnessSessionSchema = z.object({
   workout: FitnessWorkoutSchema,
+  goal: z.object({ id: OpaqueIdSchema, title: z.string() }).nullable().default(null),
   isCompleted: z.boolean(),
   version: z.number().int().nonnegative(),
 });
@@ -157,7 +174,7 @@ export const FitnessOverviewSchema = z.object({
     .array(
       z.object({
         person: FitnessPersonSchema,
-        goals: FitnessPersonPlanSchema.shape.goals,
+        goals: z.array(FitnessGoalOverviewSchema).max(5),
         weeklyFocus: z.string(),
         streak: z.object({
           current: z.number().int().nonnegative(),

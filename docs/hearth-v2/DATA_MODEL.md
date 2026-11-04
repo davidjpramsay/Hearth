@@ -10,7 +10,11 @@ household references cascade only with the existing household lifecycle; this ch
 existing feature data. Each settings/check/audit/receipt write is transactional. First plan starts
 today; subsequent saves replace tomorrow's pending plan, retaining older periods. Unselected/archived
 people's histories remain. No exercise/goal text is copied into audit summaries. Backups include all
-three tables; rollback to v35 requires its matching database backup. Wire details: FITNESS_CONTRACT.
+three tables; rollback to v35 requires its matching database backup. Additive optional JSON fields
+`goal.weeklyFocus` and `workout.goalId` link independent goal routines, with same-person validation.
+No additional migration or eager data rewrite: absent fields remain absent so old exact-request
+hashes and receipts remain replayable. Unassigned sessions keep their stable IDs and progress.
+Wire details: FITNESS_CONTRACT.
 
 ## Installation records (D-127)
 

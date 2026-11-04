@@ -4,14 +4,19 @@
 
 - Date: 2026-11-04
 - Status: user-requested local implementation; release and physical acceptance separate
-- Choice: Optional initially-off Fitness with explicit participants, long-term goals, weekly focus,
-  four activity types and recurring weekday sessions with editable exercise/kg/sets/reps details.
+- Choice: Optional initially-off Fitness with explicit participants and up to five long-term goals
+  each. Per the owner's refinement, every goal has its own weekly focus and routine, with four
+  activity types and recurring weekday sessions with editable exercise/kg/sets/reps details.
+  Today combines due sessions across active goals and labels each with its goal; achieved goals
+  stop scheduling at the next-day edit boundary. Up to 14 workouts total per person.
   The owner chose consecutive scheduled workout days (all sessions completed), with rest days
   skipped, current/best streak and no early failure of today's unfinished work. TV checks/undo;
   adult phone setup. No connection to chores or money.
 - History: First plan starts today; later edits start tomorrow and can replace only the pending
   next-day snapshot. Preserve past/current plans and progress. Atomic versions, scoped exact
   receipts, safe audit, household timezone and module/access gates use existing infrastructure.
+  Add optional goal association/focus fields without rewriting old JSON or receipt hashes.
+  Preserve legacy unassigned workouts until an adult explicitly assigns them.
 - Consequences: Migration 0036 and new lazy family/admin routes, no provider/dependency/credential
   or network change. HA may switch the new module only after deliberate new approval; no workout
   data/check scope or new navigation command. No live HA/TV/NAS action follows from implementation.

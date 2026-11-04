@@ -2,8 +2,8 @@
 
 ## Fitness
 
-[FITNESS_CONTRACT.md](FITNESS_CONTRACT.md) defines D-128: optional personal goals, recurring weekly
-workouts, detailed exercises and scheduled-workout-day streaks. Local implementation and release/
+[FITNESS_CONTRACT.md](FITNESS_CONTRACT.md) defines D-128: multiple personal goals with their own weekly
+routines, detailed exercises and scheduled-workout-day streaks. Local implementation and release/
 physical acceptance are tracked independently.
 
 Hearth is a private family command centre designed for a wall-mounted Google TV, D-pad remote and

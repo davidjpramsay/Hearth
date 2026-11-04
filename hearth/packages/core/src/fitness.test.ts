@@ -137,3 +137,62 @@ describe('Fitness scheduled-day streaks', () => {
     expect(fitnessWorkouts([p], 'member_ari', '2027-01-02')).toEqual([]);
   });
 });
+
+it('combines active goal routines and counts the scheduled day only when all are done', () => {
+  const goals = [
+    { id: 'goal_run', title: 'Run 5 km', targetDate: null, achieved: false },
+    { id: 'goal_swim', title: 'Swim confidently', targetDate: null, achieved: false },
+  ];
+  const grouped: FitnessPlanVersion = {
+    ...plan,
+    configuration: {
+      ...plan.configuration,
+      plans: [
+        {
+          ...plan.configuration.plans[0]!,
+          goals,
+          workouts: [
+            { ...workout, goalId: 'goal_run' },
+            {
+              ...workout,
+              id: 'workout_swim',
+              activity: 'swimming',
+              goalId: 'goal_swim',
+              days: ['mon', 'thu'],
+            },
+          ],
+        },
+      ],
+    },
+  };
+  expect(fitnessWorkouts([grouped], 'member_ari', '2026-08-03')).toHaveLength(2);
+  expect(fitnessWorkouts([grouped], 'member_ari', '2026-08-05').map((w) => w.goalId)).toEqual([
+    'goal_run',
+  ]);
+  expect(fitnessWorkouts([grouped], 'member_ari', '2026-08-06').map((w) => w.goalId)).toEqual([
+    'goal_swim',
+  ]);
+  expect(fitnessStreak([grouped], [done('2026-08-03')], 'member_ari', '2026-08-03').current).toBe(
+    0,
+  );
+  const checks = [done('2026-08-03'), done('2026-08-03', 'workout_swim')];
+  expect(fitnessStreak([grouped], checks, 'member_ari', '2026-08-03').current).toBe(1);
+  const next: FitnessPlanVersion = {
+    ...grouped,
+    revision: 2,
+    effectiveFrom: '2026-08-04',
+    configuration: {
+      ...grouped.configuration,
+      plans: [
+        {
+          ...grouped.configuration.plans[0]!,
+          goals: goals.map((g) => ({ ...g, achieved: g.id === 'goal_run' })),
+        },
+      ],
+    },
+  };
+  expect(fitnessWorkouts([grouped, next], 'member_ari', '2026-08-05')).toEqual([]);
+  expect(fitnessWorkouts([grouped, next], 'member_ari', '2026-08-06')).toHaveLength(1);
+  expect(fitnessWorkouts([grouped, next], 'member_ari', '2026-08-03')).toHaveLength(2);
+  expect(fitnessStreak([grouped, next], checks, 'member_ari', '2026-08-06').current).toBe(1);
+});
