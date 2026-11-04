@@ -1,5 +1,29 @@
 # Hearth v2 acceptance and definition of done
 
+## TV wake/start recovery — local, 2026-11-04
+
+Native 0.1.3 / code 4 now uses a foreground-only five-attempt/30-second recovery window for
+transient validation and page failures. Pause/Back cancel scheduled work, late callbacks are rejected,
+and resume can restart the bounded window. An Android emulator reproduced HTTP failure arriving
+before page-start; the failed document now remains rejected until a fresh WebView retry. Persistent
+outages retain pairing and expose D-pad Retry. Explicit revoked sessions remain terminal.
+
+Web runtime startup retries temporary failures twice (five-second attempts, 2/4-second backoff),
+then offers manual recovery. Authentication/schema failures do not retry; no household query starts
+before runtime succeeds. No schema, mutation, provider, credential or network changes.
+
+**Passed:** complete `pnpm -C hearth verify:code` (108 shared + 48 core + 117 server + 473 web unit,
+290 integration, 30 migration tests, format/lint/typecheck, deployment scaffold/installer checks,
+production builds and no-HA fresh boot); Android 28 JVM tests, both lint variants and both builds;
+10 API-36 Android instrumentation checks; 37 built-browser startup/reliability/native-viewport/CSP
+checks; CI policy/shard inventory and `git diff --check`. Native lint has 19 non-blocking warnings
+per variant, zero errors. Screenshots visually inspected at 390px phone and 1920px TV/native UI.
+
+**Not run:** full 1,346-browser suite, GitHub publication, deployment, physical-TV install or a real
+standby/wake reproduction. The user's symptom remains consistent with delayed network readiness,
+not a captured physical diagnosis. Existing household devices and networking were untouched.
+See [exact commands, results and screenshots](../../hearth/docs/evidence/tv-wake-recovery-2026-11-04/README.md).
+
 ## Indoor chart copy cleanup — local, 2026-10-30
 
 Removed the “Line: average · Shading: recorded low–high” explanation from both indoor charts.
@@ -4380,8 +4404,14 @@ Chromium fallback produced the retained evidence.
 - Concurrent chore/list commands track each pending record. One failure restores only that record
   and cannot undo another optimistic or successful command.
 - A stream reconnect while the browser remains online catches up changes missed during the gap.
-- A hanging initial runtime request becomes a recoverable error within ten seconds; Retry respects
-  the runtime/authentication boundary and does not leak family queries before it succeeds.
+- Initial runtime reads retry transient failures twice (five seconds per request, 2/4-second
+  backoff) and a continuously hanging online startup offers recovery after about 21 seconds.
+  Authentication/malformed responses fail immediately. Retry respects the runtime/authentication
+  boundary and no family query starts before a valid runtime response.
+- Native paired startup recovers from transient validation or main-document failure without manual
+  input, bounded to five attempts/30 seconds. Pause/Back cancel retries and reject late results;
+  resume re-enters recovery. Exhaustion offers D-pad Retry while preserving pairing and last route.
+  Authentication failure revokes once, and certificate errors are never bypassed.
 - Registered drafts survive cancelled menu, remote Back and browser-history navigation; accepted
   discard permits navigation. Admin initial errors preserve heading/Back and a keyboard-operable Retry.
 - Admin loading keeps Back available without pre-empting the loaded screen's default D-pad entry.

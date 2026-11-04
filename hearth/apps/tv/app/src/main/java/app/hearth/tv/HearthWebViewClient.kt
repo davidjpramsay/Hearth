@@ -17,7 +17,7 @@ class HearthWebViewClient(
     private val trustedOrigin: String,
     private val fallbackViewportScript: String? = null,
     private val onReady: (String) -> Unit,
-    private val onUnavailable: (String?) -> Unit,
+    private val onUnavailable: (String?, Boolean) -> Unit,
 ) : WebViewClient() {
     override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
         !TrustedOrigin.matches(trustedOrigin, request.url.toString())
@@ -56,7 +56,10 @@ class HearthWebViewClient(
         request: WebResourceRequest,
         error: WebResourceError,
     ) {
-        if (request.isForMainFrame) onUnavailable(error.description?.toString())
+        if (request.isForMainFrame) onUnavailable(
+            error.description?.toString(),
+            error.errorCode in setOf(ERROR_HOST_LOOKUP, ERROR_CONNECT, ERROR_TIMEOUT, ERROR_IO),
+        )
     }
 
     override fun onReceivedHttpError(
@@ -65,13 +68,13 @@ class HearthWebViewClient(
         errorResponse: WebResourceResponse,
     ) {
         if (request.isForMainFrame && errorResponse.statusCode >= 400) {
-            onUnavailable("Hearth returned ${errorResponse.statusCode}.")
+            onUnavailable("Hearth returned ${errorResponse.statusCode}.", retryableHttpStatus(errorResponse.statusCode))
         }
     }
 
     override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
         handler.cancel()
-        onUnavailable("Hearth could not verify the private server certificate.")
+        onUnavailable("Hearth could not verify the private server certificate.", false)
     }
 
     @RequiresApi(Build.VERSION_CODES.O_MR1)
@@ -82,11 +85,11 @@ class HearthWebViewClient(
         callback: SafeBrowsingResponse,
     ) {
         callback.backToSafety(true)
-        onUnavailable("Android blocked unsafe web content.")
+        onUnavailable("Android blocked unsafe web content.", false)
     }
 
     override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
-        onUnavailable("Android System WebView stopped unexpectedly.")
+        onUnavailable("Android System WebView stopped unexpectedly.", false)
         return true
     }
 

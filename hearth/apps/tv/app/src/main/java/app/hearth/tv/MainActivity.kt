@@ -44,10 +44,36 @@ class MainActivity : ComponentActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private var webView: WebView? = null
     private var nativeBridge: NativeBridge? = null
-    private var pairingGeneration = 0
+    @Volatile private var pairingGeneration = 0
     private var hasResumed = false
+    private var foreground = false
     private var hasReadyWebContent = false
     private val presentationState = PresentationState()
+    private var connectionToken = 0L
+    private var recoverOnResume = false
+    private var transientConnectionFailure = false
+    private val connectionRecovery by lazy {
+        ConnectionRecovery(
+            schedule = { delay, action ->
+                val task = Runnable { action() }
+                handler.postDelayed(task, delay)
+                val cancel: () -> Unit = { handler.removeCallbacks(task) }
+                cancel
+            },
+            attempt = { token ->
+                connectionToken = token
+                val credential = credentialStore.load()
+                if (credential == null) showServerEntry() else validateCredential(credential)
+            },
+            exhausted = { message ->
+                val generation = ++pairingGeneration
+                hideWebContent()
+                recovery.showOffline(familyReachabilityMessage(message), ::bootstrap, ::changeAddress)
+                // Error callbacks may still be on WebView's stack. Dispose after they return.
+                handler.post { onMain(generation) { destroyWebView() } }
+            },
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,6 +101,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        foreground = true
         publishPresentation(presentationState.update(
             resumed = true,
             windowFocused = hasWindowFocus(),
@@ -83,10 +110,22 @@ class MainActivity : ComponentActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         enterTelevisionMode()
         webView?.onResume()
-        if (hasResumed) revalidateOnResume() else hasResumed = true
+        if (hasResumed) {
+            if (recoverOnResume) {
+                recoverOnResume = false
+                bootstrap()
+            } else revalidateOnResume()
+        } else hasResumed = true
     }
 
     override fun onPause() {
+        foreground = false
+        recoverOnResume = connectionRecovery.running || transientConnectionFailure
+        if (connectionRecovery.running) {
+            connectionRecovery.cancel()
+            pairingGeneration += 1
+            destroyWebView()
+        }
         publishPresentation(presentationState.update(resumed = false))
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         webView?.onPause()
@@ -102,6 +141,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        connectionRecovery.cancel()
         publishPresentation(presentationState.update(resumed = false, contentReady = false))
         pairingGeneration += 1
         handler.removeCallbacksAndMessages(null)
@@ -115,11 +155,15 @@ class MainActivity : ComponentActivity() {
         if (credential === null) {
             showServerEntry()
         } else {
-            validateCredential(credential)
+            transientConnectionFailure = true
+            connectionRecovery.start()
         }
     }
 
     private fun showServerEntry(error: String? = null) {
+        connectionRecovery.cancel()
+        transientConnectionFailure = false
+        recoverOnResume = false
         hideWebContent()
         pairingGeneration += 1
         recovery.showServerEntry(
@@ -222,10 +266,11 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun validateCredential(credential: TvCredential) {
-        hideWebContent()
+        destroyWebView()
         val generation = ++pairingGeneration
-        recovery.showConnecting("Reconnecting this television…")
+        recovery.showConnecting("Connecting to Hearth… Retrying automatically if your network is still waking up.")
         networkExecutor.execute {
+            if (generation != pairingGeneration) return@execute
             runCatching {
                 pairingClient.validate(credential.serverOrigin, credential.pairingSecret)
             }.onSuccess { session ->
@@ -244,11 +289,8 @@ class MainActivity : ComponentActivity() {
                     if (error is PairingClientException && error.statusCode in setOf(401, 403)) {
                         showRevoked()
                     } else {
-                        recovery.showOffline(
-                            pairingErrorMessage(error),
-                            { validateCredential(credential) },
-                            ::changeAddress,
-                        )
+                        transientConnectionFailure = retryableConnectionFailure(error)
+                        connectionRecovery.failed(connectionToken, transientConnectionFailure, pairingErrorMessage(error))
                     }
                 }
             }
@@ -277,6 +319,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun showRevoked() {
+        connectionRecovery.cancel()
+        transientConnectionFailure = false
+        recoverOnResume = false
         pairingGeneration += 1
         credentialStore.clear()
         CookieManager.getInstance().removeAllCookies(null)
@@ -293,6 +338,8 @@ class MainActivity : ComponentActivity() {
         cookieManager.setCookie(credential.serverOrigin, cookie) { accepted ->
             onMain(generation) {
                 if (!accepted) {
+                    connectionRecovery.cancel()
+                    transientConnectionFailure = false
                     recovery.showOffline(
                         "Android could not secure the television session.",
                         { installCredentialAndLoad(credential) },
@@ -310,6 +357,7 @@ class MainActivity : ComponentActivity() {
     private fun createWebView(origin: String) {
         destroyWebView()
         val view = WebView(this).apply {
+            visibility = View.GONE
             setBackgroundColor(getColor(R.color.hearth_canvas))
             isFocusable = true
             isFocusableInTouchMode = true
@@ -352,6 +400,8 @@ class MainActivity : ComponentActivity() {
         )
         if (!bridge.install()) {
             view.destroy()
+            connectionRecovery.cancel()
+            transientConnectionFailure = false
             recovery.showWebViewUpdate()
             return
         }
@@ -390,10 +440,10 @@ class MainActivity : ComponentActivity() {
                         view.url?.let { TrustedOrigin.matches(origin, it) } == true
                     ) showWebContent(url)
                 },
-                onUnavailable = { message ->
-                    if (webView === view && generation == documentGeneration) {
+                onUnavailable = { message, retryable ->
+                    if (webView === view && generation == documentGeneration && !unavailable) {
                         unavailable = true
-                        showWebUnavailable(message)
+                        showWebUnavailable(message, retryable)
                     }
                 },
             )
@@ -402,7 +452,8 @@ class MainActivity : ComponentActivity() {
         override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
             documentGeneration += 1
             committed = false
-            unavailable = false
+            // Android may deliver HTTP failure before onPageStarted. Keep failure sticky;
+            // recovery replaces this WebView, so an error document can never become ready.
             if (webView === view) {
                 hasReadyWebContent = false
                 publishPresentation(presentationState.update(contentReady = false))
@@ -446,6 +497,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun showWebContent(url: String) {
+        connectionRecovery.succeeded(connectionToken)
+        transientConnectionFailure = false
+        recoverOnResume = false
         val uri = Uri.parse(url)
         localState.lastPath = uri.encodedPath?.takeIf(String::isNotBlank) ?: "/today"
         recovery.visibility = View.GONE
@@ -457,9 +511,20 @@ class MainActivity : ComponentActivity() {
         publishPresentation(presentationState.update(contentReady = presentationContentReady()))
     }
 
-    private fun showWebUnavailable(message: String?) {
+    private fun showWebUnavailable(message: String?, retryable: Boolean) {
         hideWebContent()
-        recovery.showOffline(familyReachabilityMessage(message), ::bootstrap, ::changeAddress)
+        transientConnectionFailure = retryable
+        if (connectionRecovery.running) {
+            connectionRecovery.failed(connectionToken, retryable, message)
+        } else if (retryable && !foreground) {
+            recoverOnResume = true
+        } else if (retryable && !isFinishing && !isDestroyed) {
+            // Leave the WebView callback before destroying/replacing its view.
+            val generation = pairingGeneration
+            handler.post { onMain(generation) { bootstrap() } }
+        } else {
+            recovery.showOffline(familyReachabilityMessage(message), ::bootstrap, ::changeAddress)
+        }
     }
 
     private fun hideWebContent() {
@@ -486,6 +551,8 @@ class MainActivity : ComponentActivity() {
 
     private fun handleBack() {
         if (recovery.visibility == View.VISIBLE) {
+            connectionRecovery.cancel()
+            pairingGeneration += 1
             finishAfterTransition()
             return
         }

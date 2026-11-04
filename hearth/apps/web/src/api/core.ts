@@ -6,13 +6,17 @@ import {
 } from '@hearth/shared';
 import type { z } from 'zod';
 import { withRequestDeadline } from './deadline';
+import { HearthTransportError } from './transportError';
 
 export const API_BASE = import.meta.env.VITE_HEARTH_API_BASE ?? '/api/v1';
 
 let runtimeContext: RuntimeContext | null = null;
 
 export class HearthApiError extends Error {
-  constructor(readonly payload: ApiError) {
+  constructor(
+    readonly payload: ApiError,
+    readonly status?: number,
+  ) {
     super(payload.error.message);
     this.name = 'HearthApiError';
   }
@@ -88,8 +92,12 @@ async function fetchResponse(url: string, init?: RequestInit): Promise<Response>
   if (!response.ok) {
     const body: unknown = await response.json().catch(() => null);
     const parsed = ApiErrorSchema.safeParse(body);
-    if (parsed.success) throw new HearthApiError(parsed.data);
-    throw new Error('Hearth could not complete that request.');
+    if (parsed.success) throw new HearthApiError(parsed.data, response.status);
+    throw new HearthTransportError(
+      'Hearth could not complete that request.',
+      'http',
+      response.status,
+    );
   }
   return response;
 }

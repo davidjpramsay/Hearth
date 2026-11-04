@@ -821,6 +821,12 @@ screen's meaningful entry control.
 Retry restores a usable screen control after the error node disappears. A short burst of remote
 directions through a lazy route load is applied once its controls arrive; activation is not replayed.
 Short request deadlines replace endless startup loading with recovery, without bypassing sign-in.
+On TV wake or paired cold start, show one calm Connecting to Hearth state while retrying temporary
+reachability failures for at most 30 seconds/five attempts. Back always exits; retries stop while
+paused. An unresolved outage then offers focused Try again and Change address. Pairing/certificate
+problems remain explicit. The web startup gate also retries transient reads twice, saying
+“Waiting for Hearth… Retrying automatically.” It never opens household views before a successful
+runtime response, and leaves Try again after the bounded retry window.
 
 Meal-week, household, pocket-money-rule, list-add and reminder-create drafts warn before route/history
 navigation or page exit. Automatic release reloads wait while a registered draft exists. Successful

@@ -384,6 +384,16 @@ A minimal Kotlin Android TV application that provides:
 - one-time pairing and AES-GCM device-credential storage backed by Android Keystore
 - last-route restoration plus native server, network, revocation and WebView recovery
 
+Paired startup has one foreground reconnect window: at most five validation/page attempts with
+2/4/6/8-second backoff and a 30-second wall-clock deadline. Only network failures and HTTP
+408/429/500/502/503/504 retry automatically. Authentication/identity mismatch revokes immediately;
+certificate, malformed response, unsafe-content and WebView failures remain terminal. Pause,
+Back and destruction cancel scheduled retries; generation tokens discard late callbacks. Resume
+starts a fresh bounded window when interrupted or still disconnected, while an already-ready
+page remains visible during ordinary session revalidation. No credential is recreated and no
+household command is retried. HTTP/error state remains sticky for the failed WebView, even when
+Android delivers the failure before page-start; retry creates a new view after the callback returns.
+
 Business logic remains in server/core. Do not create a second chore/calendar implementation in Kotlin.
 
 The shell also installs a main-frame-only document-start viewport script for the exact paired
@@ -674,9 +684,13 @@ redacts the household identifier and name (`household: null`, `requiresSetup: fa
 then offers QR-approved phone connection or private owner-key recovery. A valid companion session or paired-TV credential reveals the runtime
 household and allows normal route construction.
 
-Browser JSON requests bound both response headers and body parsing to ten seconds and preserve
-caller cancellation. Bootstrap does not automatically retry an initial failed request; it offers
-an explicit recovery action without using cached family data to bypass authentication. Explicit
+Browser JSON requests normally bound both response headers and body parsing to ten seconds and
+preserve caller cancellation. The read-only runtime bootstrap uses five-second attempts and two
+retries (2/4-second backoff, about 21 seconds total while online). Typed transport errors identify
+network/timeouts and HTTP 408/429/500/502/503/504; denied access or malformed responses do not
+retry. TanStack cancellation reaches the request; offline pause and foreground/reconnect refresh
+remain in place. Exhaustion offers explicit recovery without using cached family data to bypass
+authentication. This policy is not applied to mutations. Explicit
 calendar/Home Assistant discovery receives thirty seconds; photo upload/import refresh, checked
 backup and update-start requests receive two minutes. A timeout is an ambiguous write outcome, not
 proof that the server rejected a command.

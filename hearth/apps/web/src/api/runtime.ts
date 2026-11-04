@@ -11,7 +11,8 @@ import {
 import { API_BASE, request } from './core';
 
 export const runtimeApi = {
-  getRuntime: () => request(`${API_BASE}/runtime`, RuntimeContextSchema),
+  getRuntime: (signal?: AbortSignal) =>
+    request(`${API_BASE}/runtime`, RuntimeContextSchema, { signal: signal ?? null }, 5_000),
   getAuthStatus: () => request(`${API_BASE}/auth/status`, PasskeyAuthStatusSchema),
   getFirstUseRegistrationOptions: (input: FirstUsePasskeyOptionsRequest) =>
     request(`${API_BASE}/auth/first-use/registration-options`, PasskeyCeremonyOptionsSchema, {

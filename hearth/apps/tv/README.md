@@ -45,7 +45,7 @@ signing key outside this repository.
 
 Update an existing signed installation with `adb install -r`; do not uninstall or clear pairing.
 
-### Android-runtime bridge regression
+### Android-runtime bridge and recovery regressions
 
 Desktop JVM tests do not use Android's ICU regex engine. Run the dependency-free platform
 instrumentation against an explicitly selected disposable Android emulator as well:
@@ -58,12 +58,25 @@ adb -s EMULATOR_SERIAL shell am instrument -w \
   app.hearth.tv.debug.test/app.hearth.tv.BridgeProtocolInstrumentation
 ```
 
-Require `OK (4 Android bridge tests)` with no failing status, not merely a successful ADB shell
+Require `OK (10 Android bridge/recovery tests)` with no failing status, not merely a successful ADB shell
 exit. This checks first-message initialization, the four existing message types, JSON whitespace,
 malformed/extended/oversized rejection and the original Android-only closing-brace failure.
-It adds nothing to the production APK, no bridge capability and no external test dependency.
+The six loopback recovery cases also cover transient validation and HTTP page errors, pause/resume,
+exhaustion plus D-pad Retry, revoked credentials and Back cancellation. They replace/clear fictional
+credentials on the disposable emulator and capture connecting/offline screenshots in the test app's
+external files directory. Never run this fixture on a household TV.
+The test harness adds nothing to the production APK, no bridge capability and no external dependency.
 Do not install the test APK on a paired household TV: instrumentation can stop its target app.
 Hosted verification still runs JVM tests/lint/builds; it does not run these emulator cases.
+
+## Wake/start recovery
+
+Version 0.1.3 / code 4 retries temporary network/server failures automatically while foregrounded:
+up to five attempts within 30 seconds, then Try again. Pause/Back stop scheduled work; resume can
+start a fresh window. Authentication, certificate and malformed-response failures are not treated
+as temporary outages. Existing pairing and last route survive connection failures. Only validation
+GETs and page loading retry; no household writes, background jobs or new network permissions.
+The web runtime gate independently retries transient reads twice, with its own bounded deadline.
 
 ## Pair
 

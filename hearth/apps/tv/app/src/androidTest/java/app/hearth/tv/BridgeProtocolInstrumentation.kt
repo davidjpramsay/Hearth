@@ -50,7 +50,9 @@ class BridgeProtocolInstrumentation : Instrumentation() {
                     "[\"app.identity\"]",
                 )) check(BridgeProtocol.parse(payload) == null) { "A non-protocol message was accepted" }
             },
-        )
+        ) + listOf("validation", "page", "pause", "persistent", "denied", "back").map { mode ->
+            "connectionRecovery_$mode" to { ConnectionRecoveryAndroidChecks(this).run(mode) }
+        }
         for ((index, case) in cases.withIndex()) {
             val status = Bundle().apply {
                 putString("class", BridgeProtocolInstrumentation::class.java.name)
@@ -72,7 +74,7 @@ class BridgeProtocolInstrumentation : Instrumentation() {
             }
         }
         finish(Activity.RESULT_OK, Bundle().apply {
-            putString("stream", "OK (${cases.size} Android bridge tests)\n")
+            putString("stream", "OK (${cases.size} Android bridge/recovery tests)\n")
         })
     }
 }

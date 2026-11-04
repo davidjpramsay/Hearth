@@ -1,3 +1,5 @@
+import { HearthTransportError } from './transportError';
+
 export const REQUEST_TIMEOUT_MS = 10_000;
 
 /** Bound headers and body reads without requiring newer television AbortSignal APIs. */
@@ -16,15 +18,17 @@ export async function withRequestDeadline<T>(
     timer = setTimeout(() => {
       timedOut = true;
       controller.abort();
-      reject(new Error('Hearth is taking too long. Try again.'));
+      reject(new HearthTransportError('Hearth is taking too long. Try again.', 'timeout'));
     }, timeoutMs);
   });
   try {
     return await Promise.race([run({ ...init, signal: controller.signal }), deadline]);
   } catch (error) {
     if (init?.signal?.aborted) throw error;
-    if (timedOut) throw new Error('Hearth is taking too long. Try again.');
-    if (error instanceof TypeError) throw new Error('Couldn’t reach Hearth. Try again.');
+    if (timedOut)
+      throw new HearthTransportError('Hearth is taking too long. Try again.', 'timeout');
+    if (error instanceof TypeError)
+      throw new HearthTransportError('Couldn’t reach Hearth. Try again.', 'network');
     throw error;
   } finally {
     clearTimeout(timer);

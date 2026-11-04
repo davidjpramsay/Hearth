@@ -145,6 +145,27 @@ operations; successful/missing artwork caches last six hours/one minute. Downloa
 bounds are documented in NBA_CONTRACT. Cache is in-memory only and resets on restart. This web/
 server polish needs no new TV APK or HA integration version, and does not itself authorize release.
 
+## TV wake/start recovery — prepared locally, 2026-11-04
+
+TV shell **0.1.3 / code 4** adds foreground-only reconnect attempts for temporary validation and
+main-page failures. Five attempts/30 seconds is the limit; Back/pause cancel them, and resume can
+start a fresh window. The matching web release retries runtime startup reads twice, then offers
+Try again. Pairing, trusted origins, certificate checks and household data rules are unchanged.
+
+This checkpoint is local/emulator evidence only. The last recorded household installation remains
+**0.1.2-debug / code 3**; no physical-TV installation or new wake test was performed for this change.
+The reported wake-time symptom is consistent with delayed network availability, but that physical
+cause has not been captured. The emulator also reproduced and fixed HTTP-error callback ordering
+that could otherwise present an error document as ready.
+
+Release requires publishing verified server/web images and separately installing the matching signed
+TV APK with `adb install -r`, using the existing package/signing identity. The phone's server Update
+button does not replace the installed APK. Preserve all network configuration and pairings, obtain
+live-change approval, then verify cold launch, standby/wake, a brief outage, D-pad Retry and Back on
+the physical TV. Do not install the instrumentation APK on household hardware: it uses/clears
+fictional credentials. Exact local checks and screenshots are in
+[`tv-wake-recovery-2026-11-04`](../../hearth/docs/evidence/tv-wake-recovery-2026-11-04/README.md).
+
 ## Installed TV startup repair — 2026-10-17
 
 TV shell `0.1.2` / code 3 fixes an Android-only bridge-regex initialization crash. The original

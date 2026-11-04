@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { lazy, Suspense, useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
 
 import { configureHearthClient } from '../api/core';
+import { retryStartupRead, startupRetryDelay } from './startupRecovery';
 import { runtimeApi as hearthApi } from '../api/runtime';
 import { authStatusQueryKey } from '../auth/queryKeys';
 import { RuntimeContextValue } from './context';
@@ -36,10 +37,11 @@ export function HearthRuntimeBootstrap({ children }: { children: ReactNode }) {
   }, []);
   const runtime = useQuery({
     queryKey: ['hearth-runtime'],
-    queryFn: hearthApi.getRuntime,
+    queryFn: ({ signal }) => hearthApi.getRuntime(signal),
     staleTime: Number.POSITIVE_INFINITY,
     gcTime: Number.POSITIVE_INFINITY,
-    retry: false,
+    retry: retryStartupRead,
+    retryDelay: startupRetryDelay,
     networkMode: 'online',
     refetchOnWindowFocus: 'always',
     refetchOnReconnect: 'always',
@@ -69,7 +71,11 @@ export function HearthRuntimeBootstrap({ children }: { children: ReactNode }) {
       <main className="runtime-gate" aria-busy="true" aria-live="polite">
         <img alt="" src="/brand/hearth-mark.png" />
         <h1>Starting Hearth</h1>
-        <p>Loading this home’s local settings…</p>
+        <p>
+          {runtime.failureCount > 0
+            ? 'Waiting for Hearth… Retrying automatically.'
+            : 'Loading this home’s local settings…'}
+        </p>
         {runtime.fetchStatus === 'paused' ? (
           <p>Offline · Reconnect to this home’s network.</p>
         ) : null}

@@ -400,12 +400,13 @@ test('hanging startup times out, offers recovery and never bypasses the runtime 
   });
   await page.route('**/api/v1/runtime', (route) => {
     reads += 1;
-    if (reads > 1) return route.continue();
+    if (reads > 3) return route.continue();
   });
   await page.goto('/today');
   await expect(page.getByRole('heading', { name: 'Hearth could not start' })).toBeVisible({
-    timeout: 15_000,
+    timeout: 26_000,
   });
+  expect(reads).toBe(3);
   expect(householdReads).toBe(0);
   await page.getByRole('button', { name: 'Try again' }).click();
   await expect(page.getByRole('heading', { name: 'Today', exact: true })).toBeVisible();
