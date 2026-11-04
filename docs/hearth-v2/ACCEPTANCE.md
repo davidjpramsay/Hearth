@@ -12,6 +12,10 @@ locally: `pnpm test:e2e:built tests/e2e/calendar.spec.ts tests/e2e/admin.spec.ts
 'phone Calendar exposes|Connections contains only'` (**2 passed**). No application behaviour,
 assertion threshold or workflow gate was relaxed. Final hosted and live evidence follows separately.
 
+The second run, [41798847200](https://github.com/davidjpramsay/hearth-v2/actions/runs/41798847200),
+also stopped before publication: the System health browser check still expected migration 36.
+Its exact expectation now matches the exercise-library migration 37; this candidate was not deployed.
+
 ## Fitness demonstrations — D-129, local proof 2026-11-04
 
 Implemented reusable adult exercise library, private optional MP4s, explicit plan references,
