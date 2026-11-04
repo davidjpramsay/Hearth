@@ -940,11 +940,18 @@ enter household data until that origin/certificate is commissioned.
 
 ## Household Games archive
 
-Family navigation is **Games → Connections** (D-131). `/games` is the menu; the puzzle is at
+Family navigation is **Games → Connections / Connect Four** (D-131/D-133). Adults choose individual
+On/Off games in **More → Modules → Choose games**. The parent Games switch gates both, retaining
+child choices. Connect Four needs no archive/provider and keeps the current round on its device.
+`/games` is the menu; the puzzle is at
 `/games/connections`. Existing explicit `/games?puzzle=N` links still open that puzzle. The existing
 `games` module/HA identifiers and device-local progress remain unchanged. Matching HA source labels
 use Games; this local change does not install or restart the live HA component.
 
+See [`hearth/content/connections/README.md`](../../hearth/content/connections/README.md) for the
+public setup note. Only that README belongs in the content folder; archives stay outside Git.
+`pnpm verify:public-games` guards source releases against accidental archive inclusion; Docker
+excludes the whole content folder. Never publish third-party boards in screenshots or fixtures.
 Set `HEARTH_GAMES_ARCHIVE_PATH` to the absolute local `connections.json` supplied by the owner.
 The server reads it only when Games is used. Demo/test mode normally supplies small original
 puzzles; an explicit path may be used for a local read-only import check. Never commit a Desktop

@@ -1,37 +1,72 @@
 import { Link, Navigate, useLocation } from 'react-router-dom';
+import { GAME_MODULE_LABELS, type GameModuleId } from '@hearth/shared';
 import { Icon } from '../components/Icon';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { useGameModules } from '../modules/context';
 import './GamesMenuScreen.css';
 
+const choices: Array<{ id: GameModuleId; path: string; description: string }> = [
+  { id: 'connections', path: '/games/connections', description: 'Find four groups of four words.' },
+  {
+    id: 'connectFour',
+    path: '/games/connect-four',
+    description: 'Two players. Four in a row. One more round?',
+  },
+];
 export function GamesMenuScreen() {
   const { search } = useLocation();
-  // Previously shared puzzle links keep opening their selected board.
+  const enabled = useGameModules();
   if (new URLSearchParams(search).has('puzzle'))
-    return <Navigate replace to={{ pathname: '/games/connections', search }} />;
+    return (
+      <Navigate
+        replace
+        to={{
+          pathname: enabled.connections ? '/games/connections' : '/games',
+          search: enabled.connections ? search : '',
+        }}
+      />
+    );
+  const available = choices.filter((game) => enabled[game.id]);
   return (
     <div className="screen games-menu-screen">
       <ScreenHeader title="Games" />
-      <nav aria-label="Choose a game">
-        <Link
-          className="games-choice focusable"
-          aria-label="Connections"
-          aria-describedby="connections-description"
-          to="/games/connections"
-          state={{ fromGamesMenu: true }}
-          data-focus-id="games-connections"
-          data-focus-entry="true"
-          data-focus-left="nav-games"
-        >
-          <span className="games-choice__icon">
-            <Icon name="games" />
-          </span>
-          <span className="games-choice__copy">
-            <strong>Connections</strong>
-            <span id="connections-description">Find four groups of four words.</span>
-          </span>
-          <Icon name="chevron-right" />
-        </Link>
+      <nav aria-label="Choose a game" className="games-choices">
+        {available.map((game, index) => (
+          <Link
+            key={game.id}
+            className="games-choice focusable"
+            aria-label={GAME_MODULE_LABELS[game.id]}
+            aria-describedby={`${game.id}-description`}
+            to={game.path}
+            state={{ fromGamesMenu: true }}
+            data-focus-id={`games-${game.id === 'connections' ? 'connections' : 'connect-four'}`}
+            data-focus-entry={index === 0 ? 'true' : undefined}
+            data-focus-left="nav-games"
+          >
+            <span className={`games-choice__icon games-choice__icon--${game.id}`}>
+              {game.id === 'connectFour' ? (
+                <span className="games-four-mark" aria-hidden="true">
+                  {[1, 2, 3, 4].map((n) => (
+                    <i key={n} />
+                  ))}
+                </span>
+              ) : (
+                <Icon name="games" />
+              )}
+            </span>
+            <span className="games-choice__copy">
+              <strong>{GAME_MODULE_LABELS[game.id]}</strong>
+              <span id={`${game.id}-description`}>{game.description}</span>
+            </span>
+            <Icon name="chevron-right" />
+          </Link>
+        ))}
       </nav>
+      {available.length === 0 ? (
+        <p className="games-empty">
+          No games are turned on. An adult can choose games in More → Modules → Choose games.
+        </p>
+      ) : null}
     </div>
   );
 }

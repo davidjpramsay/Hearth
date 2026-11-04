@@ -30,9 +30,10 @@
     "verify:tv": "pnpm tv:test && pnpm tv:lint && pnpm tv:build",
     "verify:deploy": "sh deploy/synology/verify-deployment.sh",
     "audit:dependencies": "pnpm audit",
-    "verify:code": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:unit && pnpm test:integration && pnpm test:migrations && pnpm verify:deploy && pnpm build && node deploy/portable/tests/fresh-boot.mjs",
+    "verify:code": "pnpm verify:public-games && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:unit && pnpm test:integration && pnpm test:migrations && pnpm verify:deploy && pnpm build && node deploy/portable/tests/fresh-boot.mjs",
     "verify:ci": "node --test scripts/ci-policy.test.mjs && node scripts/verify-browser-shards.mjs",
-    "verify": "pnpm verify:code && pnpm verify:ci && pnpm test:e2e:built"
+    "verify": "pnpm verify:code && pnpm verify:ci && pnpm test:e2e:built",
+    "verify:public-games": "node --test scripts/verify-public-games.test.mjs && node scripts/verify-public-games.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.12.1",

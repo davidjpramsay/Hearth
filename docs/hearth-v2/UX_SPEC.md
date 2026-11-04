@@ -1,5 +1,19 @@
 # Hearth v2 television and companion UX specification
 
+## Games choices and Connect Four (D-133)
+
+Games offers clear Connections and Connect Four cards. An adult opens More → Modules → Choose games
+for two familiar On/Off switches, immediately below the parent Games row. If all children are off,
+show a calm empty state explaining where to choose games. Parent off preserves child choices.
+
+Connect Four uses Hearth typography, an eucalyptus board and numbered coral/gold counters, so turn
+and ownership do not depend on colour alone. A landing preview identifies the chosen column; large
+Previous / Drop / Next controls work on phones. With Drop focused, Left/Right chooses a column and
+OK drops; Up reaches Games and Down reaches New round. Back dismisses confirmation before leaving
+the game. New round confirms before discarding an unfinished board and alternates the starting
+player. A completed board stays visible and cannot accept more counters. The current round resumes
+on this device. Text board reading, live turn/win feedback, dark mode and visible focus remain.
+
 ## Fitness exercise demonstrations (D-129)
 
 Adult Fitness settings links to Exercise library: search/create a named exercise, add written

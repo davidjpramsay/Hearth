@@ -1,5 +1,65 @@
 # Hearth v2 acceptance and definition of done
 
+## Independent games and public puzzle boundary — 2026-11-04 (D-133)
+
+Locally implemented on `codex/repository-rename`: Games contains Connections and original local
+Connect Four. More → Modules → Choose games offers independent adult switches. Parent Games off
+gates both; child settings, saved Connections guesses and Connect Four rounds survive off/on.
+Connect Four has numbered coral/gold counters, landing preview, remote/touch controls, win/draw/full
+column states, confirmed New round, dark mode, reduced motion and per-device replay-validated saves.
+No external game service or household game-state upload is introduced. Migration 0038 and audited,
+idempotent child configuration commands use the existing authenticated module/lease boundary.
+
+Source/history audit after fetching origin branches/tags examined both current and legacy Git
+repositories with `git rev-list --all --objects` and a local JSON/four-word-group content scanner:
+4,830 current reachable blobs (3,755 text), 1,155 legacy blobs (1,133 text). Only one puzzle-data
+candidate was found: the existing original Hearth TypeScript demo fixture. No archive data path,
+JSON puzzle dataset or GitHub release asset was found in either repository. This is an audit of
+reachable source/history and release metadata, not a claim about third-party forks or hidden refs.
+The NAS archive was neither copied nor changed; its protected content was not read for comparison.
+`hearth/content/connections/` contains only a README explaining permitted private content setup.
+Git/Docker exclusions and a release guard prevent accidental archive inclusion. Guard tests cover
+nested/renamed JSON, line-delimited data, compressed archive names and the README-only folder.
+
+Passed locally under `hearth/`:
+
+- `pnpm verify:code`: public-source guard, formatting, lint, typecheck, complete unit/API/migration
+  suites, deployment scaffold verification, production builds, portable installer/component checks,
+  and an isolated fresh-private-backend first-owner smoke check. No external credentials needed.
+- Final `pnpm test:unit`: **772 passed** (114 shared, 64 core, 120 server, 474 web), including an
+  added household-isolated disabled-puzzle cache-eviction regression. The complete code gate's
+  earlier unit run had 771; this final run includes that additional test.
+- `pnpm test:integration`: **312 passed**, including child/parent availability, adult write access,
+  retention, exact replay/conflict, audit and an in-flight archive-read/off ordering check.
+- `pnpm test:migrations`: **32 passed**; additive migration keeps previous household state.
+- Final `pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm build`, `git diff --check`.
+  Lint exits 0 with the pre-existing jsx-ast-utils TSNonNullExpression diagnostic twice.
+- `pnpm verify:public-games`: **4 guard tests passed** and source scan passed.
+- `pnpm verify:ci`: **5 policy tests passed**, complete non-overlapping inventory of **1,420**
+  browser tests in four shards. This inventory check does not run all 1,420 browser tests.
+- `pnpm test:e2e:built tests/e2e/connect-four.spec.ts tests/e2e/games-menu.spec.ts
+tests/e2e/games-remote.spec.ts tests/e2e/games.spec.ts tests/e2e/games-progression.spec.ts
+tests/e2e/games-resume.spec.ts tests/e2e/menu-focus.spec.ts tests/e2e/modules.spec.ts
+tests/e2e/rail-visibility.spec.ts tests/e2e/native-tv-viewport.spec.ts
+tests/e2e/calendar.spec.ts:405 --max-failures=1`: **87 passed, zero retries**. Includes 320/390
+  phones, 820 tablet, 1366/1920 TV and 3840 desktop canvas, light/dark, accessibility scans, remote
+  play/Back/focus, saved rounds, module retention and empty states. All scanned screens had zero
+  accessibility violations. TV game controls fit without scrolling. The puzzle-resume check now
+  waits for a successfully loaded/saved board, rather than leaving as soon as metadata appears.
+
+Independent in-app browser inspection used the compiled isolated demo at 1920×1080 and 390×844.
+Five moves via remote-style keys updated turns/landing preview; Up reached Games, Escape returned
+and restored the chosen menu card, and phone Game modules showed exactly two switches. No browser
+warning/error logs. The rendered board, turn badges, controls, focus and spacing were compared with
+the concept. Evidence is outside Git: `/tmp/hearth-connect-four-inspected-tv.png`,
+`/tmp/hearth-connect-four-inspected-phone.png`, `/tmp/hearth-game-modules-inspected-phone.png`,
+plus `/tmp/hearth-connect-four-<width>-<theme>.png` automated captures.
+
+Not run for D-133: physical TV/iPhone acceptance, live deployment/HA changes, Android APK build or
+installation, and the entire hosted release gate. Repository renaming is a separate maintenance operation. This Games release keeps the existing
+repository/image names and installed update verifier. No live networking, pairings, data, archive or
+app container was changed by this game implementation.
+
 ## Games menu and Connections submenu — 2026-11-04 (D-131)
 
 Locally implemented on `codex/games-menu`: Games is the family navigation/module label and opens

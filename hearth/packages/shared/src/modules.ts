@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { GameModuleFlagsSchema, DEFAULT_GAME_MODULE_FLAGS } from './game-modules.js';
 import { AuditSummarySchema, OpaqueIdSchema } from './schemas.js';
 
 export const MODULE_IDS = [
@@ -71,6 +72,7 @@ export type ModuleFlags = z.infer<typeof ModuleFlagsSchema>;
 export const ModulesConfigurationSchema = z.object({
   householdId: OpaqueIdSchema,
   enabled: ModuleFlagsSchema,
+  games: GameModuleFlagsSchema.default(DEFAULT_GAME_MODULE_FLAGS),
 });
 export type ModulesConfiguration = z.infer<typeof ModulesConfigurationSchema>;
 export const UpdateModuleRequestSchema = z

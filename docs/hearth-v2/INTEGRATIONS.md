@@ -1,5 +1,13 @@
 # Hearth v2 integration contracts
 
+## Local games (D-133)
+
+Connect Four requires no external service and exposes no upload/game-state API. HA can still switch
+or navigate the parent Games module under its existing grant; individual game toggles are adult
+Hearth settings. Connections reads only an explicitly configured private local archive. The public
+repository ships original demo puzzles and `hearth/content/connections/README.md`, never an NYT
+archive. The README points agents toward content the user is permitted to use and private setup.
+
 ## Fitness demonstration boundary (D-129)
 
 Optional uploaded exercise MP4 clips are served by Hearth itself with household authentication,

@@ -1,5 +1,7 @@
 import {
   ModuleCommandResultSchema,
+  GameModuleCommandResultSchema,
+  type GameModuleId,
   ModulesConfigurationSchema,
   type ModuleId,
   type UpdateModuleRequest,
@@ -7,6 +9,13 @@ import {
 import { demoAdminHeaders, householdApiBase, request } from './core';
 
 export const modulesApi = {
+  updateGame: (id: GameModuleId, input: UpdateModuleRequest) =>
+    request(`${householdApiBase()}/game-modules/${id}`, GameModuleCommandResultSchema, {
+      method: 'PUT',
+      cache: 'no-store',
+      headers: demoAdminHeaders,
+      body: JSON.stringify(input),
+    }),
   get: (signal?: AbortSignal) =>
     request(`${householdApiBase()}/modules`, ModulesConfigurationSchema, {
       cache: 'no-store',

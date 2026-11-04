@@ -308,11 +308,18 @@ presentation boundary only: no API, credential, role, pairing, mutation or runti
 
 ## Local Games boundary
 
-
 `/games` is the lazily loaded game menu and `/games/connections` loads the existing word-group
 puzzle. Both remain under the `games` module; HA observed-tab mapping recognises the explicit
 child route. Puzzle query changes preserve the menu opener and replace the current history entry.
-No persistence migration or new game API is introduced; old explicit puzzle links redirect locally.
+Old explicit puzzle links redirect locally. D-133 adds `/games/connect-four`, lazy-loaded pure
+core rules and device-local round storage, without game-state server writes. Migration 0038 stores
+`household_game_modules` and `household_game_module_receipts`. `ModulesService.games` owns child
+availability; authenticated `/modules` embeds its flags and adult-only PUT
+`/game-modules/:gameId` changes them with idempotency/audit. The same writer-preferred request lease
+orders child off after preceding feature responses. Parent `games` and child `connections` must both
+be on before catalogue/puzzle I/O. Query cancellation removes disabled puzzle cache entries; a
+module event/refetch gates child routes. Settings remain accessible with the parent off.
+HA controls the parent only and maps both exact game routes to its existing Games tab.
 
 Games serves only the household-supplied archive through authenticated, no-store household GETs:
 `…/games/word-groups` returns bounded puzzle metadata; `…/games/word-groups/:puzzleId` returns one

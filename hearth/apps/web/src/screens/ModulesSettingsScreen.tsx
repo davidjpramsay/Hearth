@@ -1,5 +1,6 @@
+import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { useRef, useState } from 'react';
+import { Fragment, useRef, useState } from 'react';
 import { MODULE_IDS, MODULE_LABELS, type ModuleId, type UpdateModuleRequest } from '@hearth/shared';
 import { modulesApi } from '../api/modules';
 import { createRequestId, HearthApiError } from '../api/core';
@@ -91,31 +92,47 @@ export function ModulesSettingsScreen() {
       </p>
       <div className="modules-list">
         {MODULE_IDS.map((id, index) => (
-          <button
-            key={id}
-            type="button"
-            role="switch"
-            aria-checked={enabled[id]}
-            aria-label={MODULE_LABELS[id]}
-            className="module-switch focusable"
-            aria-disabled={busy || undefined}
-            disabled={pending !== null && pending.id !== id}
-            data-focus-entry={index === 0 ? 'true' : undefined}
-            data-focus-id={`module-${id}`}
-            data-focus-up={`module-${MODULE_IDS[Math.max(0, index - 1)]}`}
-            data-focus-down={`module-${MODULE_IDS[Math.min(MODULE_IDS.length - 1, index + 1)]}`}
-            onClick={() => void save(id)}
-          >
-            <Icon name={icons[id]} />
-            <span>
-              <strong>{MODULE_LABELS[id]}</strong>
-              {help[id] ? <small>{help[id]}</small> : null}
-            </span>
-            <span className="module-switch__state">{enabled[id] ? 'On' : 'Off'}</span>
-            <span className="settings-toggle" aria-hidden="true">
-              <span />
-            </span>
-          </button>
+          <Fragment key={id}>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={enabled[id]}
+              aria-label={MODULE_LABELS[id]}
+              className="module-switch focusable"
+              aria-disabled={busy || undefined}
+              disabled={pending !== null && pending.id !== id}
+              data-focus-entry={index === 0 ? 'true' : undefined}
+              data-focus-id={`module-${id}`}
+              data-focus-up={`module-${MODULE_IDS[Math.max(0, index - 1)]}`}
+              data-focus-down={
+                id === 'games'
+                  ? 'game-modules'
+                  : `module-${MODULE_IDS[Math.min(MODULE_IDS.length - 1, index + 1)]}`
+              }
+              onClick={() => void save(id)}
+            >
+              <Icon name={icons[id]} />
+              <span>
+                <strong>{MODULE_LABELS[id]}</strong>
+                {help[id] ? <small>{help[id]}</small> : null}
+              </span>
+              <span className="module-switch__state">{enabled[id] ? 'On' : 'Off'}</span>
+              <span className="settings-toggle" aria-hidden="true">
+                <span />
+              </span>
+            </button>
+            {id === 'games' ? (
+              <Link
+                className="module-submenu focusable"
+                to="/admin/modules/games"
+                data-focus-id="game-modules"
+                data-focus-up="module-games"
+                data-focus-down="module-notices"
+              >
+                Choose games <Icon name="chevron-right" />
+              </Link>
+            ) : null}
+          </Fragment>
         ))}
       </div>
       <p className="field-help">

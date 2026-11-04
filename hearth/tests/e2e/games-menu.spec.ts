@@ -47,6 +47,19 @@ for (const size of [
       await page.getByRole('button', { name: 'Archive', exact: true }).click();
       await page.locator('[data-focus-id="games-choose-2"]').click();
       await expect(page.locator('.games-toolbar')).toContainText('#2');
+      // Metadata appears before the selected board finishes loading. Reopening is promised for
+      // the last successfully loaded board, so verify that save before deliberately leaving it.
+      await expect(page.locator('.games-word')).toHaveCount(16);
+      await expect
+        .poll(() =>
+          page.evaluate(
+            () =>
+              JSON.parse(
+                localStorage.getItem('hearth.word-groups.v2.demo.household_hearth_demo') ?? '{}',
+              ).lastPuzzleId,
+          ),
+        )
+        .toBe('word_groups_demo_2');
       await page.keyboard.press('Escape');
       await expect(page).toHaveURL(/\/games$/);
       await expect(game).toBeFocused();
