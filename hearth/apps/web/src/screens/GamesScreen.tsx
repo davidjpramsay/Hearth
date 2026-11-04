@@ -27,10 +27,10 @@ import './GamesScreen.css';
 export function GamesScreen() {
   const runtime = useHearthRuntime();
   const home = `${runtime.mode}.${runtime.household!.id}`;
-  return <GamesContent key={home} home={home} />;
+  return <GamesContent key={home} home={home} householdId={runtime.household!.id} />;
 }
 
-function GamesContent({ home }: { home: string }) {
+function GamesContent({ home, householdId }: { home: string; householdId: string }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
@@ -40,7 +40,7 @@ function GamesContent({ home }: { home: string }) {
   const [entryOutcomes] = useState(outcomes);
   const [entryPuzzleId] = useState(() => readLastGamePuzzle(home));
   const catalogue = useQuery({
-    queryKey: ['games', home, 'catalogue'],
+    queryKey: [householdId, 'games', home, 'catalogue'],
     queryFn: ({ signal }) => gamesApi.catalogue(signal),
     staleTime: 60_000,
   });
@@ -53,7 +53,7 @@ function GamesContent({ home }: { home: string }) {
         ordered[0])
       : ordered.find((item) => String(item.number) === requested);
   const puzzle = useQuery({
-    queryKey: ['games', home, selected?.id],
+    queryKey: [householdId, 'games', home, selected?.id],
     queryFn: ({ signal }) => gamesApi.puzzle(selected!.id, signal),
     enabled: selected !== undefined,
     staleTime: Infinity,

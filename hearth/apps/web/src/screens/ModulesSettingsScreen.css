@@ -70,3 +70,28 @@
     transform: translateX(18px);
   }
 }
+
+.module-submenu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px 14px 52px;
+  min-height: 48px;
+  background: var(--surface-soft);
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--hairline);
+  font-size: 16px;
+  font-weight: 600;
+}
+.module-submenu svg {
+  width: 20px;
+  height: 20px;
+}
+.admin-page .module-submenu:focus-visible {
+  outline: 3px solid var(--sky);
+  outline-offset: -4px;
+  box-shadow: none;
+  transform: none;
+}

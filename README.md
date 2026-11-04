@@ -18,6 +18,9 @@ and hosted on your own private server. Home Assistant is optional.
 - **Everyday life:** household reminders, lists, meals, photos, weather and optional indoor sensors.
 - **Choose your modules:** hide features without deleting their data. Adults manage the home from
   a phone or iPad; approved shared screens use a TV remote or touch.
+- **Family games:** local two-player Connect Four and a Connections-style word game, with separate
+  On/Off choices. [Private puzzle content setup](hearth/content/connections/README.md); no NYT archive
+  is included.
 - **Optional connections:** calendar providers and Home Assistant can add schedules, home actions
   and automations. Hearth’s core household features work without Home Assistant or an LLM.
 

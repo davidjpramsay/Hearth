@@ -270,6 +270,7 @@ import {
 } from './home-assistant-connection-repository.js';
 import { RealtimeHub } from './realtime.js';
 import { GamesArchive } from './games-archive.js';
+import { GameModuleIdSchema, GameModuleCommandResultSchema } from '@hearth/shared';
 import { createTodayReader } from './today-reader.js';
 import { TodayVerseCache } from './integrations/today-verse-cache.js';
 import { localDateInTimezone } from '@hearth/core';
@@ -770,7 +771,8 @@ export function buildServer(options: BuildServerOptions = {}): FastifyInstance {
       : null;
     const id = household ?? automation;
     if (!id || route.endsWith('/events') || !route.startsWith('/api/v1/')) return;
-    const write = request.method === 'PUT' && /\/modules\/:moduleId$/.test(route);
+    const write =
+      request.method === 'PUT' && /\/(modules\/:moduleId|game-modules\/:gameId)$/.test(route);
     const content =
       moduleForApiRoute(route) !== null ||
       automation !== null ||
@@ -791,6 +793,7 @@ export function buildServer(options: BuildServerOptions = {}): FastifyInstance {
       pending.release = release;
       const module = moduleForApiRoute(route);
       if (module) modules.assertEnabled(id, module);
+      if (route.includes('/games/word-groups')) modules.games.assertEnabled(id, 'connections');
     });
   });
   const finishModuleRequest = async (request: FastifyRequest) => {
@@ -1322,6 +1325,24 @@ export function buildServer(options: BuildServerOptions = {}): FastifyInstance {
       if (!result.replayed)
         realtime.publish(params.householdId, 'modules.changed', result.audit.targetId);
       return ModuleCommandResultSchema.parse(result);
+    });
+  });
+  server.put('/api/v1/households/:householdId/game-modules/:gameId', async (request, reply) => {
+    reply.header('Cache-Control', 'private, no-store');
+    const params = parse(
+      HouseholdParamsSchema.extend({ gameId: GameModuleIdSchema }),
+      request.params,
+      reply,
+    );
+    const body = parse(UpdateModuleRequestSchema, request.body, reply);
+    if (!params || !body) return reply;
+    return run(reply, async () => {
+      const actor = commandActor(request.headers, options, adminRepository);
+      await adminRepository.getOverview(params.householdId, actor.id);
+      const result = modules.games.update(params.householdId, params.gameId, body, actor);
+      if (!result.replayed)
+        realtime.publish(params.householdId, 'modules.changed', result.audit.targetId);
+      return GameModuleCommandResultSchema.parse(result);
     });
   });
   server.put('/api/v1/home-assistant/modules/:moduleId', async (request, reply) => {

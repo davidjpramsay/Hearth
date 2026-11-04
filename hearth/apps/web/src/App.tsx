@@ -13,6 +13,12 @@ import { useScreenPresentation } from './hooks/useScreenPresentation';
 import { TodayScreen } from './screens/TodayScreen';
 import { useModulePathAvailable } from './modules/context';
 import { normalizeModulePath } from '@hearth/shared';
+const ConnectFourScreen = lazy(async () => ({
+  default: (await import('./screens/ConnectFourScreen')).ConnectFourScreen,
+}));
+const GameModulesSettingsScreen = lazy(async () => ({
+  default: (await import('./screens/GameModulesSettingsScreen')).GameModulesSettingsScreen,
+}));
 const ModulesSettingsScreen = lazy(async () => ({
   default: (await import('./screens/ModulesSettingsScreen')).ModulesSettingsScreen,
 }));
@@ -228,6 +234,7 @@ export function App() {
             <Route path="/credits" element={<CreditsScreen />} />
             <Route path="/games" element={<GamesMenuScreen />} />
             <Route path="/games/connections" element={<GamesScreen />} />
+            <Route path="/games/connect-four" element={<ConnectFourScreen />} />
             <Route path="/nba" element={<NbaScreen />} />
             <Route path="/fitness" element={<FitnessScreen />} />
             <Route path="/morning-routine" element={<MorningRoutineScreen />} />
@@ -243,6 +250,7 @@ export function App() {
               <Route path="/admin" element={<AdminScreen />} />
               <Route path="/admin/get-started" element={<GetStartedScreen />} />
               <Route path="/admin/modules" element={<ModulesSettingsScreen />} />
+              <Route path="/admin/modules/games" element={<GameModulesSettingsScreen />} />
               <Route path="/admin/nba" element={<NbaSettingsScreen />} />
               <Route
                 path="/admin/connections/indoor-sensors"
@@ -297,7 +305,13 @@ function ModuleRouteBoundary({ children }: { children: React.ReactNode }) {
   ) : (
     <Navigate
       replace
-      to={normalizeModulePath(pathname).startsWith('/admin/') ? '/admin/modules' : '/today'}
+      to={
+        normalizeModulePath(pathname).startsWith('/admin/')
+          ? '/admin/modules'
+          : pathname.startsWith('/games/')
+            ? '/games'
+            : '/today'
+      }
     />
   );
 }

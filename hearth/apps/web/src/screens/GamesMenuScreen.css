@@ -73,3 +73,27 @@
     height: 20px;
   }
 }
+.games-choices {
+  display: grid;
+  gap: 20px;
+}
+.games-choice__icon--connectFour {
+  background: #293e36;
+}
+.games-four-mark {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px;
+  width: 36px;
+  height: 36px;
+}
+.games-four-mark i {
+  border-radius: 50%;
+  background: #e66851;
+}
+.games-four-mark i:nth-child(even) {
+  background: #f5ca61;
+}
+.games-empty {
+  color: var(--muted);
+}

@@ -1,5 +1,65 @@
 # Hearth v2 acceptance and definition of done
 
+## Independent games and public puzzle boundary — 2026-11-04 (D-133)
+
+Locally implemented on `codex/repository-rename`: Games contains Connections and original local
+Connect Four. More → Modules → Choose games offers independent adult switches. Parent Games off
+gates both; child settings, saved Connections guesses and Connect Four rounds survive off/on.
+Connect Four has numbered coral/gold counters, landing preview, remote/touch controls, win/draw/full
+column states, confirmed New round, dark mode, reduced motion and per-device replay-validated saves.
+No external game service or household game-state upload is introduced. Migration 0038 and audited,
+idempotent child configuration commands use the existing authenticated module/lease boundary.
+
+Source/history audit after fetching origin branches/tags examined both current and legacy Git
+repositories with `git rev-list --all --objects` and a local JSON/four-word-group content scanner:
+4,830 current reachable blobs (3,755 text), 1,155 legacy blobs (1,133 text). Only one puzzle-data
+candidate was found: the existing original Hearth TypeScript demo fixture. No archive data path,
+JSON puzzle dataset or GitHub release asset was found in either repository. This is an audit of
+reachable source/history and release metadata, not a claim about third-party forks or hidden refs.
+The NAS archive was neither copied nor changed; its protected content was not read for comparison.
+`hearth/content/connections/` contains only a README explaining permitted private content setup.
+Git/Docker exclusions and a release guard prevent accidental archive inclusion. Guard tests cover
+nested/renamed JSON, line-delimited data, compressed archive names and the README-only folder.
+
+Passed locally under `hearth/`:
+
+- `pnpm verify:code`: public-source guard, formatting, lint, typecheck, complete unit/API/migration
+  suites, deployment scaffold verification, production builds, portable installer/component checks,
+  and an isolated fresh-private-backend first-owner smoke check. No external credentials needed.
+- Final `pnpm test:unit`: **772 passed** (114 shared, 64 core, 120 server, 474 web), including an
+  added household-isolated disabled-puzzle cache-eviction regression. The complete code gate's
+  earlier unit run had 771; this final run includes that additional test.
+- `pnpm test:integration`: **312 passed**, including child/parent availability, adult write access,
+  retention, exact replay/conflict, audit and an in-flight archive-read/off ordering check.
+- `pnpm test:migrations`: **32 passed**; additive migration keeps previous household state.
+- Final `pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm build`, `git diff --check`.
+  Lint exits 0 with the pre-existing jsx-ast-utils TSNonNullExpression diagnostic twice.
+- `pnpm verify:public-games`: **4 guard tests passed** and source scan passed.
+- `pnpm verify:ci`: **5 policy tests passed**, complete non-overlapping inventory of **1,420**
+  browser tests in four shards. This inventory check does not run all 1,420 browser tests.
+- `pnpm test:e2e:built tests/e2e/connect-four.spec.ts tests/e2e/games-menu.spec.ts
+tests/e2e/games-remote.spec.ts tests/e2e/games.spec.ts tests/e2e/games-progression.spec.ts
+tests/e2e/games-resume.spec.ts tests/e2e/menu-focus.spec.ts tests/e2e/modules.spec.ts
+tests/e2e/rail-visibility.spec.ts tests/e2e/native-tv-viewport.spec.ts
+tests/e2e/calendar.spec.ts:405 --max-failures=1`: **87 passed, zero retries**. Includes 320/390
+  phones, 820 tablet, 1366/1920 TV and 3840 desktop canvas, light/dark, accessibility scans, remote
+  play/Back/focus, saved rounds, module retention and empty states. All scanned screens had zero
+  accessibility violations. TV game controls fit without scrolling. The puzzle-resume check now
+  waits for a successfully loaded/saved board, rather than leaving as soon as metadata appears.
+
+Independent in-app browser inspection used the compiled isolated demo at 1920×1080 and 390×844.
+Five moves via remote-style keys updated turns/landing preview; Up reached Games, Escape returned
+and restored the chosen menu card, and phone Game modules showed exactly two switches. No browser
+warning/error logs. The rendered board, turn badges, controls, focus and spacing were compared with
+the concept. Evidence is outside Git: `/tmp/hearth-connect-four-inspected-tv.png`,
+`/tmp/hearth-connect-four-inspected-phone.png`, `/tmp/hearth-game-modules-inspected-phone.png`,
+plus `/tmp/hearth-connect-four-<width>-<theme>.png` automated captures.
+
+Not run for D-133: physical TV/iPhone acceptance, live deployment/HA changes, Android APK build or
+installation, and the entire hosted release gate. Repository publication/naming remains dependent
+on D-132's private NAS compatibility maintenance. No live networking, pairings, data, archive or
+app container was changed by this game implementation.
+
 ## Repository naming migration — 2026-11-04 (D-132)
 
 User-approved targets: current repository `davidjpramsay/Hearth` (ID 1327675743), original repository
@@ -36,16 +96,16 @@ Passed locally under `hearth/`:
   Lint exited 0 with the existing jsx-ast-utils TSNonNullExpression diagnostic twice.
 - `pnpm test:unit`: 764 tests (114 shared, 57 core, 120 server, 473 web).
 - `pnpm --filter @hearth/server exec vitest run src/modules.integration.test.ts
-  src/home-assistant-bridge.integration.test.ts`: 65 API/integration tests.
+src/home-assistant-bridge.integration.test.ts`: 65 API/integration tests.
 - `python3 -B -m unittest discover -s hearth/integrations/home_assistant/tests -v`
   from the repository root: 69 offline HA tests.
 - `pnpm build`, then the final web rebuild after the loading-focus correction. The macOS-provided
   Python launcher initially stopped at the existing Xcode licence prompt; the final build used
   the already-installed Python 3.12 via a temporary PATH entry, with no system setting change.
 - `pnpm test:e2e:built tests/e2e/games-menu.spec.ts tests/e2e/games-remote.spec.ts
-  tests/e2e/games.spec.ts tests/e2e/games-progression.spec.ts tests/e2e/games-resume.spec.ts
-  tests/e2e/menu-focus.spec.ts tests/e2e/modules.spec.ts tests/e2e/rail-visibility.spec.ts
-  tests/e2e/native-tv-viewport.spec.ts tests/e2e/calendar.spec.ts:405 --max-failures=1`:
+tests/e2e/games.spec.ts tests/e2e/games-progression.spec.ts tests/e2e/games-resume.spec.ts
+tests/e2e/menu-focus.spec.ts tests/e2e/modules.spec.ts tests/e2e/rail-visibility.spec.ts
+tests/e2e/native-tv-viewport.spec.ts tests/e2e/calendar.spec.ts:405 --max-failures=1`:
   **67 passed, zero retries**. Coverage includes light/dark phone/tablet/TV/4K puzzle layouts,
   the new submenu, direct/legacy links, remote-only play, native Back messages, archive dismissal,
   saved-progress recovery, module isolation, menu focus and native logical sizing.
@@ -127,12 +187,12 @@ Passed in the isolated local Fitness worktree:
   `pnpm --filter @hearth/server exec vitest run src/fitness-library.integration.test.ts`: **10 passed**;
   `pnpm --filter @hearth/server build`: passed.
 - `pnpm test:e2e:built tests/e2e/fitness*.spec.ts tests/e2e/modules.spec.ts
-  tests/e2e/menu-focus.spec.ts --max-failures=3 --output=/tmp/hearth-fitness-demonstration-final`:
+tests/e2e/menu-focus.spec.ts --max-failures=3 --output=/tmp/hearth-fitness-demonstration-final`:
   **58 passed**. Includes existing Fitness, module and menu behaviour.
 - After final library input styling and quiet cancellation handling, `pnpm format:check`,
   `pnpm lint`, `pnpm -r --if-present typecheck`, `pnpm build`, then
   `pnpm test:e2e:built tests/e2e/fitness-demonstrations.spec.ts
-  --output=/tmp/hearth-fitness-demonstration-polish`: **15 passed**. These overlap the first
+--output=/tmp/hearth-fitness-demonstration-polish`: **15 passed**. These overlap the first
   gate's 14 demonstration cases and add one cancellation/rejected-play case: **59 distinct browser
   checks across both gates**, not 73 distinct cases.
 - `pnpm verify:ci`: **5 policy tests passed**, **1,390 browser cases inventoried** in disjoint shards.
@@ -175,8 +235,8 @@ Passed using isolated local demo data:
 - `pnpm --filter @hearth/web test:unit`: **473 passed**.
 - `python3.12 -m unittest discover -s integrations/home_assistant/tests`: **69 passed**.
 - `pnpm test:e2e:built tests/e2e/games*.spec.ts tests/e2e/rail-visibility.spec.ts
-  tests/e2e/modules.spec.ts tests/e2e/menu-focus.spec.ts tests/e2e/admin.spec.ts:69
-  tests/e2e/admin.spec.ts:268 --output=/tmp/hearth-connections-rename-results`: **58 passed**.
+tests/e2e/modules.spec.ts tests/e2e/menu-focus.spec.ts tests/e2e/admin.spec.ts:69
+tests/e2e/admin.spec.ts:268 --output=/tmp/hearth-connections-rename-results`: **58 passed**.
   Covers phone/tablet/TV light/dark, D-pad/Back, puzzle resume, module switches, service-settings
   navigation, focus restoration and explicit checks against icon shrinkage or label overflow.
 - `git diff --check`: passed with Homebrew Git.
@@ -204,7 +264,7 @@ stable IDs, current/past progress and exact saved request receipts are preserved
 Passed on isolated local data (commands inside `hearth/`):
 
 - `pnpm exec vitest run packages/shared/src/fitness.test.ts packages/core/src/fitness.test.ts
-  apps/server/src/fitness.integration.test.ts`: **24 passed**, including same-person goal validation,
+apps/server/src/fitness.integration.test.ts`: **24 passed**, including same-person goal validation,
   independent schedules, combined streaks, achieved-goal handling, dated labels, preserved legacy
   JSON and exact replay after restart.
 - `pnpm verify:code`: format/lint/types, **764 unit tests** (114 shared, 57 core, 120 server,
@@ -254,8 +314,8 @@ Local checks (commands run inside `hearth/`, using isolated demo/test data):
 - `python3.12 -m unittest discover -s integrations/home_assistant/tests`: **69 passed**;
   adapter/entity stand-ins, not a live HA installation.
 - `pnpm test:e2e:built tests/e2e/fitness.spec.ts tests/e2e/modules.spec.ts
-  tests/e2e/screen-admin-isolation.spec.ts tests/e2e/phone-navigation.spec.ts
-  tests/e2e/admin.spec.ts tests/e2e/morning-routine.spec.ts tests/e2e/morning-profiles.spec.ts`:
+tests/e2e/screen-admin-isolation.spec.ts tests/e2e/phone-navigation.spec.ts
+tests/e2e/admin.spec.ts tests/e2e/morning-routine.spec.ts tests/e2e/morning-profiles.spec.ts`:
   **167 passed**. Includes 26 Fitness checks, surrounding adult settings, module gates,
   screen/admin isolation and both Morning Routine profiles.
 - `git diff --check`: passed (Homebrew Git).

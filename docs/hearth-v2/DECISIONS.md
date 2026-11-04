@@ -1,5 +1,23 @@
 # Hearth v2 decision record
 
+## D-133 — Independent local games and private puzzle content
+
+- Date: 2026-11-04. Status: user-requested implementation; local and live evidence remain separate.
+- Games contains Connections and an original two-player Connect Four implementation, with separate
+  adult switches at More → Modules → Choose games. Parent Games off gates both; child choices and
+  device-local progress are retained. Both child choices default on for existing/fresh homes.
+- Migration 0038 adds independent child flags and actor-scoped idempotent receipts. Household GET
+  `/modules` includes child flags; adult PUT `/game-modules/:gameId` validates/audits changes and
+  publishes `modules.changed`. Existing request leases make off an in-flight read boundary.
+- HA retains its existing parent Games authority and tab mapping. Child switches introduce no
+  additional HA permission, reconnect, service, external call or household game-state API.
+- Connect Four persists only a replay-validated starting player and column history on the device,
+  scoped by household/runtime. Four directions, full columns, draws and finished rounds are checked
+  in core. Remote Left/Right chooses, OK drops, Up reaches Games, and Back returns to the menu.
+- Third-party puzzle archives remain private runtime content. The public content folder contains
+  only a README explaining permitted private setup, and a source-release guard rejects archives.
+  Do not scrape, redistribute NYT content, or copy private archives into release assets/images.
+
 ## D-132 — Canonical Hearth repository and preserved legacy source
 
 - Date: 2026-11-04. Status: user-approved repository rename; installation and verification tracked
