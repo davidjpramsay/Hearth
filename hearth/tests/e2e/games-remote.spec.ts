@@ -12,6 +12,9 @@ test('remote-only More to Games finds a group and Back restores Games in the men
   await expect(page.locator('[data-focus-id="more-games"]')).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/\/games$/);
+  await expect(page.locator('[data-focus-id="games-connections"]')).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/games\/connections$/);
   await expect(page.locator('[data-focus-id="games-word-0"]')).toBeFocused();
   for (let index = 0; index < 4; index++) {
     await page.keyboard.press('Enter');
@@ -26,6 +29,9 @@ test('remote-only More to Games finds a group and Back restores Games in the men
   await page.keyboard.press('Enter');
   await expect(page.locator('.games-group')).toHaveCount(1);
   await expect(page.locator('[data-focus-id="games-word-1"]')).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page).toHaveURL(/\/games$/);
+  await expect(page.locator('[data-focus-id="games-connections"]')).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(page).toHaveURL(/\/more$/);
   await expect(page.locator('[data-focus-id="more-games"]')).toBeFocused();

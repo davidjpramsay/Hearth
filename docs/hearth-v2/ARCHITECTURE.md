@@ -308,6 +308,12 @@ presentation boundary only: no API, credential, role, pairing, mutation or runti
 
 ## Local Games boundary
 
+
+`/games` is the lazily loaded game menu and `/games/connections` loads the existing word-group
+puzzle. Both remain under the `games` module; HA observed-tab mapping recognises the explicit
+child route. Puzzle query changes preserve the menu opener and replace the current history entry.
+No persistence migration or new game API is introduced; old explicit puzzle links redirect locally.
+
 Games serves only the household-supplied archive through authenticated, no-store household GETs:
 `…/games/word-groups` returns bounded puzzle metadata; `…/games/word-groups/:puzzleId` returns one
 validated board and its groups. No archive path or source URL enters a request or response. Answers

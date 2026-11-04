@@ -1,5 +1,16 @@
 # Hearth v2 decision record
 
+## D-131 — Games menu with a Connections submenu
+
+- Date: 2026-11-04. Status: user-requested local navigation change; release/device acceptance separate.
+- Games returns as the family navigation, Modules and HA display label. Its `/games` menu links to
+  Connections at `/games/connections`, keeping the existing `games` module/HA IDs and saved data.
+- Preserve old explicit puzzle links by redirecting them to the child route. Query-only puzzle
+  navigation replaces the current history entry; page Back returns to the opener or the Games
+  menu for direct entries. Modal dismissal takes precedence over page Back.
+- Both menu and puzzle stay behind the existing module boundary. No game-data import, credential,
+  permission, schema, background behavior or live service change is included.
+
 ## D-130 — Public Hearth preview, private household runtime
 
 - Date: 2026-11-04. Status: user-requested public README and GitHub Pages website.
@@ -805,7 +816,7 @@ casual removal/sign-out, owner People protection and ordinary-QR restrictions re
   supplied JSON lazily behind authenticated household reads, with descriptor/size/schema bounds
   and no external fetch. Keep data outside public source and images. Store replay-validated,
   household-isolated numeric progress on each device; importing a changed board changes its ID.
-- Naming refinement (2026-11-04): At the owner's request, display Connections instead of Games
+- Earlier naming refinement (superseded by D-131): At the owner's request, display Connections instead of Games
   in navigation, the page title, Modules and matching HA labels. Keep `games` routes, module/HA
   identifiers, focus IDs and saved progress unchanged; this does not introduce an external service.
 - Progress refinement: At the owner's request, start at #1 and discard prior v1 Games progress on

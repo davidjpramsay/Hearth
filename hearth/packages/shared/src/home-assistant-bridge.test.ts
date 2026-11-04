@@ -26,6 +26,8 @@ describe('Home Assistant bridge v1 boundary', () => {
     });
   });
   it('maps only explicit public routes, not admin, external URLs, fragments or path prefixes', () => {
+    expect(screenTabForPath('/games/connections')).toBe('games');
+    expect(screenTabForPath('/games/connections/unknown')).toBeNull();
     for (const [tab, path] of Object.entries(SCREEN_TAB_PATHS))
       expect(screenTabForPath(path)).toBe(tab);
     for (const value of [

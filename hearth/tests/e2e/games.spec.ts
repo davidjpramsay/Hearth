@@ -34,7 +34,7 @@ for (const size of sizes)
           ),
         theme,
       );
-      await page.goto('/games');
+      await page.goto('/games/connections');
       await expect(page.getByRole('heading', { name: 'Connections', exact: true })).toBeVisible();
       await expect(page.locator('.games-word')).toHaveCount(16);
       await expect(page.locator('.games-word[aria-pressed="true"]')).toHaveCount(0);
@@ -52,7 +52,7 @@ for (const size of sizes)
       if (size.width >= 1200) {
         const box = await page.locator('.games-actions').boundingBox();
         expect(box!.y + box!.height).toBeLessThanOrEqual(size.height);
-        await expect(page.getByRole('link', { name: 'Connections', exact: true })).toBeInViewport();
+        await expect(page.getByRole('link', { name: 'Games', exact: true })).toBeInViewport();
       }
       const audit = await new AxeBuilder({ page }).analyze();
       expect(
@@ -69,7 +69,7 @@ for (const size of sizes)
 test('finds groups, preserves reload progress, and replay starts a clean board', async ({
   page,
 }) => {
-  await page.goto('/games');
+  await page.goto('/games/connections');
   await expect(page.locator('.games-word')).toHaveCount(16);
   for (const words of [
     ['COVER', 'SPINE', 'INDEX', 'CHAPTER'],
@@ -95,7 +95,7 @@ test('finds groups, preserves reload progress, and replay starts a clean board',
 });
 
 test('one-away, duplicate guesses, shuffle and four misses behave honestly', async ({ page }) => {
-  await page.goto('/games');
+  await page.goto('/games/connections');
   await expect(page.locator('.games-word')).toHaveCount(16);
   async function guess(words: string[]) {
     const deselect = page.getByRole('button', { name: 'Deselect', exact: true });
@@ -130,6 +130,7 @@ test('archive search and switching preserve each puzzle; Back restores the opene
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/more');
   await page.locator('[data-focus-id="more-games"]').click();
+  await page.getByRole('link', { name: 'Connections', exact: true }).click();
   await expect(page.locator('.games-word')).toHaveCount(16);
   for (const word of ['COVER', 'SPINE', 'INDEX', 'CHAPTER'])
     await page.getByRole('button', { name: word, exact: true }).click();
@@ -163,7 +164,7 @@ test('offline cached play and denied browser storage remain usable', async ({ pa
       throw new Error('Storage blocked');
     };
   });
-  await page.goto('/games');
+  await page.goto('/games/connections');
   await expect(page.locator('.games-word')).toHaveCount(16);
   await context.setOffline(true);
   for (const word of ['COVER', 'SPINE', 'INDEX', 'CHAPTER'])
@@ -196,7 +197,7 @@ test('a large archive pages within its dialog without losing Close or Back', asy
     return route.fulfill({ json: { ...original, ...identity } });
   });
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/games');
+  await page.goto('/games/connections');
   await expect(page.locator('.games-word')).toHaveCount(16);
   await page.getByRole('button', { name: 'Archive', exact: true }).click();
   const dialog = page.getByRole('dialog');
@@ -219,7 +220,7 @@ test('missing archive and failed reads preserve Games chrome and allow recovery'
   await page.route(base, (route) =>
     route.fulfill({ json: { status: 'unconfigured', source: 'household-archive', puzzles: [] } }),
   );
-  await page.goto('/games');
+  await page.goto('/games/connections');
   await expect(page.getByRole('heading', { name: 'Connections', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'No puzzles yet' })).toBeVisible();
   await page.unroute(base);

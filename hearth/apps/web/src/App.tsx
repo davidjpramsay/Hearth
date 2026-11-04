@@ -86,6 +86,9 @@ const MoreScreen = lazy(async () => ({
 const GamesScreen = lazy(async () => ({
   default: (await import('./screens/GamesScreen')).GamesScreen,
 }));
+const GamesMenuScreen = lazy(async () => ({
+  default: (await import('./screens/GamesMenuScreen')).GamesMenuScreen,
+}));
 const AdminScreen = lazy(async () => ({
   default: (await import('./screens/AdminScreen')).AdminScreen,
 }));
@@ -223,7 +226,8 @@ export function App() {
             />
             <Route path="/more" element={<MoreScreen />} />
             <Route path="/credits" element={<CreditsScreen />} />
-            <Route path="/games" element={<GamesScreen />} />
+            <Route path="/games" element={<GamesMenuScreen />} />
+            <Route path="/games/connections" element={<GamesScreen />} />
             <Route path="/nba" element={<NbaScreen />} />
             <Route path="/fitness" element={<FitnessScreen />} />
             <Route path="/morning-routine" element={<MorningRoutineScreen />} />

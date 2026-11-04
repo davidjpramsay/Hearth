@@ -110,6 +110,10 @@ for (const scenario of [
       await page.locator('[data-focus-id="nav-games"]').focus();
       await page.keyboard.press('Enter');
       await expect(page).toHaveURL(/\/games$/);
+      await page.keyboard.press('ArrowRight');
+      await expect(page.locator('[data-focus-id="games-connections"]')).toBeFocused();
+      await page.keyboard.press('Enter');
+      await expect(page).toHaveURL(/\/games\/connections$/);
       await expect(page.locator('.games-word')).toHaveCount(16);
       await page.goto('/calendar/week');
       await expect(page.getByRole('heading', { name: 'This week' })).toBeVisible();

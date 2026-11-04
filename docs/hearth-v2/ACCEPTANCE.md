@@ -1,5 +1,50 @@
 # Hearth v2 acceptance and definition of done
 
+## Games menu and Connections submenu — 2026-11-04 (D-131)
+
+Locally implemented on `codex/games-menu`: Games is the family navigation/module label and opens
+a submenu containing Connections. The puzzle remains at `/games/connections`; old explicit
+`/games?puzzle=N` links redirect there. Saved boards, guesses, shuffle order and completion markers
+are preserved. Header/remote/native-message Back returns to Games, restores the opener and closes
+dialogs first. The phone More tab stays active on the child route. Both routes obey Games off;
+the existing HA `games` wire identifier recognises the explicit child as the same observed tab.
+
+Passed locally under `hearth/`:
+
+- `pnpm format:check`, `pnpm lint`, `pnpm typecheck` and the final web typecheck.
+  Lint exited 0 with the existing jsx-ast-utils TSNonNullExpression diagnostic twice.
+- `pnpm test:unit`: 764 tests (114 shared, 57 core, 120 server, 473 web).
+- `pnpm --filter @hearth/server exec vitest run src/modules.integration.test.ts
+  src/home-assistant-bridge.integration.test.ts`: 65 API/integration tests.
+- `python3 -B -m unittest discover -s hearth/integrations/home_assistant/tests -v`
+  from the repository root: 69 offline HA tests.
+- `pnpm build`, then the final web rebuild after the loading-focus correction. The macOS-provided
+  Python launcher initially stopped at the existing Xcode licence prompt; the final build used
+  the already-installed Python 3.12 via a temporary PATH entry, with no system setting change.
+- `pnpm test:e2e:built tests/e2e/games-menu.spec.ts tests/e2e/games-remote.spec.ts
+  tests/e2e/games.spec.ts tests/e2e/games-progression.spec.ts tests/e2e/games-resume.spec.ts
+  tests/e2e/menu-focus.spec.ts tests/e2e/modules.spec.ts tests/e2e/rail-visibility.spec.ts
+  tests/e2e/native-tv-viewport.spec.ts tests/e2e/calendar.spec.ts:405 --max-failures=1`:
+  **67 passed, zero retries**. Coverage includes light/dark phone/tablet/TV/4K puzzle layouts,
+  the new submenu, direct/legacy links, remote-only play, native Back messages, archive dismissal,
+  saved-progress recovery, module isolation, menu focus and native logical sizing.
+- `git diff --check`.
+
+The first remote run exposed initial focus landing on the newly visible Back link while the board
+loaded. The screen now marks that loading interval so automatic entry waits for the real board;
+explicit Back remains available. Older tests expecting a board directly at `/games` were updated
+to traverse the submenu. The final 67-test run passed after these corrections.
+
+Independent in-app browser inspection used the compiled demo at `http://127.0.0.1:4320`, with
+1920×1080 and 390×844 viewports. Games rail selection retained `nav-games` focus and no page
+highlight; Right/Enter opened Connections at its first tile, and Back returned to the game link.
+Page identity/content, layout, no framework overlay and no warning/error logs were checked.
+Screenshots remain outside Git: `/tmp/hearth-games-menu-rail-entry-tv.jpg`,
+`/tmp/hearth-connections-submenu-phone.jpg`, and `/tmp/hearth-games-menu-*-*.png`.
+
+Not run for this local change: publication/deployment, live HA component installation, physical
+TV/iPhone acceptance or the entire hosted release gate. No Android source/APK change is included.
+
 ## Public website and sharing boundary — 2026-11-04 (D-130)
 
 The public README and static GitHub Pages preview use the Hearth name and the owner-selected MIT

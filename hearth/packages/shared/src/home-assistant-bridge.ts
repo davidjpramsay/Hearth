@@ -59,6 +59,7 @@ export const ScreenTabSchema = z.enum(
 );
 export type ScreenTab = z.infer<typeof ScreenTabSchema>;
 export function screenTabForPath(path: string): ScreenTab | null {
+  if (path === '/games/connections') return 'games';
   return (
     (Object.entries(SCREEN_TAB_PATHS).find(([, route]) => route === path)?.[0] as
       ScreenTab | undefined) ?? null

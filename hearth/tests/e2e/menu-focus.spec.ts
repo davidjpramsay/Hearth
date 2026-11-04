@@ -71,7 +71,7 @@ test('every available TV menu destination and Appearance leave page controls unh
     ['meals', 'Meals'],
     ['home', 'Home'],
     ['photos', 'Photos'],
-    ['games', 'Connections'],
+    ['games', 'Games'],
     ['nba', 'NBA'],
     ['appearance', 'Appearance'],
     ['today', 'Today'],

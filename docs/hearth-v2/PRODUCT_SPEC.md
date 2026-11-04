@@ -377,6 +377,8 @@ that custom flow and its target-player mapping have been installed and tested.
 
 ### 12. Family games
 
+- Games is the top-level family destination, with Connections in its game-selection submenu.
+  Opening Connections resumes its saved puzzle; Back returns to Games.
 - Connections offers a word-grouping puzzle: sixteen tiles, four groups of four, four incorrect guesses,
   shuffle, deselection, duplicate-guess protection and a three-of-four hint.
 - Use the household-supplied local puzzle archive, not a website scraper, subscription credential

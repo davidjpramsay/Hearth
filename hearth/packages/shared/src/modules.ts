@@ -28,7 +28,7 @@ export const MODULE_LABELS: Record<ModuleId, string> = {
   meals: 'Meals',
   home: 'Home controls',
   photos: 'Photos',
-  games: 'Connections',
+  games: 'Games',
   notices: 'Notices',
   dailyVerse: 'Daily Bible verse',
   nba: 'NBA',

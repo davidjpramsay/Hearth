@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import type { GameCatalogue, WordGroupsProgress, WordGroupsPuzzle } from '@hearth/shared';
 import {
   newWordGroupsProgress,
@@ -31,6 +31,8 @@ export function GamesScreen() {
 }
 
 function GamesContent({ home }: { home: string }) {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [outcomes, setOutcomes] = useState(() => readGameOutcomes(home));
@@ -64,11 +66,44 @@ function GamesContent({ home }: { home: string }) {
   const position = ordered.findIndex((item) => item.id === selected?.id);
   function choose(number: number) {
     setArchiveOpen(false);
-    setParams({ puzzle: String(number) });
+    setParams({ puzzle: String(number) }, { replace: true, state: location.state });
   }
   return (
-    <div className="screen games-screen">
-      <ScreenHeader title="Connections" meta="Word groups" />
+    <div
+      className="screen games-screen"
+      data-focus-loading={
+        catalogue.isPending || (selected !== undefined && puzzle.isPending) ? 'true' : undefined
+      }
+    >
+      <ScreenHeader
+        title="Connections"
+        meta="Word groups"
+        actions={
+          <Link
+            to="/games"
+            replace
+            className="button focusable games-back"
+            aria-label="Back to Games"
+            data-focus-id="games-back"
+            data-page-back="true"
+            onClick={(event) => {
+              if (
+                location.state?.fromGamesMenu === true &&
+                event.button === 0 &&
+                !event.metaKey &&
+                !event.ctrlKey &&
+                !event.altKey &&
+                !event.shiftKey
+              ) {
+                event.preventDefault();
+                void navigate(-1);
+              }
+            }}
+          >
+            <Icon name="chevron-left" /> Games
+          </Link>
+        }
+      />
       {catalogue.isPending ? (
         <LoadingState />
       ) : catalogue.data === undefined ? (
