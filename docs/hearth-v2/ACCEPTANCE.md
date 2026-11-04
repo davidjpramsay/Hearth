@@ -16,6 +16,17 @@ The second run, [41798847200](https://github.com/davidjpramsay/hearth-v2/actions
 also stopped before publication: the System health browser check still expected migration 36.
 Its exact expectation now matches the exercise-library migration 37; this candidate was not deployed.
 
+During the approved predeployment backup, the NAS gave a new, empty directory mode 0777 despite
+requesting 0700. Explicit chmod corrected it before any backup contents were written. The exercise
+store now likewise enforces 0700 on its directory, 0600 on referenced clips at startup, and 0600 on
+new file descriptors before writing/flushing bytes. A restart regression deliberately broadens a
+fixture directory/file, then verifies permissions are repaired with content and receipts retained.
+Run 41799737228 was cancelled to include this storage correction before deployment.
+After this correction, `pnpm verify:code` passed again in full (764 unit, 309 integration and
+32 migration tests, format/lint/types, builds, deployment checks and isolated fresh boot).
+The three targeted Calendar/Connections/System-health browser checks also passed after the
+two expectation corrections. These remain local evidence until the final hosted run completes.
+
 ## Fitness demonstrations — D-129, local proof 2026-11-04
 
 Implemented reusable adult exercise library, private optional MP4s, explicit plan references,

@@ -1,6 +1,14 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import Database from 'better-sqlite3';
-import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { FitnessExerciseSchema, MAX_FITNESS_CLIP_BYTES } from '@hearth/shared';
@@ -57,7 +65,12 @@ describe('Fitness exercise library', () => {
     const receipt = h.service.change(h.home, id, upload, actor, 'upload', clip);
     const mediaId = receipt.exercise!.demonstration!.id;
     expect(statSync(join(h.root, `${mediaId}.mp4`)).mode & 0o777).toBe(0o600);
+    // Existing directories and inherited NAS ACLs must not broaden private storage.
+    chmodSync(h.root, 0o777);
+    chmodSync(join(h.root, `${mediaId}.mp4`), 0o666);
     const again = new FitnessLibraryService(h.db, h.root);
+    expect(statSync(h.root).mode & 0o777).toBe(0o700);
+    expect(statSync(join(h.root, `${mediaId}.mp4`)).mode & 0o777).toBe(0o600);
     expect(again.list(h.home.id)).toEqual([receipt.exercise]);
     expect(again.change(h.home, id, save, actor, 'save')).toEqual({ ...first, replayed: true });
     expect(again.change(h.home, id, upload, actor, 'upload', clip)).toEqual({

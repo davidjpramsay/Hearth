@@ -1,7 +1,9 @@
 import { createHash, randomUUID } from 'node:crypto';
 import {
+  chmodSync,
   closeSync,
   createReadStream,
+  fchmodSync,
   fsyncSync,
   mkdirSync,
   openSync,
@@ -35,13 +37,17 @@ export class FitnessLibraryService {
     if (db && !root) throw new Error('Durable Fitness library needs its private media directory.');
     if (root) {
       mkdirSync(root, { recursive: true, mode: 0o700 });
+      // NAS ACL inheritance can override creation modes. Restrict access explicitly.
+      chmodSync(root, 0o700);
       // Only generated files belonging to this store. Crashed writes/replacements are inaccessible.
       const referenced = new Set(
         this.all().flatMap((e) => (e.demonstration ? [e.demonstration.id] : [])),
       );
       for (const file of readdirSync(root)) {
-        if (/^clip_[a-f0-9-]{36}\.mp4$/.test(file) && !referenced.has(file.slice(0, -4)))
-          this.removeMedia(file.slice(0, -4));
+        if (/^clip_[a-f0-9-]{36}\.mp4$/.test(file)) {
+          if (!referenced.has(file.slice(0, -4))) this.removeMedia(file.slice(0, -4));
+          else chmodSync(join(root, file), 0o600);
+        }
       }
     }
   }
@@ -165,11 +171,14 @@ export class FitnessLibraryService {
           );
         added = `clip_${randomUUID()}`;
         if (this.root) {
-          writeFileSync(join(this.root, `${added}.mp4`), bytes, {
-            mode: 0o600,
-            flag: 'wx',
-            flush: true,
-          });
+          const file = openSync(join(this.root, `${added}.mp4`), 'wx', 0o600);
+          try {
+            fchmodSync(file, 0o600);
+            writeFileSync(file, bytes);
+            fsyncSync(file);
+          } finally {
+            closeSync(file);
+          }
           const directory = openSync(this.root, 'r');
           try {
             fsyncSync(directory);
