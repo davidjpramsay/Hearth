@@ -43,6 +43,11 @@ and returned 502; the post-activation probe passed all three endpoints. No ad-ho
 network replacement was used. Local logs: `/tmp/hearth-release-8cb1b24-deploy.log` and
 `/tmp/hearth-release-8cb1b24-health.json`.
 
+Static delivery also passed: `/`, `/hearth-bootstrap.js` and the HTML-referenced application
+entry `/assets/index-cZP64AFP.js` returned HTTP 200; both scripts use `application/javascript`.
+The first static checker incorrectly expected the bootstrap script to be under `/assets/`;
+inspection of the served HTML corrected that checker assumption, with no application change.
+
 ## Physical TCL installation
 
 The TV initially reported **0.1.2-debug / code 3** and `mWakefulness=Asleep`. HA's existing
@@ -91,6 +96,8 @@ entity became unavailable. Its existing HA power-on action and one normal networ
 did not restore ADB. Thus a complete physical deep-standby/wake check, final Android power-state
 readback, overnight wake with delayed Wi-Fi, and forced network-loss recovery remain unverified.
 No TV networking/standby settings were changed and no alarm, music or volume action was run.
+An explicit `media_player.turn_off` request to the existing TV power entity was sent at cleanup;
+physical power-state confirmation is still unavailable, so no final Asleep readback is claimed.
 The network-loss/deadline/Retry/Back cancellation cases are emulator proof only. The original
 intermittent wake-time cause has not been captured from the household TV.
 
