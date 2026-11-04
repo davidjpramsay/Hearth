@@ -57,7 +57,7 @@ for (const [, attribute, target] of html.matchAll(/\b(src|href)="([^"]+)"/g)) {
     assert(target === '#' || ids.includes(target.slice(1)), `Missing anchor ${target}`);
   } else if (target.startsWith('https://')) {
     assert(
-      attribute === 'href' && target.startsWith('https://github.com/davidjpramsay/hearth-v2'),
+      attribute === 'href' && target.startsWith('https://github.com/davidjpramsay/Hearth'),
       `Unexpected external resource ${target}`,
     );
   } else assert(published.includes(target), `Missing/unapproved local resource ${target}`);

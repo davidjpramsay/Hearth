@@ -1,5 +1,26 @@
 # Hearth v2 acceptance and definition of done
 
+## Repository naming migration — 2026-11-04 (D-132)
+
+User-approved targets: current repository `davidjpramsay/Hearth` (ID 1327675743), original repository
+`davidjpramsay/old_hearth` (ID 1174989270), canonical Pages `/Hearth/`. Existing container packages
+and private runtime paths remain stable. GitHub naming is gated on the installed NAS verifier
+accepting both explicit names for the same immutable repository; arbitrary redirects stay blocked.
+
+Preparation passed: 10 release-safety tests in an isolated Linux-root Docker fixture, 14 portable
+installer tests, `pnpm format:check`, `pnpm lint`, `pnpm verify:deploy`, `pnpm verify:ci`,
+`node hearth/scripts/verify-public-site.mjs /tmp/hearth-rename-site-stage`, and `git diff --check`.
+CI inventory covers 1,400 browser tests in four non-overlapping shards. The original fixture run
+used a world-writable `/tmp` ancestor and correctly failed its protected-path checks; the final
+fixture used a dedicated root-owned 0700 `/fixture` mount, with no policy relaxation.
+
+At preparation, installed verifier hash matches the current baseline. The tested compatibility
+policy, exact hash guard, private rollback and unchanged-configuration checks are prepared for one
+owner-authorized NAS maintenance step. Completion of installation, GitHub renames, legacy notice,
+archive, Pages, registry and live updater/readiness verification remains pending this step. No
+app container update is part of repository naming. D-131's Games source remains in this branch;
+its local verification is recorded separately below.
+
 ## Games menu and Connections submenu — 2026-11-04 (D-131)
 
 Locally implemented on `codex/games-menu`: Games is the family navigation/module label and opens

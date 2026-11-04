@@ -1,5 +1,18 @@
 # Hearth v2 decision record
 
+## D-132 — Canonical Hearth repository and preserved legacy source
+
+- Date: 2026-11-04. Status: user-approved repository rename; installation and verification tracked
+  in ACCEPTANCE. Supersedes D-130’s deferral of the repository migration.
+- Rename the original repository to `old_hearth` and this repository to `Hearth`. Preserve both
+  immutable repository identities and histories. Canonical Pages moves to `/Hearth/`; update
+  public links, local remotes and the portable installer. Keep GHCR package/runtime names.
+- Install a narrow root-verifier compatibility policy before the rename. Only the explicit old/new
+  GitHub names and current repository ID 1327675743 can supply a verified release; redirects stay
+  rejected, including ones to an unexpected host. Main/push/success/newest commit remain required.
+- Preserve current app containers, household/phone/screen state, configuration and networking.
+  The Games submenu is already separately implemented and tested in the source history (D-131).
+
 ## D-131 — Games menu with a Connections submenu
 
 - Date: 2026-11-04. Status: user-requested local navigation change; release/device acceptance separate.
