@@ -59,7 +59,9 @@ people's histories remain. No exercise/goal text is copied into audit summaries.
 three tables; rollback to v35 requires its matching database backup. Additive optional JSON fields
 `goal.weeklyFocus` and `workout.goalId` link independent goal routines, with same-person validation.
 No additional migration or eager data rewrite: absent fields remain absent so old exact-request
-hashes and receipts remain replayable. Unassigned sessions keep their stable IDs and progress.
+hashes and receipts remain replayable. Standalone general-fitness sessions keep their stable IDs and progress (D-138). Optional-goal
+removal is an ordinary future plan update setting its workouts’ goal IDs to null; no migration,
+receipt rewrite, progress deletion or fabricated goal is needed.
 Wire details: FITNESS_CONTRACT.
 
 ## Installation records (D-127)

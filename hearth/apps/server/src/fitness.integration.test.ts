@@ -48,6 +48,45 @@ afterEach(async () => {
   await Promise.all(apps.splice(0).map((a) => a.close()));
 });
 describe('Fitness durable boundary', () => {
+  it('unlinks an optional goal tomorrow without losing its workout, dated check or replay receipt', async () => {
+    let now = DEMO_NOW;
+    const home = await new InMemoryAdminRepository().getHousehold(DEMO_HOUSEHOLD_ID);
+    const service = new FitnessService(undefined, () => new Date(now));
+    const linked = structuredClone(configuration);
+    linked.plans[0]!.workouts[0]!.goalId = 'goal_first';
+    linked.plans[0]!.workouts[0]!.activity = 'class';
+    linked.plans[0]!.workouts[0]!.days = ['mon', 'tue'];
+    const originalWorkout = structuredClone(linked.plans[0]!.workouts[0]!);
+    service.update(home, { ...settings, configuration: linked }, actor);
+    const receipt = service.complete(home, check, device);
+    const general = structuredClone(linked);
+    general.plans[0]!.goals = [];
+    general.plans[0]!.workouts[0]!.goalId = null;
+    const command = {
+      requestId: 'request_general_class',
+      expectedRevision: 1,
+      configuration: general,
+    };
+    const result = service.update(home, command, actor);
+    expect(result.settings.effectiveFrom).toBe('2026-08-04');
+    expect(service.update(home, command, actor)).toEqual({ ...result, replayed: true });
+    expect(service.overview(home).people[0]!.days[0]!.sessions[0]).toMatchObject({
+      workout: originalWorkout,
+      isCompleted: true,
+      goal: { id: 'goal_first' },
+    });
+    now = '2026-08-04T00:01:00+08:00';
+    const tomorrow = service.overview(home).people[0]!.days[1]!.sessions[0]!;
+    expect(tomorrow.workout).toEqual({ ...originalWorkout, goalId: null });
+    expect(tomorrow.goal).toBeNull();
+    expect(service.complete(home, check, device)).toEqual({ ...receipt, replayed: true });
+    service.complete(
+      home,
+      { ...check, requestId: 'request_class_tuesday', localDate: '2026-08-04', planRevision: 2 },
+      device,
+    );
+    expect(service.overview(home).people[0]!.streak).toEqual({ current: 2, best: 2 });
+  });
   it('starts empty and persists settings/checks/receipts across service recreation', async () => {
     const db = new Database(':memory:');
     applyMigrations(db);

@@ -8,15 +8,18 @@ to the household; this is not a private personal health record.
 
 ## Plans and scheduled-day streaks
 
-Each of up to 20 selected people has up to five long-term goals (title, optional target date,
-achieved flag and optional weekly focus). Each goal owns its own weekly routine. A person may have
-up to 14 recurring workouts in total across their goals. Each workout has a stable ID, goal ID, title,
+Each of up to 20 selected people has a weekly workout list and up to five **optional** long-term
+goals (title, optional target date, achieved flag and optional weekly focus). A person may have
+up to 14 recurring workouts in total, either standalone general fitness or linked to their own goal
+(D-138). Each workout has a stable ID, optional goal ID and title,
 activity (running, swimming, weights, fitness class), chosen weekdays, optional duration/distance,
 notes and up to 20 ordered exercises (name, nullable kg, sets and reps). Empty weights mean no weight
 specified; zero is explicit. Plans start empty. Unselecting retains their editable plan/history.
-The daily view combines workouts due from all active goals and labels each with its goal. Achieved
+The daily view combines due general-fitness workouts and active goal routines, labelling linked
+workouts with their goal. Achieved
 goals retain their routine but stop scheduling from their plan's effective date; reactivating resumes
-on the same next-day boundary. Removing a goal confirms removal of its future workouts, not history.
+on the same next-day boundary. Removing a linked goal confirms unlinking its workouts to general
+fitness; it never removes those workouts or history. A previously achieved goal’s unlinked workouts resume at the next-day boundary.
 Streaks remain per person across all goals, rather than awarding multiple streaks for the same day.
 
 First setup applies today. Later edits take effect tomorrow in the household timezone, disclosed
@@ -40,9 +43,10 @@ No existing data conversion/deletion. Existing SQLite backups cover all Fitness 
 The goal-routine refinement uses optional `goal.weeklyFocus` and optional nullable `workout.goalId`
 within existing configuration JSON, without another migration. Validate references against the same
 person's goals. Omitted fields stay omitted (no parser defaults on stored/request fields), preserving
-old exact-request hashes and receipts. Missing/null goal IDs are earlier unassigned routines: keep
-their person-level weekly focus, sessions and history, and let adults explicitly associate them.
-New UI workouts always belong to a goal. Assignment preserves workout IDs and current/past progress.
+old exact-request hashes and receipts. Missing/null goal IDs are ordinary standalone general-fitness
+workouts. Preserve person-level weekly focus, sessions and history; no automatic goal or ID rewrite. New UI workouts default to a null goal.
+Optional association/unlinking preserves workout IDs and current/past progress. No schema, receipt-hash
+or scheduling-rule change is required; omission stays omitted until intentionally edited.
 
 - Household `GET .../fitness`: current local date/timezone, this Monday–Sunday week, selected people,
   goals with their own routine arrays, legacy weekly focus, daily sessions/details/progress versions,
@@ -72,15 +76,20 @@ opening today. Each person has an avatar, daily progress, scheduled-day streak a
 activity buttons: Run, Swim, Weights and Fitness class. Multiple workouts of one activity are grouped
 only for presentation: opening the activity shows every original session and its goal, quantities,
 notes, exercises and separate check/undo. There is no bulk completion or change to IDs/receipts.
-Goals & progress opens that person's long-term goals, routines, current/best streak and weekly count.
+Progress opens that person's current/best streak, weekly count and any optional goals/routines;
+no-goal plans show general fitness without a setup prompt.
 Five participants with all four activities fit on one supported landscape TV viewport, including
 1280×640. Phones stack readable panels and tablets reflow; larger households remain on the same
 page with natural scrolling rather than a person picker or hidden participants. Icons have text
 labels. Long details scroll with arrows; Close/Back restores the exact activity, and demonstration
 Back restores the exact exercise and scroll. No video is required for instructions.
-Adult `/admin/fitness` uses ordinary controls with explicit people/day selections,
-expandable goal cards containing their own workout editors, move-up/down exercises and clear
-save/effective-date feedback. Keep earlier unassigned routines separate until assigned.
+Adult `/admin/fitness` starts with one person’s compact weekly workout list. People is a collapsed
+disclosure (open on first use); goals are a separate collapsed optional section. Add workout needs only
+an activity and explicit days; the activity supplies a sensible editable title. Row summaries retain
+name/day cues and show paused achieved-goal state. Minutes, distance, custom title, notes, optional goal
+link and ordered exercises/demonstrations sit under Exercises & details. No nested goal/workout editor
+or earlier-unassigned warning. Keep move-up/down, draft/conflict/ambiguous-save retry behavior and
+clear first-save/next-day feedback. Invalid collapsed workouts open with a usable error/focus path.
 
 Prove strict validation, local-date rollover, rest/missed/multiple-session days, undo, historical plan
 changes, restart, exact/conflicting retries, auth/household/module isolation and retained data. Render

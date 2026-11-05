@@ -101,3 +101,22 @@ it('does not inject goal defaults into original commands and change their replay
   };
   expect(JSON.stringify(FitnessConfigurationSchema.parse(original))).toBe(JSON.stringify(original));
 });
+
+it('accepts a general-fitness class without creating a goal or filling optional details', () => {
+  for (const goal of [{}, { goalId: null }]) {
+    const original = {
+      selectedMemberIds: ['member_a'],
+      plans: [
+        {
+          memberId: 'member_a',
+          weeklyFocus: '',
+          goals: [],
+          workouts: [
+            { ...workout, ...goal, title: 'Fitness class', activity: 'class', exercises: [] },
+          ],
+        },
+      ],
+    };
+    expect(FitnessConfigurationSchema.parse(original)).toEqual(original);
+  }
+});

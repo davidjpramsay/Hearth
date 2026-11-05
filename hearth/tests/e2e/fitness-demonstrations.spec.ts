@@ -231,8 +231,12 @@ test('adult library uploads/retries exactly, reuses a clip, and keeps drafts on 
   await page.getByRole('button', { name: 'New exercise', exact: true }).click();
   await page.screenshot({ path: '/tmp/hearth-fitness-demonstrations/library-phone.png' });
   await page.goto('/admin/fitness');
-  await expect(page.locator('.fitness-goal-editor').first()).toHaveAttribute('open', '');
   await page.locator('.fitness-workout-editor > summary').first().click();
+  await page
+    .locator('.fitness-workout-editor')
+    .first()
+    .getByText('Exercises & details', { exact: false })
+    .click();
   await page
     .getByRole('combobox', { name: 'Demonstration / library exercise', exact: true })
     .first()

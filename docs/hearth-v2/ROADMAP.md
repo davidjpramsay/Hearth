@@ -1,5 +1,13 @@
 # Hearth v2 implementation roadmap
 
+## D-138 — Simple weekly Fitness workouts
+
+Make goals optional and put the compact weekly workout list first. Keep optional exercise/video
+and goal detail, general-fitness setup, safe goal unlinking, preserved IDs/history and the existing
+first-save/next-day rules. Local proof passes for goal-free setup/checks, association/removal, exact
+retry, validation, drafts and responsive keyboard-accessible settings (see ACCEPTANCE). Publication/private deployment/
+physical phone/TV acceptance remain separate; no live family plan or HA change in this slice.
+
 ## D-136 — Morning additions, Afternoon and linked chores
 
 Local implementation provides shared routine settings/board with independent Afternoon storage

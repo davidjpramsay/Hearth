@@ -32,9 +32,10 @@ pending next-day plan, so current/past schedules do not change with later edits.
 by home/date/person/workout, with compare-and-swap versions and atomic actor-scoped hash-bound
 receipts/audits. Reads calculate bounded seven-day sessions and streaks from retained plan periods
 and completed dates; they do not materialize arbitrary history. Workouts reference one goal belonging
-to their person; absent/null references preserve earlier unassigned routines. Goal titles on daily
-sessions resolve against that date's plan; later edits cannot rewrite historical labels.
-Goal routines are read projections over the same normalized workout list. Streaks aggregate every
+to their person; absent/null references are standalone general-fitness workouts (D-138). The workout-first
+editor makes goal links optional and unlinks on explicit goal removal without deleting workouts.
+Goal titles on daily sessions resolve against that date's plan; later edits cannot rewrite historical labels.
+Goal routines are read projections over the same normalized workout list. Streaks aggregate standalone workouts and every
 active goal's due workouts, skipping achieved goals from their effective date onward. Writer leases,
 module gates, adult settings isolation and `fitness.changed` reuse existing infrastructure. React uses lazy routes,
 query invalidation, draft protection and no new dependency, provider, background worker or secret.

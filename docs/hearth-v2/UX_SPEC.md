@@ -57,22 +57,23 @@ scroll on the same page. No participant is hidden behind a picker or enrolled au
 Opening an activity shows every original workout for that person/day/activity with its own goal,
 notes, duration/distance, Exercise / kg / Sets / Reps table, optional demonstrations and check/undo.
 Multiple routines share one activity card with a completion count; completing one never completes
-another. Goals & progress keeps each person's goals/routines, weekly totals and current/best streak
+another. Progress keeps each person's optional goals/routines, weekly totals and current/best streak
 available without taking over the main view. Long instructions scroll with arrows, Close/Back restores
 the activity button, and video Back restores the exact exercise/scroll. Future days are readable with
 checks disabled. Phones scroll naturally; keep text and targets readable.
 
-Adult Fitness settings has explicit participant selection, a person selector, long-term goals with
-optional target date/achieved status. Each expandable goal contains its own weekly focus and workout
-editors. New workouts belong to that goal. Removing a goal confirms removal of its future routine
-while preserving history. Earlier unassigned workouts stay separate and can be assigned without
-changing their IDs or today's progress. Achieved goals stop scheduling tomorrow. Choose weekdays;
-enter optional minutes/km and exercises with optional kg/sets/reps. Empty means unspecified. Exercise
-move-up/down is available without dragging. No person is selected automatically. Drafts survive reads,
-unknown outcomes retain the exact request, and conflicts offer deliberate Load latest. First save
-starts today; later edits clearly start tomorrow. Streak copy explains all sessions/rest days and no
-penalty until today's local midnight. Module disabled, empty, loading, stale/offline/error and save
-feedback use existing Hearth patterns; shared screens receive no administration link.
+Adult Fitness settings (D-138) puts one compact weekly workout list first. People starts collapsed
+except on first use; a single person selector and Add workout lead the list. Summaries show workout
+name and selected days. Choose activity and days without creating a goal. The default activity name
+can be edited under Exercises & details, along with optional minutes/km, notes, goal link and ordered
+exercise quantities/demonstrations. Goals is a separate collapsed optional section; workouts are never
+nested beneath it. Removing a linked goal confirms keeping its workouts as general fitness; achieving
+a goal still pauses linked workouts tomorrow. Preserve all saved IDs and today's progress. No person
+is enrolled automatically. Drafts survive reads and person switching; unknown outcomes retain the
+exact request and freeze edits until retry, while conflicts offer deliberate Load latest. Validation
+opens the affected collapsed editor. First save starts today; later edits start tomorrow. Shared
+screens receive no administration link. Keep responsive targets, light/dark, keyboard navigation,
+module/authority/error states and the existing scheduled-day streak rules.
 
 ## Guided household setup (D-127)
 

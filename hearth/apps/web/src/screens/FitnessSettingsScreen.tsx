@@ -1,19 +1,12 @@
 import { Link } from 'react-router-dom';
-import { fitnessLibraryApi } from '../api/fitnessLibrary';
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   FitnessConfigurationSchema,
-  FITNESS_DAYS,
-  FITNESS_DAY_LABELS,
-  FITNESS_ACTIVITIES,
-  FITNESS_ACTIVITY_LABELS,
   type FitnessConfiguration,
   type FitnessSettings,
   type UpdateFitnessSettings,
   type FitnessPersonPlan,
-  type FitnessWorkout,
-  type FitnessExercise,
 } from '@hearth/shared';
 import { fitnessApi } from '../api/fitness';
 import { createRequestId, HearthApiError } from '../api/core';
@@ -21,7 +14,8 @@ import { queryKeys } from '../api/queryKeys';
 import { AdminError, AdminPage, AdminQueryState } from '../components/AdminPage';
 import { useUnsavedChanges, confirmDiscardChanges } from '../hooks/useUnsavedChanges';
 import { Icon } from '../components/Icon';
-import { fitnessIcon } from './fitnessPresentation';
+import { FitnessWorkoutEditor } from './FitnessWorkoutEditor';
+import { FitnessGoalEditor } from './FitnessGoalEditor';
 import './FitnessSettingsScreen.css';
 
 export function FitnessSettingsScreen() {
@@ -63,6 +57,10 @@ function FitnessForm({
     revision: number;
   } | null>(null);
   const [editing, setEditing] = useState('');
+  const [newWorkout, setNewWorkout] = useState('');
+  const [choosingPeople, setChoosingPeople] = useState(
+    latest.configuration.selectedMemberIds.length === 0,
+  );
   const [busy, setBusy] = useState(false),
     [frozen, setFrozen] = useState(false);
   const [error, setError] = useState<string | null>(null),
@@ -92,6 +90,34 @@ function FitnessForm({
   async function save(event?: FormEvent) {
     event?.preventDefault();
     if (running.current || conflict || readError) return;
+    for (const personPlan of configuration.plans) {
+      const invalid = personPlan.workouts.find(
+        (workout) => !workout.title.trim() || !workout.days.length,
+      );
+      const invalidGoal = personPlan.goals.find((goal) => !goal.title.trim());
+      if (invalid || invalidGoal) {
+        setEditing(personPlan.memberId);
+        setError(
+          invalid
+            ? !invalid.title.trim()
+              ? 'Give the workout a name.'
+              : `Choose at least one day for “${invalid.title}”.`
+            : 'Give the goal a name, or remove it.',
+        );
+        requestAnimationFrame(() => {
+          const summary = document.getElementById(
+            invalid ? `fitness-workout-${invalid.id}` : `fitness-goal-${invalidGoal!.id}`,
+          );
+          let element = summary?.parentElement;
+          while (element) {
+            if (element instanceof HTMLDetailsElement) element.open = true;
+            element = element.parentElement;
+          }
+          summary?.focus();
+        });
+        return;
+      }
+    }
     const parsed = FitnessConfigurationSchema.safeParse(configuration);
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? 'Check your plan.');
@@ -147,14 +173,8 @@ function FitnessForm({
   }
   return (
     <AdminPage title="Fitness" backTo="/more" backLabel="Back to More">
-      <p>
-        Personal goals, each with its own weekly routine. Workouts and goals are visible to everyone
-        in your home.
-      </p>
-      <p className="field-help">
-        {latest.revision === 0
-          ? 'Your first plan starts today.'
-          : 'Changes start tomorrow; today’s workouts and past streaks stay as they are.'}
+      <p className="field-help fitness-settings__intro">
+        Weekly workouts for your family. Goals are optional; plans are visible to your household.
       </p>
       {readError ? (
         <AdminError
@@ -182,567 +202,208 @@ function FitnessForm({
           </button>
         </div>
       ) : null}
-      <Link className="admin-secondary" to="/admin/fitness/exercises">
-        Exercise library &amp; demonstrations
-      </Link>
-      <form className="fitness-settings" onSubmit={(e) => void save(e)}>
-        <fieldset disabled={busy || frozen}>
-          <legend>Who’s taking part?</legend>
-          <div className="fitness-settings__people">
-            {latest.people.map((p) => (
-              <label key={p.id}>
-                <input
-                  type="checkbox"
-                  checked={configuration.selectedMemberIds.includes(p.id)}
-                  onChange={(e) => {
-                    const checked = e.target.checked;
-                    change((c) => ({
-                      ...c,
-                      selectedMemberIds: checked
-                        ? [...c.selectedMemberIds, p.id]
-                        : c.selectedMemberIds.filter((id) => id !== p.id),
-                      plans: c.plans.some((plan) => plan.memberId === p.id)
-                        ? c.plans
-                        : [
-                            ...c.plans,
-                            { memberId: p.id, goals: [], weeklyFocus: '', workouts: [] },
-                          ],
-                    }));
-                  }}
-                />
-                <img src={p.avatarUrl} alt="" width={36} height={36} />
-                <span>{p.displayName}</span>
-              </label>
-            ))}
-          </div>
-          <p className="field-help">Unselecting someone keeps their saved plan and history.</p>
-        </fieldset>
+      <form className="fitness-settings" noValidate onSubmit={(e) => void save(e)}>
+        <details
+          className="fitness-settings__participants"
+          open={choosingPeople}
+          onToggle={(e) => setChoosingPeople(e.currentTarget.open)}
+        >
+          <summary>
+            People{' '}
+            <span>{selected.map((p) => p.displayName).join(', ') || 'Choose who takes part'}</span>
+          </summary>
+          <fieldset disabled={busy || frozen}>
+            <legend>Who’s taking part?</legend>
+            <div className="fitness-settings__people">
+              {latest.people.map((p) => (
+                <label key={p.id}>
+                  <input
+                    type="checkbox"
+                    checked={configuration.selectedMemberIds.includes(p.id)}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      change((c) => ({
+                        ...c,
+                        selectedMemberIds: checked
+                          ? [...c.selectedMemberIds, p.id]
+                          : c.selectedMemberIds.filter((id) => id !== p.id),
+                        plans: c.plans.some((plan) => plan.memberId === p.id)
+                          ? c.plans
+                          : [
+                              ...c.plans,
+                              { memberId: p.id, goals: [], weeklyFocus: '', workouts: [] },
+                            ],
+                      }));
+                    }}
+                  />
+                  <img src={p.avatarUrl} alt="" width={32} height={32} />
+                  <span>{p.displayName}</span>
+                </label>
+              ))}
+            </div>
+            <p className="field-help">
+              Removing someone from this page keeps their plan and history.
+            </p>
+          </fieldset>
+        </details>
         {person && plan ? (
           <fieldset disabled={busy || frozen} className="fitness-settings__plan">
-            <legend>Personal plan</legend>
-            <label>
-              Plan for
-              <select value={person.id} onChange={(e) => setEditing(e.target.value)}>
-                {selected.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.displayName}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <section>
-              <h2>Long-term goals</h2>
-              <p className="field-help">
-                Give each goal its own weekly routine. Today shows what is due across all active
-                goals.
-              </p>
-              {plan.goals.map((goal, i) => (
-                <GoalEditor
-                  key={`${person.id}:${goal.id}`}
-                  goal={goal}
-                  index={i}
-                  plan={plan}
-                  editPlan={editPlan}
-                />
-              ))}
-              <button
-                id="fitness-add-goal"
-                type="button"
-                className="admin-secondary"
-                disabled={plan.goals.length >= 5}
-                onClick={() =>
-                  editPlan((p) => ({
-                    ...p,
-                    goals: [
-                      ...p.goals,
-                      {
-                        id: createRequestId('goal'),
-                        title: '',
-                        targetDate: null,
-                        achieved: false,
-                        weeklyFocus: '',
-                      },
-                    ],
-                  }))
-                }
-              >
-                Add long-term goal
-              </button>
-            </section>
-            {plan.workouts.some((w) => w.goalId == null) || plan.weeklyFocus ? (
-              <section className="fitness-unassigned">
-                <h2>Earlier unassigned routine</h2>
-                <p className="field-help">
-                  Your earlier workouts are kept here. Choose a goal for each one when you’re ready.
-                </p>
-                {plan.weeklyFocus ? <p>{plan.weeklyFocus}</p> : null}
-                {plan.workouts
-                  .filter((w) => w.goalId == null)
-                  .map((workout, i) => (
-                    <div key={workout.id}>
-                      <label>
-                        Goal for {workout.title}
-                        <select
-                          value=""
-                          onChange={(event) => {
-                            const goalId = event.target.value;
-                            editPlan((p) => ({
-                              ...p,
-                              workouts: p.workouts.map((w) =>
-                                w.id === workout.id ? { ...w, goalId } : w,
-                              ),
-                            }));
-                            requestAnimationFrame(() =>
-                              document.getElementById(`fitness-goal-${goalId}`)?.focus(),
-                            );
-                          }}
-                        >
-                          <option value="" disabled>
-                            Choose a goal
-                          </option>
-                          {plan.goals.map((g) => (
-                            <option key={g.id} value={g.id}>
-                              {g.title || 'New goal'}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <WorkoutEditor
-                        workout={workout}
-                        index={i}
-                        change={(update) =>
-                          editPlan((p) => ({
-                            ...p,
-                            workouts: p.workouts.map((w) => (w.id === workout.id ? update(w) : w)),
-                          }))
-                        }
-                        remove={() =>
-                          editPlan((p) => ({
-                            ...p,
-                            workouts: p.workouts.filter((w) => w.id !== workout.id),
-                          }))
-                        }
-                      />
-                    </div>
-                  ))}
-              </section>
-            ) : null}
-          </fieldset>
-        ) : (
-          <p>Choose a person to begin their plan.</p>
-        )}
-        <p className="field-help">
-          Streaks count scheduled workout days. Complete every session for that day; rest days don’t
-          break the streak.
-        </p>
-        <p role="status">{busy ? 'Saving…' : notice}</p>
-        <button className="admin-primary" type="submit" disabled={busy || conflict || readError}>
-          {frozen ? 'Retry save' : 'Save Fitness'}
-        </button>
-      </form>
-    </AdminPage>
-  );
-}
-function GoalEditor({
-  goal,
-  index,
-  plan,
-  editPlan,
-}: {
-  goal: FitnessPersonPlan['goals'][number];
-  index: number;
-  plan: FitnessPersonPlan;
-  editPlan: (update: (p: FitnessPersonPlan) => FitnessPersonPlan) => void;
-}) {
-  const [open, setOpen] = useState(index === 0 || !goal.title);
-  const title = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    if (title.current?.value === '') title.current.focus();
-  }, []);
-  const workouts = plan.workouts.filter((w) => w.goalId === goal.id);
-  function change(update: Partial<FitnessPersonPlan['goals'][number]>) {
-    editPlan((p) => ({
-      ...p,
-      goals: p.goals.map((g) => (g.id === goal.id ? { ...g, ...update } : g)),
-    }));
-  }
-  return (
-    <details
-      className="fitness-goal-editor"
-      open={open}
-      onToggle={(e) => setOpen(e.currentTarget.open)}
-    >
-      <summary id={`fitness-goal-${goal.id}`}>
-        <strong>{goal.title || `New goal ${index + 1}`}</strong>
-        <span>
-          {goal.achieved
-            ? 'Achieved'
-            : `${workouts.length} weekly ${workouts.length === 1 ? 'workout' : 'workouts'}`}
-        </span>
-      </summary>
-      <div className="fitness-goal-editor__body">
-        <label>
-          Goal {index + 1}
-          <input
-            ref={title}
-            required
-            maxLength={160}
-            value={goal.title}
-            onChange={(e) => change({ title: e.target.value })}
-          />
-        </label>
-        <div className="fitness-settings__row">
-          <label>
-            Target date (optional)
-            <input
-              type="date"
-              value={goal.targetDate ?? ''}
-              onChange={(e) => change({ targetDate: e.target.value || null })}
-            />
-          </label>
-          <label className="fitness-settings__check">
-            <input
-              type="checkbox"
-              checked={goal.achieved}
-              onChange={(e) => change({ achieved: e.target.checked })}
-            />
-            Achieved
-          </label>
-        </div>
-        <h3>Weekly routine</h3>
-        <label>
-          This goal’s weekly focus (optional)
-          <textarea
-            maxLength={240}
-            rows={2}
-            value={goal.weeklyFocus ?? ''}
-            onChange={(e) => change({ weeklyFocus: e.target.value })}
-          />
-        </label>
-        <p className="field-help">
-          Choose the days for each workout. Achieved goals stop scheduling from tomorrow.
-        </p>
-        {workouts.map((workout, i) => (
-          <WorkoutEditor
-            key={workout.id}
-            workout={workout}
-            index={i}
-            change={(update) =>
-              editPlan((p) => ({
-                ...p,
-                workouts: p.workouts.map((w) => (w.id === workout.id ? update(w) : w)),
-              }))
-            }
-            remove={() =>
-              editPlan((p) => ({ ...p, workouts: p.workouts.filter((w) => w.id !== workout.id) }))
-            }
-          />
-        ))}
-        <button
-          type="button"
-          className="admin-secondary"
-          disabled={plan.workouts.length >= 14}
-          onClick={() =>
-            editPlan((p) => ({
-              ...p,
-              workouts: [
-                ...p.workouts,
-                {
-                  id: createRequestId('workout'),
-                  goalId: goal.id,
-                  title: '',
-                  activity: 'running',
-                  days: [],
-                  notes: '',
-                  durationMinutes: null,
-                  distanceKm: null,
-                  exercises: [],
-                },
-              ],
-            }))
-          }
-        >
-          Add workout
-        </button>
-        {plan.workouts.length >= 14 ? (
-          <p className="field-help">
-            This person has 14 workouts across their goals. Each workout can repeat on several days.
-          </p>
-        ) : null}
-        <button
-          type="button"
-          className="admin-danger"
-          aria-label={`Remove goal ${index + 1}`}
-          onClick={() => {
-            if (
-              workouts.length &&
-              !window.confirm('Remove this goal and its weekly routine? Past progress is kept.')
-            )
-              return;
-            editPlan((p) => ({
-              ...p,
-              goals: p.goals.filter((g) => g.id !== goal.id),
-              workouts: p.workouts.filter((w) => w.goalId !== goal.id),
-            }));
-            requestAnimationFrame(() => document.getElementById('fitness-add-goal')?.focus());
-          }}
-        >
-          Remove goal
-        </button>
-      </div>
-    </details>
-  );
-}
-function WorkoutEditor({
-  workout,
-  index,
-  change,
-  remove,
-}: {
-  workout: FitnessWorkout;
-  index: number;
-  change: (update: (w: FitnessWorkout) => FitnessWorkout) => void;
-  remove: () => void;
-}) {
-  const [open, setOpen] = useState(!workout.title);
-  function exercises(update: (e: FitnessExercise[]) => FitnessExercise[]) {
-    change((w) => ({ ...w, exercises: update(w.exercises) }));
-  }
-  const library = useQuery({
-    queryKey: queryKeys.fitnessLibrary,
-    queryFn: ({ signal }) => fitnessLibraryApi.get(signal),
-    retry: false,
-  });
-  return (
-    <details
-      className="fitness-workout-editor"
-      open={open}
-      onToggle={(e) => setOpen(e.currentTarget.open)}
-    >
-      <summary>
-        <Icon name={fitnessIcon(workout.activity)} />
-        <span>{workout.title || `New workout ${index + 1}`}</span>
-      </summary>
-      <div>
-        <label>
-          Workout title
-          <input
-            required
-            maxLength={80}
-            value={workout.title}
-            onChange={(e) => change((w) => ({ ...w, title: e.target.value }))}
-          />
-        </label>
-        <label>
-          Activity
-          <select
-            value={workout.activity}
-            onChange={(e) =>
-              change((w) => ({ ...w, activity: e.target.value as FitnessWorkout['activity'] }))
-            }
-          >
-            {FITNESS_ACTIVITIES.map((a) => (
-              <option value={a} key={a}>
-                {FITNESS_ACTIVITY_LABELS[a]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <div role="group" aria-label="Workout days" className="fitness-settings__days">
-          {FITNESS_DAYS.map((day, i) => (
-            <label key={day}>
-              <input
-                type="checkbox"
-                checked={workout.days.includes(day)}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  change((w) => ({
-                    ...w,
-                    days: FITNESS_DAYS.filter((d) => (d === day ? checked : w.days.includes(d))),
-                  }));
-                }}
-              />
-              <span>{FITNESS_DAY_LABELS[i]}</span>
-            </label>
-          ))}
-        </div>
-        <div className="fitness-settings__row">
-          <NumberField
-            label="Minutes (optional)"
-            value={workout.durationMinutes}
-            min={1}
-            max={1440}
-            change={(value) => change((w) => ({ ...w, durationMinutes: value }))}
-          />
-          <NumberField
-            label="Distance km (optional)"
-            value={workout.distanceKm}
-            min={0.01}
-            max={1000}
-            step="any"
-            change={(value) => change((w) => ({ ...w, distanceKm: value }))}
-          />
-        </div>
-        <label>
-          Workout notes
-          <textarea
-            maxLength={1000}
-            rows={3}
-            value={workout.notes}
-            onChange={(e) => change((w) => ({ ...w, notes: e.target.value }))}
-          />
-        </label>
-        <h3>Exercises</h3>
-        <ol className="fitness-exercise-editors">
-          {workout.exercises.map((exercise, i) => (
-            <li key={exercise.id}>
+            <legend className="sr-only">Weekly workouts</legend>
+            <div className="fitness-settings__toolbar">
               <label>
-                Exercise {i + 1}
-                <input
-                  required
-                  maxLength={80}
-                  value={exercise.name}
-                  onChange={(e) =>
-                    exercises((items) =>
-                      items.map((x) => (x.id === exercise.id ? { ...x, name: e.target.value } : x)),
-                    )
-                  }
-                />
-              </label>
-              <label>
-                Demonstration / library exercise
-                <select
-                  value={exercise.libraryExerciseId ?? ''}
-                  onChange={(e) => {
-                    const entry = library.data?.exercises.find((x) => x.id === e.target.value);
-                    exercises((items) =>
-                      items.map((x) =>
-                        x.id === exercise.id
-                          ? {
-                              ...x,
-                              libraryExerciseId: entry?.id ?? null,
-                              ...(entry ? { name: entry.name } : {}),
-                            }
-                          : x,
-                      ),
-                    );
-                  }}
-                >
-                  <option value="">None — use workout instructions</option>
-                  {exercise.libraryExerciseId &&
-                  !library.data?.exercises.some((e) => e.id === exercise.libraryExerciseId) ? (
-                    <option value={exercise.libraryExerciseId}>
-                      Saved link (currently unavailable)
-                    </option>
-                  ) : null}
-                  {library.data?.exercises.map((entry) => (
-                    <option key={entry.id} value={entry.id}>
-                      {entry.name}
-                      {entry.demonstration ? ' · video' : ''}
+                Plan for
+                <select value={person.id} onChange={(e) => setEditing(e.target.value)}>
+                  {selected.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.displayName}
                     </option>
                   ))}
                 </select>
               </label>
-              {library.isError ? (
-                <p>Demonstrations could not refresh. Existing links are kept.</p>
+              <button
+                id="fitness-add-workout"
+                type="button"
+                className="admin-secondary"
+                disabled={plan.workouts.length >= 14}
+                onClick={() => {
+                  const id = createRequestId('workout');
+                  setNewWorkout(id);
+                  editPlan((p) => ({
+                    ...p,
+                    workouts: [
+                      ...p.workouts,
+                      {
+                        id,
+                        goalId: null,
+                        title: 'Running',
+                        activity: 'running',
+                        days: [],
+                        durationMinutes: null,
+                        distanceKm: null,
+                        notes: '',
+                        exercises: [],
+                      },
+                    ],
+                  }));
+                  requestAnimationFrame(() =>
+                    document.getElementById(`fitness-workout-${id}`)?.focus(),
+                  );
+                }}
+              >
+                <Icon name="plus" /> Add workout
+              </button>
+            </div>
+            <section
+              className="fitness-settings__workouts"
+              aria-label={`${person.displayName}’s weekly workouts`}
+            >
+              {plan.workouts.length ? (
+                plan.workouts.map((workout, i) => (
+                  <FitnessWorkoutEditor
+                    key={`${person.id}:${workout.id}`}
+                    workout={workout}
+                    index={i}
+                    goals={plan.goals}
+                    initiallyOpen={newWorkout === workout.id}
+                    change={(update) =>
+                      editPlan((p) => ({
+                        ...p,
+                        workouts: p.workouts.map((w) => (w.id === workout.id ? update(w) : w)),
+                      }))
+                    }
+                    remove={() => {
+                      editPlan((p) => ({
+                        ...p,
+                        workouts: p.workouts.filter((w) => w.id !== workout.id),
+                      }));
+                      requestAnimationFrame(() =>
+                        document.getElementById('fitness-add-workout')?.focus(),
+                      );
+                    }}
+                  />
+                ))
+              ) : (
+                <p className="fitness-settings__empty">
+                  No workouts yet. Add an activity and choose its days.
+                </p>
+              )}
+              {plan.workouts.length >= 14 ? (
+                <p className="field-help">
+                  Up to 14 workouts per person. Each can repeat on several days.
+                </p>
               ) : null}
-              <div className="fitness-settings__numbers">
-                {(['weightKg', 'sets', 'reps'] as const).map((field) => (
-                  <NumberField
-                    key={field}
-                    label={
-                      field === 'weightKg' ? 'Weight (kg)' : field === 'sets' ? 'Sets' : 'Reps'
-                    }
-                    value={exercise[field]}
-                    min={field === 'weightKg' ? 0 : 1}
-                    max={field === 'sets' ? 100 : 1000}
-                    step={field === 'weightKg' ? 'any' : '1'}
-                    change={(value) =>
-                      exercises((items) =>
-                        items.map((x) => (x.id === exercise.id ? { ...x, [field]: value } : x)),
-                      )
-                    }
+            </section>
+            <details key={person.id} className="fitness-settings__goals">
+              <summary>
+                Goals (optional)<span>{plan.goals.length || 'General fitness'}</span>
+              </summary>
+              <div>
+                {plan.goals.map((goal, i) => (
+                  <FitnessGoalEditor
+                    key={goal.id}
+                    goal={goal}
+                    index={i}
+                    plan={plan}
+                    editPlan={editPlan}
                   />
                 ))}
-              </div>
-              <div className="fitness-settings__row">
-                {([-1, 1] as const).map((delta) => (
-                  <button
-                    key={delta}
-                    type="button"
-                    className="admin-secondary"
-                    disabled={i + delta < 0 || i + delta >= workout.exercises.length}
-                    aria-label={`Move exercise ${i + 1} ${delta < 0 ? 'up' : 'down'}`}
-                    onClick={() =>
-                      exercises((items) => {
-                        const next = [...items];
-                        [next[i], next[i + delta]] = [next[i + delta]!, next[i]!];
-                        return next;
-                      })
-                    }
-                  >
-                    {delta < 0 ? '↑ Up' : '↓ Down'}
-                  </button>
-                ))}
                 <button
+                  id="fitness-add-goal"
                   type="button"
                   className="admin-secondary"
-                  aria-label={`Remove exercise ${i + 1}`}
-                  onClick={() => exercises((items) => items.filter((x) => x.id !== exercise.id))}
+                  disabled={plan.goals.length >= 5}
+                  onClick={() =>
+                    editPlan((p) => ({
+                      ...p,
+                      goals: [
+                        ...p.goals,
+                        {
+                          id: createRequestId('goal'),
+                          title: '',
+                          targetDate: null,
+                          achieved: false,
+                          weeklyFocus: '',
+                        },
+                      ],
+                    }))
+                  }
                 >
-                  Remove
+                  Add long-term goal
                 </button>
+                {plan.weeklyFocus ? (
+                  <label>
+                    Weekly focus
+                    <textarea
+                      maxLength={240}
+                      rows={2}
+                      value={plan.weeklyFocus}
+                      onChange={(e) => editPlan((p) => ({ ...p, weeklyFocus: e.target.value }))}
+                    />
+                  </label>
+                ) : null}
               </div>
-            </li>
-          ))}
-        </ol>
-        <button
-          type="button"
-          className="admin-secondary"
-          disabled={workout.exercises.length >= 20}
-          onClick={() =>
-            exercises((items) => [
-              ...items,
-              { id: createRequestId('exercise'), name: '', weightKg: null, sets: null, reps: null },
-            ])
-          }
-        >
-          Add exercise
-        </button>
-        <button type="button" className="admin-danger" onClick={remove}>
-          Remove workout
-        </button>
-      </div>
-    </details>
-  );
-}
-function NumberField({
-  label,
-  value,
-  min,
-  max,
-  step = '1',
-  change,
-}: {
-  label: string;
-  value: number | null;
-  min: number;
-  max: number;
-  step?: string;
-  change: (v: number | null) => void;
-}) {
-  return (
-    <label>
-      {label}
-      <input
-        type="number"
-        inputMode={step === 'any' ? 'decimal' : 'numeric'}
-        min={min}
-        max={max}
-        step={step}
-        value={value ?? ''}
-        onChange={(e) => change(e.target.value === '' ? null : e.target.valueAsNumber)}
-      />
-    </label>
+            </details>
+            <Link className="fitness-settings__library" to="/admin/fitness/exercises">
+              Exercise library &amp; demonstrations <Icon name="chevron-right" />
+            </Link>
+          </fieldset>
+        ) : (
+          <p>Open People to choose who’s taking part.</p>
+        )}
+        <div className="fitness-settings__save">
+          <div>
+            <p className="field-help">
+              {latest.revision === 0
+                ? 'Your first plan starts today.'
+                : 'Changes start tomorrow. Today’s workouts and history stay as they are.'}
+            </p>
+            <p role="status">{busy ? 'Saving…' : notice}</p>
+          </div>
+          <button className="admin-primary" type="submit" disabled={busy || conflict || readError}>
+            {frozen ? 'Retry save' : 'Save Fitness'}
+          </button>
+        </div>
+      </form>
+    </AdminPage>
   );
 }

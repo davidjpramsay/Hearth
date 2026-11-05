@@ -1,5 +1,22 @@
 # Hearth v2 decision record
 
+## D-138 — Workout-first Fitness with optional goals
+
+- Date: 2026-11-05. Status: accepted refinement; local/release/device evidence stays separate.
+- Put a person’s weekly workout list first. Activity and chosen days suffice for general fitness;
+  goals, quantities, exercise lists, notes and demonstration links remain optional detail. Preserve
+  current participant choices, IDs, saved content, histories, scheduling and streak semantics.
+- Replace nested goal/workout forms and the earlier-unassigned section with compact workout rows,
+  collapsed People/Goals sections and a single optional-details disclosure per workout. Family
+  Goals & progress becomes Progress, without prompting no-goal households to create goals.
+- Supersede D-128’s UI requirement that a new workout must belong to a goal. Existing nullable/
+  omitted goal IDs already support standalone workouts; no new schema, migration or parser default.
+  Optional goal removal confirms unlinking rather than deleting its workouts. Achieved linked goals
+  keep the existing next-day pause; detached workouts become general fitness at that same boundary.
+- Preserve authenticated adult settings, exact retries, pending/ambiguous edit freezing, stale revision
+  rejection, draft protection, household/module/media boundaries and existing library/video controls.
+  No live household edit, deployment, HA, credential, APK or network change is implied.
+
 ## D-136 — Afternoon Routine and references to scheduled chores
 
 - Date: 2026-11-05

@@ -1,5 +1,41 @@
 # Hearth v2 acceptance and definition of done
 
+## Fitness simplicity — D-138, local proof 2026-11-05
+
+- Adult Fitness is workout-first: one compact list per person, activity/day setup, collapsed People
+  and optional Goals, and optional exercise/quantity/video details. Standalone classes do not need
+  a fabricated goal. Existing linked workouts remain editable. Goal removal confirms unlinking to
+  general fitness, not deleting workouts. Family Progress has useful no-goal and weekly totals.
+- Shared/core/server scheduling, IDs and dated history are unchanged. Regression proof covers null/
+  omitted goal compatibility, goal-free first setup, association/removal, first-save/next-day boundary,
+  retained current checks/streaks, exact command replay, unknown-result editing freeze, preserved
+  drafts, invalid collapsed-editor focus and existing exercise-library/TV video behavior.
+- Passed: `pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm test:unit` (787: shared 118,
+  core 71, server 123, web 475), and
+  `pnpm --filter @hearth/server test:integration src/fitness.integration.test.ts src/fitness-library.integration.test.ts`
+  (the script runs its full declared suite: 322 tests, 29 files). `pnpm build` passes production web
+  and server. `pnpm verify:ci` passes policy tests and all 1,486 browser-test shard coverage.
+- Passed full Fitness regression:
+  `pnpm test:e2e:built tests/e2e/fitness.spec.ts tests/e2e/fitness-demonstrations.spec.ts --max-failures=0 --reporter=line --output=/tmp/hearth-fitness-simple-results-final`
+  (70/70, 2.2 minutes). The first run caught a heading-level regression and two ambiguous test
+  selectors; these were corrected before the passing run. After the final WebKit picker-height fix,
+  repeat the 14 affected settings/workflow cases in Chromium and WebKit: both pass (14/14 each).
+  The focused command uses the same spec with
+  `--grep 'compact Fitness settings|general-fitness class|phone edits|removing an optional|adult draft|unknown general-fitness|collapsed workout'`.
+  WebKit uses `/tmp/hearth-fitness-simple-webkit.config.ts`, importing the built config with its
+  working directory preserved and `browserName: 'webkit'`. No dependency install or new runtime.
+- Environment: fictional demo at `http://127.0.0.1:4320`; Browser plugin not available, so repository
+  Playwright used. New compact settings are checked at 390×844, 844×390, 820×1180 and 1920×1080 in
+  light/dark with reduced motion, exact route/title, meaningful content, no framework overlay or
+  app console errors, no horizontal overflow, axe accessibility and keyboard disclosure interaction.
+  Picker targets are at least 48px in both engines. Existing family/video tests also cover short TV,
+  4K, tablet and D-pad/Back/focus restoration. Screenshots were rendered and inspected outside Git in
+  `/tmp/hearth-fitness-simple-evidence/`; the original browser screenshots contain only demo content.
+- No schema migration, live family plan/tick change, API/HA scope, APK, secret, networking or runtime
+  deployment change. Hosted release checks, full unrelated browser rerun, Android/migration reruns,
+  GitHub publication, private deployment and physical TV/iPhone acceptance are **not run** for this
+  local change. WebKit is browser-engine evidence, not an actual iPhone test.
+
 ## D-136 — Morning / Afternoon chore references (local implementation)
 
 Required: separate routine storage/module, current-child weekday untimed Afternoon defaults,

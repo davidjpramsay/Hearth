@@ -261,10 +261,10 @@ function FitnessBoard({
                   <button
                     type="button"
                     className="fitness-goals-link focusable"
-                    aria-label={`${p.person.displayName}’s goals and weekly progress`}
+                    aria-label={`${p.person.displayName}’s weekly progress`}
                     onClick={() => setGoalsMember(p.person.id)}
                   >
-                    Goals & progress
+                    Progress
                     <Icon name="chevron-right" />
                   </button>
                 </section>
@@ -287,10 +287,10 @@ function FitnessBoard({
           ) : null}
           {goalPerson ? (
             <FitnessDialog
-              title={`${goalPerson.person.displayName}’s goals`}
+              title={`${goalPerson.person.displayName}’s progress`}
               onClose={() => setGoalsMember(null)}
             >
-              <FitnessScrollRegion label="Long-term goals">
+              <FitnessScrollRegion label="Weekly progress">
                 <p className="fitness-goal-summary">
                   <strong>{goalPerson.streak.current} day streak</strong> · Best:{' '}
                   {goalPerson.streak.best} scheduled days
@@ -347,7 +347,7 @@ function FitnessBoard({
                     ))}
                   </ul>
                 ) : (
-                  <p>Add long-term goals in Fitness settings on an adult phone.</p>
+                  <p>General fitness · goals are optional.</p>
                 )}
                 {goalPerson.weeklyFocus ? (
                   <>

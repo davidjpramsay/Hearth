@@ -10,8 +10,8 @@ Existing container image identities remain unchanged (D-132). The isolated stati
 
 ## Fitness
 
-[FITNESS_CONTRACT.md](FITNESS_CONTRACT.md) defines D-128: multiple personal goals with their own weekly
-routines, detailed exercises and scheduled-workout-day streaks. Local implementation and release/
+[FITNESS_CONTRACT.md](FITNESS_CONTRACT.md) defines D-128/D-138: simple weekly workouts, optional personal
+goals, detailed exercises and scheduled-workout-day streaks. Local implementation and release/
 physical acceptance are tracked independently.
 
 Hearth is a private family command centre designed for a wall-mounted Google TV, D-pad remote and

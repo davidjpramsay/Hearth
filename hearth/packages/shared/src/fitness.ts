@@ -38,7 +38,7 @@ export const FitnessExerciseSchema = z
 export const FitnessWorkoutSchema = z
   .object({
     id: OpaqueIdSchema,
-    // Absent/null is a preserved workout from the original ungrouped plan.
+    // Absent/null is a standalone general-fitness workout. Preserve omission for old receipt hashes.
     goalId: OpaqueIdSchema.nullable().optional(),
     title: z.string().trim().min(1).max(80),
     activity: z.enum(FITNESS_ACTIVITIES),

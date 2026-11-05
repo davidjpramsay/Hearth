@@ -11,11 +11,13 @@ See FITNESS_CONTRACT.md; no real demonstration content is seeded.
 
 ## Fitness (D-128)
 
-Add optional Fitness for explicitly selected family members. Adult phones manage up to five long-term goals
-per person, each with its own weekly focus, recurring weekday workouts and ordered exercise details
+Add optional Fitness for explicitly selected family members. Adult phones manage a simple weekly
+workout list per person. Long-term goals are optional (up to five), with optional weekly focus and
+workout links. Workouts have recurring weekdays and ordered exercise details
 (kg, sets, reps). The shared daily page shows every selected person together, with broad activity buttons. Opening
 an activity combines that person's due workouts across goals, retaining each goal and its own check.
-Achieving a goal stops its future routine at the next-day edit boundary. Shared screens
+Workouts without a goal are general fitness. Removing an optional goal keeps its workouts, while
+achieving a goal pauses only its linked future routine at the next-day edit boundary (D-138). Shared screens
 can check/undo today's sessions. Running, swimming, weights and fitness class have distinct icons
 and text labels. Streaks count consecutive scheduled days with every session completed, skipping rest
 days; no chores/earnings coupling or ranking. First setup begins today; later plan edits begin tomorrow
