@@ -239,6 +239,11 @@ export function useRemoteNavigation(defaultFocusId: string): void {
         dismiss.click();
         return;
       }
+      const pageBack = document.querySelector<HTMLAnchorElement>('a[data-page-back="true"]');
+      if (pageBack !== null && pageBack.offsetParent !== null) {
+        pageBack.click();
+        return;
+      }
       if (location.pathname === '/today') {
         if (fromNativeShell && requestNativeExit()) return;
         focusById(defaultFocusId);

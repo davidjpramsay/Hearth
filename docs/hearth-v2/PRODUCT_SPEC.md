@@ -74,7 +74,7 @@ select its family destination after the existing weekday alarm launch, under exp
 weekend behaviour remains separate. See [MORNING_ROUTINE_CONTRACT.md](MORNING_ROUTINE_CONTRACT.md).
 
 Adults can turn Calendar, Weather, Reminders, Chores & pocket money, Lists, Meals, Home controls,
-Photos, Connections, Notices and Daily Bible verse on/off from one simple Modules page. Off is household-wide:
+Photos, Games, Notices and Daily Bible verse on/off from one simple Modules page. Off is household-wide:
 hide all corresponding family/admin surfaces and deny feature API/HA access, without deleting any
 saved content or provider configuration. Re-enabling restores it. Today/clock and core household,
 access, inbound HA connection, recovery and system management remain available even with every module off.
@@ -377,6 +377,13 @@ that custom flow and its target-player mapping have been installed and tested.
 
 ### 12. Family games
 
+- Games is the top-level family destination, with Connections and Connect Four in its submenu.
+  More → Modules → Choose games independently turns either game on/off without deleting progress.
+  The parent Games switch hides both while preserving those choices.
+- Connect Four is an original local two-player game: seven columns, six rows, alternating counters,
+  four-in-a-row wins, draws and full-column feedback. Save the current round on this device, offer
+  a confirmed New round, and keep controls usable by D-pad and touch. No account/provider is needed.
+  Opening Connections resumes its saved puzzle; Back returns to Games.
 - Connections offers a word-grouping puzzle: sixteen tiles, four groups of four, four incorrect guesses,
   shuffle, deselection, duplicate-guess protection and a three-of-four hint.
 - Use the household-supplied local puzzle archive, not a website scraper, subscription credential

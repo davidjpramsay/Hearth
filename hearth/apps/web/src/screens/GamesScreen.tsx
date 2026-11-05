@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import type { GameCatalogue, WordGroupsProgress, WordGroupsPuzzle } from '@hearth/shared';
 import {
   newWordGroupsProgress,
@@ -27,10 +27,12 @@ import './GamesScreen.css';
 export function GamesScreen() {
   const runtime = useHearthRuntime();
   const home = `${runtime.mode}.${runtime.household!.id}`;
-  return <GamesContent key={home} home={home} />;
+  return <GamesContent key={home} home={home} householdId={runtime.household!.id} />;
 }
 
-function GamesContent({ home }: { home: string }) {
+function GamesContent({ home, householdId }: { home: string; householdId: string }) {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [outcomes, setOutcomes] = useState(() => readGameOutcomes(home));
@@ -38,7 +40,7 @@ function GamesContent({ home }: { home: string }) {
   const [entryOutcomes] = useState(outcomes);
   const [entryPuzzleId] = useState(() => readLastGamePuzzle(home));
   const catalogue = useQuery({
-    queryKey: ['games', home, 'catalogue'],
+    queryKey: [householdId, 'games', home, 'catalogue'],
     queryFn: ({ signal }) => gamesApi.catalogue(signal),
     staleTime: 60_000,
   });
@@ -51,7 +53,7 @@ function GamesContent({ home }: { home: string }) {
         ordered[0])
       : ordered.find((item) => String(item.number) === requested);
   const puzzle = useQuery({
-    queryKey: ['games', home, selected?.id],
+    queryKey: [householdId, 'games', home, selected?.id],
     queryFn: ({ signal }) => gamesApi.puzzle(selected!.id, signal),
     enabled: selected !== undefined,
     staleTime: Infinity,
@@ -64,11 +66,44 @@ function GamesContent({ home }: { home: string }) {
   const position = ordered.findIndex((item) => item.id === selected?.id);
   function choose(number: number) {
     setArchiveOpen(false);
-    setParams({ puzzle: String(number) });
+    setParams({ puzzle: String(number) }, { replace: true, state: location.state });
   }
   return (
-    <div className="screen games-screen">
-      <ScreenHeader title="Connections" meta="Word groups" />
+    <div
+      className="screen games-screen"
+      data-focus-loading={
+        catalogue.isPending || (selected !== undefined && puzzle.isPending) ? 'true' : undefined
+      }
+    >
+      <ScreenHeader
+        title="Connections"
+        meta="Word groups"
+        actions={
+          <Link
+            to="/games"
+            replace
+            className="button focusable games-back"
+            aria-label="Back to Games"
+            data-focus-id="games-back"
+            data-page-back="true"
+            onClick={(event) => {
+              if (
+                location.state?.fromGamesMenu === true &&
+                event.button === 0 &&
+                !event.metaKey &&
+                !event.ctrlKey &&
+                !event.altKey &&
+                !event.shiftKey
+              ) {
+                event.preventDefault();
+                void navigate(-1);
+              }
+            }}
+          >
+            <Icon name="chevron-left" /> Games
+          </Link>
+        }
+      />
       {catalogue.isPending ? (
         <LoadingState />
       ) : catalogue.data === undefined ? (

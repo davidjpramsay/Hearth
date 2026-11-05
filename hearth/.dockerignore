@@ -20,3 +20,6 @@ tests
 **/*.sqlite*
 **/*.jks
 **/*.keystore
+content
+**/connections.json
+**/nyt-connections*.json

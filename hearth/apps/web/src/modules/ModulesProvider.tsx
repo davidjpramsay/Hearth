@@ -3,7 +3,8 @@ import { useEffect, type ReactNode } from 'react';
 import type { ModuleId } from '@hearth/shared';
 import { modulesApi } from '../api/modules';
 import { queryKeys } from '../api/queryKeys';
-import { ModulesContext } from './context';
+import { GameModulesContext, ModulesContext } from './context';
+import { DEFAULT_GAME_MODULE_FLAGS } from '@hearth/shared';
 
 const domains: Partial<Record<ModuleId, readonly string[]>> = {
   calendar: ['week', 'month', 'calendar-connection'],
@@ -37,6 +38,10 @@ export function ModulesProvider({ children }: { children: ReactNode }) {
     const disabled = new Set(
       Object.entries(domains).flatMap(([id, keys]) => (flags[id as ModuleId] ? [] : keys)),
     );
+    if (query.data?.games?.connections === false) {
+      disabled.add('games');
+      disabled.add('word-groups');
+    }
     const household = query.data?.householdId;
     const predicate = (item: { queryKey: readonly unknown[] }) =>
       item.queryKey[0] === household && disabled.has(String(item.queryKey[1]));
@@ -61,5 +66,11 @@ export function ModulesProvider({ children }: { children: ReactNode }) {
         ) : null}
       </main>
     );
-  return <ModulesContext value={flags}>{children}</ModulesContext>;
+  return (
+    <ModulesContext value={flags}>
+      <GameModulesContext value={query.data?.games ?? DEFAULT_GAME_MODULE_FLAGS}>
+        {children}
+      </GameModulesContext>
+    </ModulesContext>
+  );
 }

@@ -38,7 +38,7 @@ const baseNavigation: NavigationItem[] = [
   { label: 'Meals', path: '/meals', icon: 'meal', enabled: true },
   { label: 'Home', path: '/home', icon: 'home', enabled: true },
   { label: 'Photos', path: '/photos', icon: 'image', enabled: true },
-  { label: 'Connections', path: '/games', icon: 'games', enabled: true, focusKey: 'games' },
+  { label: 'Games', path: '/games', icon: 'games', enabled: true, focusKey: 'games' },
   { label: 'NBA', path: '/nba', icon: 'basketball', enabled: true },
 ];
 
@@ -282,6 +282,7 @@ function PhoneNavigation() {
     pathname === '/credits' ||
     pathname === '/appearance' ||
     pathname.startsWith('/admin') ||
+    pathname.startsWith('/games/') ||
     [
       '/lists',
       '/meals',

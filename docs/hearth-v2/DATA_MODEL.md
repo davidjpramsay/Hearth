@@ -1,5 +1,19 @@
 # Hearth v2 domain and data model
 
+## Game submodules and Connect Four (D-133)
+
+Migration `0038_game_modules.sql` adds household game flags keyed by `connections` or `connectFour`
+(boolean enabled, updated timestamp) and receipts keyed by household, actor scope and request ID.
+Each receipt records its input hash, original result and creation time. Exact replay returns the
+original receipt without restoring obsolete flags; changed reuse conflicts. A successful first
+change adds one `game-module.update` audit. Existing household/module/puzzle state is untouched.
+
+`ModulesConfiguration.games` defaults missing child flags to both on for older receipt/client
+compatibility. Current reads always return authoritative flags. Connect Four local storage key
+`hearth.connect-four.v1.<mode>.<household>` stores `{ firstPlayer: 1|2, moves: number[] }`, at most
+42 zero-based columns. Load replays every move and rejects invalid, post-win, full-column or
+oversized histories. No names, credentials, puzzle text or remote game sync enter this store.
+
 ## Fitness demonstration records (D-129)
 
 Migration 0037 adds `fitness_exercise_library` (home/exercise keyed versioned JSON),

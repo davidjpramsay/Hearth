@@ -1,5 +1,13 @@
 # Hearth v2 implementation roadmap
 
+## Independent games (D-133)
+
+Implement original local two-player Connect Four, persistent current round, and adult game choices
+under Modules. Verify core rules, child/parent gating, authenticated API writes, retention/replay,
+TV remote Back/focus, and phone/tablet/TV layouts. Keep public puzzle archives excluded and guard
+release source. Local acceptance does not claim a deployed update or physical TV/iPhone proof.
+Online multiplayer and external content downloading are outside this slice.
+
 ## Fitness demonstrations (D-129) — requested 2026-11-04
 
 Add and verify reusable exercise library, optional plan links, private bounded uploads/range reads,

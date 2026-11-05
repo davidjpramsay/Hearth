@@ -1,5 +1,19 @@
 # Hearth v2 television and companion UX specification
 
+## Games choices and Connect Four (D-133)
+
+Games offers clear Connections and Connect Four cards. An adult opens More → Modules → Choose games
+for two familiar On/Off switches, immediately below the parent Games row. If all children are off,
+show a calm empty state explaining where to choose games. Parent off preserves child choices.
+
+Connect Four uses Hearth typography, an eucalyptus board and numbered coral/gold counters, so turn
+and ownership do not depend on colour alone. A landing preview identifies the chosen column; large
+Previous / Drop / Next controls work on phones. With Drop focused, Left/Right chooses a column and
+OK drops; Up reaches Games and Down reaches New round. Back dismisses confirmation before leaving
+the game. New round confirms before discarding an unfinished board and alternates the starting
+player. A completed board stays visible and cannot accept more counters. The current round resumes
+on this device. Text board reading, live turn/win feedback, dark mode and visible focus remain.
+
 ## Fitness exercise demonstrations (D-129)
 
 Adult Fitness settings links to Exercise library: search/create a named exercise, add written
@@ -260,7 +274,7 @@ Primary commands are Up, Down, Left, Right, Select and Back.
   On short displays, scroll only the rail's navigation region to reveal the current destination
   without moving the clock, footer or page. On resize, a focused navigation row takes precedence
   over the active destination so the remote user's focus never disappears.
-  Up/Down follows that single column's menu order through Connections before the fixed Appearance footer;
+  Up/Down follows that single column's menu order through Games before the fixed Appearance footer;
   clipped rows are not skipped merely because the footer is geometrically closer.
 - Moving between regions is deterministic; no focus trap or unpredictable jump is acceptable.
 - Arrow navigation follows rendered control positions, not fixed cross-screen links; responsive
@@ -634,11 +648,19 @@ Imported-original protection, cancellation and partial-failure behavior remain u
   that they need another try. Every action is D-pad reachable. The optional
   Synology folder-import row is secondary and absent as a prerequisite for normal phone uploads.
 
-### Connections (word puzzle)
+### Games → Connections
 
-The displayed name is Connections in the TV rail, phone Family menu, module switch and matching
-Home Assistant labels. The route/module/HA identifiers stay `games` so saved puzzle progress and
-automations remain valid. Service settings remain a separate Connections entry under Manage Hearth.
+Games appears in the TV rail, phone Family menu, module switch and matching Home Assistant labels.
+`/games` is a game-selection submenu with Connections at `/games/connections`. Main-menu selection
+retains focus in the rail; explicit Right enters the submenu. Selecting Connections opens its saved
+board. Its visible Back to Games action and remote Back return to the submenu and restore the game
+link’s focus; dialogs close first. Puzzle changes replace the query entry so Back does not walk through
+boards. Older `/games?puzzle=N` links redirect to that same Connections board. A direct puzzle entry
+also has a safe Back destination. The phone’s More tab stays active within the submenu and puzzle.
+
+The module and HA identifier remains `games`; HA opens the game menu and reports either Games
+route as that tab. Both routes obey the same module switch. Saved puzzle keys remain unchanged.
+Service settings remain a separate Connections entry under Manage Hearth.
 
 - Connections opens Word groups, with a four-column board, a clear selected state and explicit Submit.
   Selecting four tiles never submits automatically. Correct groups replace their row; four misses

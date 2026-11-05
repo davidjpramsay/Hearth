@@ -414,7 +414,7 @@ test('phone Calendar exposes sources and More exposes family tools before settin
   await page.getByRole('link', { name: 'More', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'More' })).toBeVisible();
   await expect(page.getByRole('link', { name: /Lists/ })).toBeVisible();
-  await expect(page.locator('[data-focus-id="more-games"]')).toHaveAccessibleName('Connections');
+  await expect(page.locator('[data-focus-id="more-games"]')).toHaveAccessibleName('Games');
   await expect(page.locator('[data-focus-id="more-games"]')).toHaveAttribute('href', '/games');
   const connectionsSettings = page.locator('[data-focus-id="more-admin-connections"]');
   await expect(connectionsSettings).toBeVisible();

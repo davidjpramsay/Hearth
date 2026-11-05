@@ -1,5 +1,34 @@
 # Hearth v2 decision record
 
+## D-133 — Independent local games and private puzzle content
+
+- Date: 2026-11-04. Status: user-requested implementation; local and live evidence remain separate.
+- Games contains Connections and an original two-player Connect Four implementation, with separate
+  adult switches at More → Modules → Choose games. Parent Games off gates both; child choices and
+  device-local progress are retained. Both child choices default on for existing/fresh homes.
+- Migration 0038 adds independent child flags and actor-scoped idempotent receipts. Household GET
+  `/modules` includes child flags; adult PUT `/game-modules/:gameId` validates/audits changes and
+  publishes `modules.changed`. Existing request leases make off an in-flight read boundary.
+- HA retains its existing parent Games authority and tab mapping. Child switches introduce no
+  additional HA permission, reconnect, service, external call or household game-state API.
+- Connect Four persists only a replay-validated starting player and column history on the device,
+  scoped by household/runtime. Four directions, full columns, draws and finished rounds are checked
+  in core. Remote Left/Right chooses, OK drops, Up reaches Games, and Back returns to the menu.
+- Third-party puzzle archives remain private runtime content. The public content folder contains
+  only a README explaining permitted private setup, and a source-release guard rejects archives.
+  Do not scrape, redistribute NYT content, or copy private archives into release assets/images.
+
+## D-131 — Games menu with a Connections submenu
+
+- Date: 2026-11-04. Status: user-requested local navigation change; release/device acceptance separate.
+- Games returns as the family navigation, Modules and HA display label. Its `/games` menu links to
+  Connections at `/games/connections`, keeping the existing `games` module/HA IDs and saved data.
+- Preserve old explicit puzzle links by redirecting them to the child route. Query-only puzzle
+  navigation replaces the current history entry; page Back returns to the opener or the Games
+  menu for direct entries. Modal dismissal takes precedence over page Back.
+- Both menu and puzzle stay behind the existing module boundary. No game-data import, credential,
+  permission, schema, background behavior or live service change is included.
+
 ## D-130 — Public Hearth preview, private household runtime
 
 - Date: 2026-11-04. Status: user-requested public README and GitHub Pages website.
@@ -805,7 +834,7 @@ casual removal/sign-out, owner People protection and ordinary-QR restrictions re
   supplied JSON lazily behind authenticated household reads, with descriptor/size/schema bounds
   and no external fetch. Keep data outside public source and images. Store replay-validated,
   household-isolated numeric progress on each device; importing a changed board changes its ID.
-- Naming refinement (2026-11-04): At the owner's request, display Connections instead of Games
+- Earlier naming refinement (superseded by D-131): At the owner's request, display Connections instead of Games
   in navigation, the page title, Modules and matching HA labels. Keep `games` routes, module/HA
   identifiers, focus IDs and saved progress unchanged; this does not introduce an external service.
 - Progress refinement: At the owner's request, start at #1 and discard prior v1 Games progress on

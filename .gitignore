@@ -33,3 +33,9 @@ local.properties
 *.iml
 # Generated, public-code-only setup downloads; included in production builds.
 hearth/apps/web/public/downloads/
+
+# Household puzzle content stays outside source control.
+hearth/content/connections/*
+!hearth/content/connections/README.md
+**/connections.json
+**/nyt-connections*.json

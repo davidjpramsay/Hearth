@@ -41,7 +41,7 @@ for (const viewport of [
       const puzzle = (await (
         await request.get(`${base}/word_groups_demo_3`)
       ).json()) as WordGroupsPuzzle;
-      await page.goto('/games');
+      await page.goto('/games/connections');
       await expect(page).toHaveTitle(/Hearth/);
       await page.getByRole('button', { name: 'Archive', exact: true }).click();
       await page.locator('[data-focus-id="games-choose-3"]').click();
@@ -68,6 +68,7 @@ for (const viewport of [
         )
         .click();
       await expect(page).toHaveURL(/\/games$/);
+      await page.getByRole('link', { name: 'Connections', exact: true }).click();
       await expect(page.locator('.games-toolbar')).toContainText('#3');
       await expect(page.locator('.games-group')).toHaveCount(1);
       await expect(page.locator('.games-mistakes')).toHaveAttribute(
@@ -84,7 +85,7 @@ for (const viewport of [
       try {
         reopened.on('pageerror', (error) => errors.push(error.message));
         await reopened.setViewportSize(viewport);
-        await reopened.goto('/games');
+        await reopened.goto('/games/connections');
         await expect(reopened.locator('.games-toolbar')).toContainText('#3');
         await expect(reopened.locator('.games-group')).toHaveCount(1);
         await expect(reopened.locator('.games-word')).toHaveCount(12);
@@ -110,23 +111,23 @@ for (const viewport of [
 test('an untouched choice persists and explicit links override it without invalid links replacing it', async ({
   page,
 }) => {
-  await page.goto('/games');
+  await page.goto('/games/connections');
   await page.getByRole('button', { name: 'Later puzzle' }).click();
   await expectRemembered(page, 'word_groups_demo_2');
-  await page.goto('/games');
+  await page.goto('/games/connections');
   await expect(page.locator('.games-toolbar')).toContainText('#2');
   await expect(page.locator('.games-word')).toHaveCount(16);
-  await page.goto('/games?puzzle=3');
+  await page.goto('/games/connections?puzzle=3');
   await expectRemembered(page, 'word_groups_demo_3');
-  await page.goto('/games?puzzle=9999');
+  await page.goto('/games/connections?puzzle=9999');
   await expect(page.getByRole('status')).toContainText('not in this archive');
   await expectRemembered(page, 'word_groups_demo_3');
-  await page.goto('/games');
+  await page.goto('/games/connections');
   await expect(page.locator('.games-toolbar')).toContainText('#3');
 });
 
 test('a failed puzzle read preserves the last playable board', async ({ page }) => {
-  await page.goto('/games?puzzle=3');
+  await page.goto('/games/connections?puzzle=3');
   await expectRemembered(page, 'word_groups_demo_3');
   await page.route(`**${base}/word_groups_demo_2`, (route) =>
     route.fulfill({
@@ -141,10 +142,10 @@ test('a failed puzzle read preserves the last playable board', async ({ page }) 
       },
     }),
   );
-  await page.goto('/games?puzzle=2');
+  await page.goto('/games/connections?puzzle=2');
   await expect(page.getByRole('button', { name: /Try again/ })).toBeVisible();
   await expectRemembered(page, 'word_groups_demo_3');
-  await page.goto('/games');
+  await page.goto('/games/connections');
   await expect(page.locator('.games-toolbar')).toContainText('#3');
   await expect(page.locator('.games-word')).toHaveCount(16);
 });
@@ -178,7 +179,7 @@ test('old v2 progress resumes the recent attempt and removed archive IDs fall ba
       ),
     { key, puzzle },
   );
-  await page.goto('/games');
+  await page.goto('/games/connections');
   await expect(page.locator('.games-toolbar')).toContainText('#3');
   await expect(page.locator('.games-group')).toHaveCount(1);
   await expectRemembered(page, puzzle.id);
@@ -186,7 +187,7 @@ test('old v2 progress resumes the recent attempt and removed archive IDs fall ba
     const store = JSON.parse(localStorage.getItem(key)!);
     localStorage.setItem(key, JSON.stringify({ ...store, lastPuzzleId: 'word_groups_removed' }));
   }, key);
-  await page.goto('/games');
+  await page.goto('/games/connections');
   await expect(page.locator('.games-toolbar')).toContainText('#2');
   await expect(page.locator('.games-group')).toHaveCount(0);
   await expect(page.locator('.games-word')).toHaveCount(16);

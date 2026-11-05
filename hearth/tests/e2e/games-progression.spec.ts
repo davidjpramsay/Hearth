@@ -22,7 +22,7 @@ test('the requested reset starts at puzzle one and clears only legacy game progr
     );
     localStorage.setItem('unrelated-preference', 'keep');
   });
-  await page.goto('/games');
+  await page.goto('/games/connections');
   await expect(page.locator('.games-word')).toHaveCount(16);
   await expect(page.locator('.games-toolbar')).toContainText('#1');
   await expect(page.getByRole('button', { name: 'Earlier puzzle' })).toBeDisabled();
@@ -42,7 +42,7 @@ test('completion survives reopen and replay; advancing to the next puzzle is exp
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/games');
+  await page.goto('/games/connections');
   await expect(page.locator('.games-word')).toHaveCount(16);
   for (const words of [
     ['COVER', 'SPINE', 'INDEX', 'CHAPTER'],
@@ -64,7 +64,7 @@ test('completion survives reopen and replay; advancing to the next puzzle is exp
   await expect(page.getByRole('button', { name: 'Next puzzle' })).toBeFocused();
   await page.getByRole('button', { name: 'Next puzzle' }).click();
   await expect(page.locator('.games-toolbar')).toContainText('#2');
-  await page.goto('/games');
+  await page.goto('/games/connections');
   await expect(page.locator('.games-toolbar')).toContainText('#2');
   await page.getByRole('button', { name: 'Earlier puzzle' }).click();
   await expect(page.locator('.games-toolbar')).toContainText('#1');
@@ -79,7 +79,7 @@ test('completion survives reopen and replay; advancing to the next puzzle is exp
   await page.getByRole('button', { name: 'Later puzzle' }).click();
   await expect(page.locator('.games-toolbar')).toContainText('#2');
   await page.goto('/today');
-  await page.goto('/games');
+  await page.goto('/games/connections');
   await expect(page.locator('.games-toolbar')).toContainText('#2');
   await page.getByRole('button', { name: 'Earlier puzzle' }).click();
   await expect(page.locator('.games-toolbar')).toContainText('#1');

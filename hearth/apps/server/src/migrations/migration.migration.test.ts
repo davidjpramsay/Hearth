@@ -42,7 +42,7 @@ describe('0036 Fitness module', () => {
       for (const table of ['fitness_plans', 'fitness_progress', 'fitness_receipts'])
         expect(database.prepare(`SELECT * FROM ${table}`).all()).toEqual([]);
       expect(database.prepare('SELECT max(version) AS n FROM schema_migrations').get()).toEqual({
-        n: 37,
+        n: 38,
       });
       expect(database.pragma('foreign_key_check')).toEqual([]);
       database
@@ -197,7 +197,7 @@ describe('0031 additive connection codes', () => {
       database.prepare('SELECT count(*) AS n FROM controller_phone_invitation_codes').get(),
     ).toEqual({ n: 0 });
     expect(database.prepare('SELECT max(version) AS n FROM schema_migrations').get()).toEqual({
-      n: 37,
+      n: 38,
     });
     expect(database.pragma('foreign_key_check')).toEqual([]);
     database.close();
@@ -1557,7 +1557,7 @@ it('0037 adds an empty demonstration library without rewriting Fitness plans, ch
       'fitness_library_retired',
     ])
       expect(db.prepare(`SELECT count(*) n FROM ${table}`).get()).toEqual({ n: 0 });
-    expect(db.prepare('SELECT max(version) n FROM schema_migrations').get()).toEqual({ n: 37 });
+    expect(db.prepare('SELECT max(version) n FROM schema_migrations').get()).toEqual({ n: 38 });
   } finally {
     db.close();
   }

@@ -16,8 +16,10 @@ import { useModulePathAvailable } from '../modules/context';
 
 vi.mock('../api/modules', () => ({ modulesApi: { get: vi.fn(), update: vi.fn() } }));
 let flags: ModuleFlags;
+let gameFlags = { connections: true, connectFour: true };
 beforeEach(() => {
   flags = { ...DEFAULT_MODULE_FLAGS };
+  gameFlags = { connections: true, connectFour: true };
   configureHearthClient({
     mode: 'demo',
     generatedAt: '2026-10-15T00:00:00Z',
@@ -37,6 +39,7 @@ beforeEach(() => {
   vi.mocked(modulesApi.get).mockImplementation(async () => ({
     householdId: 'household_fixture',
     enabled: { ...flags },
+    games: { ...gameFlags },
   }));
 });
 afterEach(() => {
@@ -69,7 +72,11 @@ function show() {
 }
 function receipt(enabled: ModuleFlags): ModuleCommandResult {
   return {
-    configuration: { householdId: 'household_fixture', enabled },
+    configuration: {
+      householdId: 'household_fixture',
+      enabled,
+      games: { ...gameFlags },
+    },
     replayed: false,
     audit: {
       id: 'audit_fixture',
@@ -154,5 +161,19 @@ describe('simple Modules settings', () => {
     expect(screen.queryByRole('switch')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
     expect(await screen.findAllByRole('switch')).toHaveLength(MODULE_IDS.length);
+  });
+  it('evicts disabled Connections query data without touching another household cache', async () => {
+    const client = show();
+    await screen.findByRole('switch', { name: 'Games' });
+    const key = ['household_fixture', 'games', 'demo.household_fixture', 'catalogue'];
+    const other = ['household_other', 'games', 'demo.household_other', 'catalogue'];
+    client.setQueryData(key, { fixture: true });
+    client.setQueryData(other, { keep: true });
+    gameFlags.connections = false;
+    await act(async () => {
+      await client.invalidateQueries({ queryKey: ['household_fixture', 'modules'] });
+    });
+    await waitFor(() => expect(client.getQueryData(key)).toBeUndefined());
+    expect(client.getQueryData(other)).toEqual({ keep: true });
   });
 });

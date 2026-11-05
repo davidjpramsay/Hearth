@@ -27,8 +27,9 @@ for (const viewport of [
       });
       await page.goto('/games');
       await expect(page).toHaveTitle('Hearth');
-      await expect(page.getByRole('heading', { name: 'Connections', exact: true })).toBeVisible();
-      await expect(page.locator('.games-word')).toHaveCount(16);
+      await expect(page.getByRole('heading', { name: 'Games', exact: true })).toBeVisible();
+      await expect(page.locator('.games-word')).toHaveCount(0);
+      await expect(page.locator('[data-focus-id="games-connections"]')).toBeVisible();
       await expect(page.locator('vite-error-overlay')).toHaveCount(0);
       await page.setViewportSize(viewport);
       const games = page.locator('[data-focus-id="nav-games"]');
@@ -42,7 +43,7 @@ for (const viewport of [
       expect(labelBox.x + labelBox.width).toBeLessThanOrEqual(rowBox.x + rowBox.width - 4);
       await expect(page.locator('.household-date-time--rail')).toBeInViewport({ ratio: 1 });
       await expect(appearance).toBeInViewport({ ratio: 1 });
-      await expect(page.locator('[data-focus-id="games-word-0"]')).toBeFocused();
+      await expect(page.locator('[data-focus-id="games-connections"]')).toBeFocused();
       await page.screenshot({ path: testInfo.outputPath(`rail-games-${theme}.png`) });
       await games.focus();
       await page.keyboard.press('ArrowDown');

@@ -1265,6 +1265,7 @@ export const AuditSummarySchema = z.object({
     'notice.archive',
     'today.sections.update',
     'module.update',
+    'game-module.update',
     'nba.settings.update',
     'indoor-climate.settings.update',
   ]),

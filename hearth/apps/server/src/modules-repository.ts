@@ -12,17 +12,21 @@ import {
   type UpdateModuleRequest,
 } from '@hearth/shared';
 import { RepositoryError, type CommandActor } from './repository.js';
+import { GameModulesService } from './game-modules-repository.js';
 
 type Receipt = { inputHash: string; result: ModuleCommandResult };
 
 /** Availability only: callers must authenticate/authorize before reading or changing a home. */
 export class ModulesService {
+  readonly games: GameModulesService;
   private readonly homes = new Map<string, ModuleFlags>();
   private readonly receipts = new Map<string, Receipt>();
   constructor(
     private readonly database?: Database.Database,
     private readonly now: () => Date = () => new Date(),
-  ) {}
+  ) {
+    this.games = new GameModulesService(database, now);
+  }
 
   get(householdId: string): ModulesConfiguration {
     const enabled = { ...DEFAULT_MODULE_FLAGS, ...this.homes.get(householdId) };
@@ -34,7 +38,7 @@ export class ModulesService {
         enabled[id] = row.enabled === 1;
       }
     }
-    return { householdId, enabled };
+    return { householdId, enabled, games: this.games.get(householdId).enabled };
   }
 
   assertEnabled(householdId: string, module: ModuleId): void {
@@ -159,6 +163,7 @@ export class ModulesService {
   }
 
   reset(): void {
+    this.games.reset();
     this.homes.clear();
     this.receipts.clear();
     this.database?.exec('DELETE FROM household_module_receipts; DELETE FROM household_modules;');
