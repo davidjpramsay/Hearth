@@ -1,5 +1,12 @@
 # Home Assistant → Hearth bridge v1 (D-108)
 
+## Afternoon module compatibility (D-136)
+
+`afternoonRoutine` is a fifteenth module ID, off and unapproved for legacy responses/grants.
+Component 1.5.1 adds only its separately approved module switch. Existing grants/weekday alarm
+remain unchanged; no Afternoon tab or routine read/check API. Canonical chore events catch up both
+routine views. No live integration update/reconnect is required to use routines directly.
+
 ## Fitness catalogue extension (D-128)
 
 Component 1.5.0 adds only the `fitness` module switch (off by default). Approval accepts up to fourteen

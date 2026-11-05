@@ -335,6 +335,7 @@ const server = buildServer({
           clock.now(),
         ),
   morningRoutine: new MorningRoutineService(database, () => clock.now()),
+  afternoonRoutine: new MorningRoutineService(database, () => clock.now(), 'afternoon'),
   nba: new NbaService(demoMode ? new DemoNbaProvider() : new EspnNbaProvider(), database, () =>
     clock.now(),
   ),

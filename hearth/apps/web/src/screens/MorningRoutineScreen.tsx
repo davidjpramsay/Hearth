@@ -7,7 +7,8 @@ import {
   type MorningOverview,
   type SetMorningCompletion,
 } from '@hearth/shared';
-import { morningRoutineApi } from '../api/morningRoutine';
+import { routineApi } from '../api/morningRoutine';
+import { choresApi } from '../api/chores';
 import { createRequestId, getHearthRuntime, HearthApiError } from '../api/core';
 import { queryKeys } from '../api/queryKeys';
 import { Icon } from '../components/Icon';
@@ -18,19 +19,20 @@ import { useTodayViewportClass } from '../layout/todayRailCapacity';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import './MorningRoutineScreen.css';
 
-export function MorningRoutineScreen() {
+export function MorningRoutineScreen({ period = 'morning' }: { period?: 'morning' | 'afternoon' }) {
+  const title = period === 'morning' ? 'Morning Routine' : 'Afternoon Routine';
   const online = useOnlineStatus();
   const query = useQuery({
-    queryKey: queryKeys.morningRoutine,
-    queryFn: ({ signal }) => morningRoutineApi.get(signal),
+    queryKey: period === 'morning' ? queryKeys.morningRoutine : queryKeys.afternoonRoutine,
+    queryFn: ({ signal }) => routineApi(period).get(signal),
     retry: false,
     refetchInterval: 30_000,
   });
   if (!query.data && !online)
     return (
       <section className="state-panel" role="status">
-        <h1>Morning Routine is offline</h1>
-        <p>Connect to Hearth to load this morning’s steps.</p>
+        <h1>{title} is offline</h1>
+        <p>Connect to Hearth to load the routine’s steps.</p>
         <button
           className="primary-action focusable"
           data-focus-id="morning-offline-retry"
@@ -46,6 +48,7 @@ export function MorningRoutineScreen() {
     return query.isError ? <FailureState onRetry={() => void query.refetch()} /> : <LoadingState />;
   return (
     <MorningBoard
+      period={period}
       data={query.data}
       receivedAt={query.dataUpdatedAt}
       stale={query.isError}
@@ -55,16 +58,19 @@ export function MorningRoutineScreen() {
 }
 
 function MorningBoard({
+  period,
   data,
   receivedAt,
   stale,
   refresh,
 }: {
+  period: 'morning' | 'afternoon';
   data: MorningOverview;
   receivedAt: number;
   stale: boolean;
   refresh: () => void;
 }) {
+  const title = period === 'morning' ? 'Morning Routine' : 'Afternoon Routine';
   const client = useQueryClient();
   const modules = useModules();
   const online = useOnlineStatus();
@@ -74,7 +80,11 @@ function MorningBoard({
   const [hasPending, setHasPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState('');
-  const pending = useRef<SetMorningCompletion | null>(null);
+  const pending = useRef<
+    | { kind: 'step'; input: SetMorningCompletion }
+    | { kind: 'chore'; occurrenceId: string; completionId: string | null; requestId: string }
+    | null
+  >(null);
   const running = useRef(false);
   const [clockTick, setClockTick] = useState(() => Date.now());
   useEffect(() => {
@@ -99,7 +109,13 @@ function MorningBoard({
   useEffect(() => {
     if (oldDay && online) void refresh();
   }, [oldDay, online, refresh]);
-  const scheduledPeople = data.profileId === null ? [] : data.people;
+  const scheduledPeople =
+    data.profileId === null
+      ? []
+      : data.people.map((person) => ({
+          ...person,
+          steps: person.steps.filter((step) => !step.choreTemplateId || modules.chores),
+        }));
   const pages = Math.max(1, Math.ceil(scheduledPeople.length / 3));
   const activePage = Math.min(page, pages - 1);
   const people =
@@ -136,25 +152,45 @@ function MorningBoard({
   ) {
     if (running.current) return;
     if (!pending.current && memberId && step)
-      pending.current = {
-        requestId: createRequestId('morning'),
-        localDate: data.localDate,
-        profileId: data.profileId!,
-        memberId,
-        stepId: step.id,
-        settingsRevision: data.settingsRevision,
-        expectedVersion: step.version,
-        isCompleted: !step.isCompleted,
-      };
+      pending.current = step.chore
+        ? { kind: 'chore', ...step.chore, requestId: createRequestId('routine_chore') }
+        : {
+            kind: 'step',
+            input: {
+              requestId: createRequestId('morning'),
+              localDate: data.localDate,
+              profileId: data.profileId!,
+              memberId,
+              stepId: step.id,
+              settingsRevision: data.settingsRevision,
+              expectedVersion: step.version,
+              isCompleted: !step.isCompleted,
+            },
+          };
     if (!pending.current) return;
     running.current = true;
     setBusy(true);
     setError(null);
     try {
-      await morningRoutineApi.complete(pending.current);
+      const intent = pending.current;
+      if (intent.kind === 'step') await routineApi(period).complete(intent.input);
+      else if (intent.completionId)
+        await choresApi.undoChore(intent.occurrenceId, intent.requestId, intent.completionId);
+      else await choresApi.completeChore(intent.occurrenceId, intent.requestId);
       pending.current = null;
-      setNotice('Morning progress saved.');
-      await client.invalidateQueries({ queryKey: queryKeys.morningRoutine });
+      setNotice('Progress saved.');
+      await client.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey[0] === queryKeys.morningRoutine[0] &&
+          [
+            'morning-routine',
+            'afternoon-routine',
+            'chores',
+            'today',
+            'pocket-money',
+            'activity',
+          ].includes(String(query.queryKey[1])),
+      });
     } catch (failure) {
       if (
         failure instanceof HearthApiError &&
@@ -177,7 +213,7 @@ function MorningBoard({
   }
   const heading = (
     <header className="morning-header">
-      <h1>Morning Routine</h1>
+      <h1>{title}</h1>
       <span className="morning-day-label">
         {busy
           ? 'Saving…'
@@ -221,8 +257,8 @@ function MorningBoard({
           className={`morning-timer${!data.countdownEnabled || data.profileId === null ? ' morning-timer--untimed' : ''}`}
           aria-label={
             data.countdownEnabled && data.profileId !== null
-              ? 'Morning countdown'
-              : 'Morning routine'
+              ? `${period === 'morning' ? 'Morning' : 'Afternoon'} countdown`
+              : title
           }
         >
           {embeddedHeader ? (
@@ -234,7 +270,7 @@ function MorningBoard({
           )}
           <p className="morning-timer__caption">
             {clock.phase === 'unscheduled'
-              ? 'A slower morning'
+              ? 'A little breathing room'
               : clock.phase === 'untimed'
                 ? 'At your own pace'
                 : clock.phase === 'before'
@@ -247,7 +283,9 @@ function MorningBoard({
             {clock.phase === 'unscheduled'
               ? 'Rest day'
               : clock.phase === 'untimed'
-                ? 'Good morning!'
+                ? period === 'morning'
+                  ? 'Good morning!'
+                  : 'Welcome home!'
                 : `${Math.floor(clock.remainingSeconds / 60)}:${String(clock.remainingSeconds % 60).padStart(2, '0')}`}
           </strong>
           {data.profileId !== null && data.countdownEnabled ? (
@@ -255,7 +293,7 @@ function MorningBoard({
               <div
                 className="morning-timer__track"
                 role="progressbar"
-                aria-label="Morning time remaining"
+                aria-label={`${period === 'morning' ? 'Morning' : 'Afternoon'} time remaining`}
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={
@@ -291,14 +329,15 @@ function MorningBoard({
               <h2>{data.profileId === null ? 'No routine scheduled today' : 'A fresh start'}</h2>
               <p>
                 {data.profileId === null
-                  ? 'Choose a routine for this day in Morning Routine settings on an adult phone.'
-                  : 'Choose your people and add their steps in Morning Routine settings on an adult phone.'}
+                  ? `Choose a routine for this day in ${title} settings on an adult phone.`
+                  : `Choose your people and add their steps in ${title} settings on an adult phone.`}
               </p>
             </div>
           ) : (
             people.map(({ person, steps }, index) => (
               <MorningPerson
                 key={`${data.profileId}:${person.id}:${data.localDate}`}
+                period={period}
                 person={person}
                 steps={steps}
                 entry={index === 0}
@@ -326,13 +365,11 @@ function MorningBoard({
       </div>
       <footer className="morning-footer">
         {footerMessage ? <span>{footerMessage}</span> : null}
-        {modules.dailyVerse ? <MorningRoutineVerse /> : null}
+        {modules.dailyVerse ? <MorningRoutineVerse period={period} /> : null}
         <Link
           className="button focusable"
           data-focus-id="morning-today"
-          data-focus-entry={
-            !canCheck || !data.people.some((person) => person.steps.length > 0) ? 'true' : undefined
-          }
+          data-focus-entry={!canCheck || total === 0 ? 'true' : undefined}
           to="/today"
         >
           Today
@@ -366,6 +403,7 @@ function MorningBoard({
 }
 
 function MorningPerson({
+  period,
   person,
   steps,
   entry,
@@ -375,6 +413,7 @@ function MorningPerson({
   capacity,
   onToggle,
 }: MorningOverview['people'][number] & {
+  period: 'morning' | 'afternoon';
   entry: boolean;
   railExit: boolean;
   canCheck: boolean;
@@ -390,7 +429,7 @@ function MorningPerson({
   return (
     <section
       className={`morning-person${allDone ? ' morning-person--ready' : ''}`}
-      aria-label={`${person.displayName}’s morning`}
+      aria-label={`${person.displayName}’s ${period}`}
       style={{ '--person-color': person.color } as CSSProperties}
     >
       <header className="morning-person__header">
@@ -417,19 +456,22 @@ function MorningPerson({
               type="button"
               aria-pressed={step.isCompleted}
               aria-label={`${person.displayName}: ${step.title}`}
-              aria-disabled={!canCheck}
+              aria-disabled={!canCheck || step.chore?.locked === true}
               aria-busy={busy || undefined}
               onClick={() => {
-                if (canCheck) onToggle(step);
+                if (canCheck && !step.chore?.locked) onToggle(step);
               }}
               data-focus-entry={entry && index === 0 && canCheck ? 'true' : undefined}
               data-focus-id={`morning-${person.id}-${step.id}`}
-              data-focus-left={railExit ? 'nav-morning' : undefined}
+              data-focus-left={railExit ? `nav-${period}` : undefined}
             >
               <span className="morning-step__number" aria-hidden="true">
                 {activePage * capacity + index + 1}
               </span>
-              <span>{step.title}</span>
+              <span>
+                {step.title}
+                {step.chore ? <small className="morning-step__chore">Chore</small> : null}
+              </span>
               <span className="morning-step__check" aria-hidden="true">
                 {step.isCompleted ? '✓' : ''}
               </span>

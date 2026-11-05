@@ -1,5 +1,23 @@
 # Hearth v2 decision record
 
+## D-136 — Afternoon Routine and references to scheduled chores
+
+- Date: 2026-11-05
+- Status: accepted; implementation/physical/release evidence tracked separately
+- Choice: Two independent routine modules share focused board/editor/service code. Afternoon starts
+  with school weekdays, selected current children and no countdown. Preserve both Morning profiles.
+  No evening implementation. Adult-selected chore references resolve to the original person's due
+  occurrence; they do not invent a recurrence or routine completion record.
+- Completion: Reuse existing authenticated/idempotent Chores complete/undo, observed completion IDs,
+  audits and pocket-money rules. Ordinary steps keep their existing independent daily checks. This
+  supersedes D-120/D-123's no-coupling rule only for intentional chore links. Duplicate links within
+  a person's profile are rejected; cross-routine references intentionally share one tick.
+- Safety: New links require an active assigned household chore. Disabled Chores is not read and
+  linked family rows disappear while settings references remain. Migration 0040 preserves old
+  data/receipts/grants. No provider, credential, background work or live automation change.
+- Contract: MORNING_ROUTINE_CONTRACT.md; live family task setup stays outside Git and is a separate
+  release/configuration step. Missing chores need explicit adult schedule/assignment approval.
+
 ## D-135 — Original unlimited Word Guess with private word data
 
 - Date: 2026-11-05. Status: user-requested implementation; release/device evidence tracked separately.

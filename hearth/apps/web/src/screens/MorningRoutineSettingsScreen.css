@@ -26,7 +26,8 @@
   gap: 6px;
   font-size: 16px;
 }
-.morning-settings input:not([type='checkbox']) {
+.morning-settings input:not([type='checkbox']),
+.morning-editor select {
   width: 100%;
   max-width: 100%;
   min-width: 0;

@@ -228,6 +228,7 @@ export function moduleForApiRoute(route: string): ModuleId | null {
   if (/^nba(?:\/|$)/.test(suffix)) return 'nba';
   if (/^fitness(?:\/|$)/.test(suffix)) return 'fitness';
   if (/^morning-routine(?:\/|$)/.test(suffix)) return 'morningRoutine';
+  if (/^afternoon-routine(?:\/|$)/.test(suffix)) return 'afternoonRoutine';
   if (/^daily-verse(?:\/|$)/.test(suffix)) return 'dailyVerse';
   if (/^notices(?:\/|$)/.test(suffix)) return 'notices';
   return null;

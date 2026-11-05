@@ -21,7 +21,13 @@ export function useModulePathAvailable(): (path: string) => boolean {
   return (path) => {
     const clean = normalizeModulePath(path);
     if (clean === '/admin/planning')
-      return enabled.chores || enabled.meals || enabled.lists || enabled.morningRoutine;
+      return (
+        enabled.chores ||
+        enabled.meals ||
+        enabled.lists ||
+        enabled.morningRoutine ||
+        enabled.afternoonRoutine
+      );
     const game = gameModuleForPath(clean);
     if (game && !games[game]) return false;
     const module = moduleForPath(clean);

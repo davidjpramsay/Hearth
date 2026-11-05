@@ -1,5 +1,14 @@
 # Hearth v2 domain and data model
 
+## Afternoon and chore links (D-136)
+
+Migration 0040 adds separate empty Afternoon settings/progress/receipt tables using the existing
+profile/date/person/step identities and extends `household_modules` to `afternoonRoutine` (default
+off). Existing Morning JSON/revisions/progress/receipt bytes and all chore/payment/connection rows
+remain untouched. A step's optional `choreTemplateId` is a validated reference; no routine-progress
+row is written for it. Daily due occurrence and canonical completion ID remain Chores-owned. No
+new field is default-injected into old command inputs. See MORNING_ROUTINE_CONTRACT.md.
+
 ## Word Guess extension (D-135)
 
 Migration `0039_word_guess.sql` extends the game flag constraint with `wordGuess`, copying existing

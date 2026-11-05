@@ -24,6 +24,7 @@ const icons: Record<ModuleId, IconName> = {
   dailyVerse: 'book-open',
   nba: 'basketball',
   morningRoutine: 'sun',
+  afternoonRoutine: 'sun',
   fitness: 'weights',
 };
 const help: Partial<Record<ModuleId, string>> = {
@@ -32,7 +33,8 @@ const help: Partial<Record<ModuleId, string>> = {
   dailyVerse: 'Visibility on Today is set separately',
   nba: 'Standings, this week and next week',
   fitness: 'Personal goals, weekly workouts and streaks',
-  morningRoutine: 'Weekday steps and a morning countdown',
+  morningRoutine: 'Morning steps and scheduled chores',
+  afternoonRoutine: 'After-school steps and scheduled chores',
 };
 export function ModulesSettingsScreen() {
   const enabled = useModules();

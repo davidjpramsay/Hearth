@@ -65,8 +65,9 @@ D-121 enables the shared responsive companion as an iPhone/iPad Home Screen web 
 fern icons and standalone Today entry. It adds no offline cache or new authentication method.
 Local browser checks and actual device installation/release evidence stay separate in ACCEPTANCE.
 
-Morning Routine (D-120/D-123) follows [MORNING_ROUTINE_CONTRACT.md](MORNING_ROUTINE_CONTRACT.md):
-separate School days/Weekends lists and participants, editable day assignments, optional countdowns
+Morning / Afternoon routines (D-120/D-123/D-136) follows [MORNING_ROUTINE_CONTRACT.md](MORNING_ROUTINE_CONTRACT.md):
+separate modules, selected scheduled-chore links with shared completion, School days/Weekends lists
+and participants, editable day assignments, optional countdowns
 and automatic household-local profile selection. Existing school content/checks are preserved. Local evidence, publication and the actual HA alarm are separate gates.
 
 Today composition follows D-116/D-119: Chores left/before Upcoming, bounded orientation-safe photos,

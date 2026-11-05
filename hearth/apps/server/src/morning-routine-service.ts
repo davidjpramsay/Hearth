@@ -33,12 +33,21 @@ export class MorningRoutineService {
   constructor(
     private readonly database?: Database.Database,
     private readonly now = () => new Date(),
+    private readonly period: 'morning' | 'afternoon' = 'morning',
   ) {}
+
+  private get label() {
+    return this.period === 'morning' ? 'Morning Routine' : 'Afternoon Routine';
+  }
+
+  private table(kind: 'settings' | 'progress' | 'receipts') {
+    return `${this.period}_routine_${kind}`;
+  }
 
   getSettings(home: HouseholdSummary): MorningSettings {
     const row = this.database
       ?.prepare(
-        'SELECT revision,configuration_json FROM morning_routine_settings WHERE household_id=?',
+        `SELECT revision,configuration_json FROM ${this.table('settings')} WHERE household_id=?`,
       )
       .get(home.id) as { revision: number; configuration_json: string } | undefined;
     const decoded = row ? JSON.parse(row.configuration_json) : null;
@@ -61,6 +70,14 @@ export class MorningRoutineService {
         selectedMemberIds: children.map((person) => person.id),
         routines: children.map((person) => ({ memberId: person.id, steps: [] })),
       });
+    if (!stored && this.period === 'afternoon') {
+      profiles.schoolDays.countdownEnabled = false;
+      for (const profile of Object.values(profiles)) {
+        profile.configuration.startTime = '15:00';
+        profile.configuration.endTime = '17:00';
+      }
+      profiles.weekends.days = [];
+    }
     const clean = (profile: MorningProfiles['schoolDays']) => ({
       ...profile,
       configuration: {
@@ -116,6 +133,7 @@ export class MorningRoutineService {
     home: HouseholdSummary,
     input: MorningSettingsCommand,
     actor: CommandActor,
+    validateLinks: () => void = () => {},
   ): MorningSettingsResult {
     const member = home.members.find((person) => person.id === actor.id);
     if (
@@ -123,13 +141,13 @@ export class MorningRoutineService {
       member?.role !== 'adult' ||
       !member.capabilities.includes('household.admin')
     )
-      throw new RepositoryError('FORBIDDEN', 'An adult controller must edit Morning Routine.');
-    return this.command(home.id, input, actor, 'morning-routine.settings.update', () => {
+      throw new RepositoryError('FORBIDDEN', `An adult controller must edit ${this.label}.`);
+    return this.command(home.id, input, actor, `${this.period}-routine.settings.update`, () => {
       const current = this.getSettings(home);
       if (input.expectedRevision !== current.revision)
         throw new RepositoryError(
           'CONFLICT',
-          'Morning Routine changed on another device. Load the latest settings before saving.',
+          `${this.label} changed on another device. Load the latest settings before saving.`,
         );
       const profiles =
         'profiles' in input
@@ -146,6 +164,7 @@ export class MorningRoutineService {
         )
       )
         throw new RepositoryError('VALIDATION_ERROR', 'Choose people from this home.');
+      validateLinks();
       const saved = {
         revision: current.revision + 1,
         profiles: MorningProfilesSchema.parse(profiles),
@@ -153,13 +172,13 @@ export class MorningRoutineService {
       if (this.database)
         this.database
           .prepare(
-            'INSERT INTO morning_routine_settings VALUES (?,?,?) ON CONFLICT(household_id) DO UPDATE SET revision=excluded.revision,configuration_json=excluded.configuration_json',
+            `INSERT INTO ${this.table('settings')} VALUES (?,?,?) ON CONFLICT(household_id) DO UPDATE SET revision=excluded.revision,configuration_json=excluded.configuration_json`,
           )
           .run(home.id, saved.revision, JSON.stringify(saved.profiles));
       else this.settings.set(home.id, structuredClone(saved));
       return MorningSettingsResultSchema.parse({
         settings: this.getSettings(home),
-        audit: this.audit(actor, 'morning-routine.settings.update', home.id),
+        audit: this.audit(actor, `${this.period}-routine.settings.update`, home.id),
         replayed: false,
       });
     }) as MorningSettingsResult;
@@ -178,19 +197,19 @@ export class MorningRoutineService {
         ))
     )
       throw new RepositoryError('FORBIDDEN', 'Use a connected Hearth screen or phone.');
-    return this.command(home.id, input, actor, 'morning-routine.completion', () => {
+    return this.command(home.id, input, actor, `${this.period}-routine.completion`, () => {
       const today = localDateInTimezone(this.now().toISOString(), home.timezone);
       if (input.localDate !== today)
         throw new RepositoryError(
           'CONFLICT',
-          'That morning has changed. Refresh to see today’s routine.',
+          `That ${this.period} has changed. Refresh to see today’s routine.`,
         );
       const settings = this.getSettings(home);
       const profileId = input.profileId ?? 'schoolDays';
       if (morningProfileForDate(today, settings.profiles) !== profileId)
         throw new RepositoryError(
           'CONFLICT',
-          'That morning has changed. Refresh to see today’s routine.',
+          `That ${this.period} has changed. Refresh to see today’s routine.`,
         );
       const configuration = settings.profiles[profileId].configuration;
       if (settings.revision !== input.settingsRevision)
@@ -204,7 +223,15 @@ export class MorningRoutineService {
           .find((routine) => routine.memberId === input.memberId)
           ?.steps.some((step) => step.id === input.stepId)
       )
-        throw new RepositoryError('NOT_FOUND', 'That step is no longer in this morning’s routine.');
+        throw new RepositoryError(
+          'NOT_FOUND',
+          `That step is no longer in this ${this.period}’s routine.`,
+        );
+      const step = configuration.routines
+        .find((routine) => routine.memberId === input.memberId)!
+        .steps.find((item) => item.id === input.stepId)!;
+      if (step.choreTemplateId)
+        throw new RepositoryError('CONFLICT', 'Refresh this chore and use its shared check.');
       const current = this.readProgress(home.id, today, profileId, input.memberId, input.stepId);
       if (current.version !== input.expectedVersion)
         throw new RepositoryError(
@@ -215,7 +242,7 @@ export class MorningRoutineService {
       if (this.database)
         this.database
           .prepare(
-            'INSERT INTO morning_routine_progress VALUES (?,?,?,?,?,?,?,?) ON CONFLICT(household_id,local_date,profile_id,member_id,step_id) DO UPDATE SET completed=excluded.completed,version=excluded.version,updated_at=excluded.updated_at',
+            `INSERT INTO ${this.table('progress')} VALUES (?,?,?,?,?,?,?,?) ON CONFLICT(household_id,local_date,profile_id,member_id,step_id) DO UPDATE SET completed=excluded.completed,version=excluded.version,updated_at=excluded.updated_at`,
           )
           .run(
             home.id,
@@ -240,7 +267,7 @@ export class MorningRoutineService {
         stepId: input.stepId,
         audit: this.audit(
           actor,
-          input.isCompleted ? 'morning-routine.complete' : 'morning-routine.reopen',
+          input.isCompleted ? `${this.period}-routine.complete` : `${this.period}-routine.reopen`,
           input.stepId,
         ),
         replayed: false,
@@ -258,7 +285,7 @@ export class MorningRoutineService {
     if (this.database) {
       const row = this.database
         .prepare(
-          'SELECT completed,version FROM morning_routine_progress WHERE household_id=? AND local_date=? AND profile_id=? AND member_id=? AND step_id=?',
+          `SELECT completed,version FROM ${this.table('progress')} WHERE household_id=? AND local_date=? AND profile_id=? AND member_id=? AND step_id=?`,
         )
         .get(home, date, profile, member, step) as
         { completed: number; version: number } | undefined;
@@ -304,7 +331,7 @@ export class MorningRoutineService {
     const run = () => {
       const row = this.database
         ?.prepare(
-          'SELECT input_hash,result_json FROM morning_routine_receipts WHERE household_id=? AND actor_scope=? AND request_id=?',
+          `SELECT input_hash,result_json FROM ${this.table('receipts')} WHERE household_id=? AND actor_scope=? AND request_id=?`,
         )
         .get(home, scope, input.requestId) as
         { input_hash: string; result_json: string } | undefined;
@@ -322,12 +349,12 @@ export class MorningRoutineService {
       const result = execute();
       if (this.database) {
         this.database
-          .prepare('INSERT INTO morning_routine_receipts VALUES (?,?,?,?,?)')
+          .prepare(`INSERT INTO ${this.table('receipts')} VALUES (?,?,?,?,?)`)
           .run(home, scope, input.requestId, hash, JSON.stringify(result));
         const audit = result.audit;
         this.database
           .prepare(
-            "INSERT INTO audit_events(id,occurred_at,household_id,actor_type,actor_id,source_channel,action_type,target_type,target_id,request_id,result,safe_summary_json) VALUES (?,?,?,?,?,?,?,'morning-routine',?,?,'succeeded','{}')",
+            `INSERT INTO audit_events(id,occurred_at,household_id,actor_type,actor_id,source_channel,action_type,target_type,target_id,request_id,result,safe_summary_json) VALUES (?,?,?,?,?,?,?,'${this.period}-routine',?,?,'succeeded','{}')`,
           )
           .run(
             audit.id,
@@ -351,7 +378,7 @@ export class MorningRoutineService {
     this.progress.clear();
     this.receipts.clear();
     this.database?.exec(
-      'DELETE FROM morning_routine_progress; DELETE FROM morning_routine_receipts; DELETE FROM morning_routine_settings;',
+      `DELETE FROM ${this.table('progress')}; DELETE FROM ${this.table('receipts')}; DELETE FROM ${this.table('settings')};`,
     );
   }
 }

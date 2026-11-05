@@ -1,5 +1,13 @@
 # Hearth v2 integration contracts
 
+## Afternoon / linked chores (D-136)
+
+The existing weekday Morning alarm and all live HA settings stay unchanged. Source component 1.5.1
+adds only an opt-in Afternoon module switch, default off/unapproved for old responses/grants. A
+fresh adult approval is required to grant it. No afternoon alarm/tab or routine contents/checks are
+exposed to HA. Existing HA chore completions invalidate both routine views through the normal chore
+event. Installation, reconnect, actual navigation and household configuration remain separate gates.
+
 ## Local games (D-133)
 
 Connect Four requires no external service and exposes no upload/game-state API. HA can still switch

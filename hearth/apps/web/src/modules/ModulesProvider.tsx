@@ -19,6 +19,7 @@ const domains: Partial<Record<ModuleId, readonly string[]>> = {
   nba: ['nba', 'nba-settings'],
   fitness: ['fitness', 'fitness-settings', 'fitness-library'],
   morningRoutine: ['morning-routine', 'morning-routine-settings'],
+  afternoonRoutine: ['afternoon-routine', 'afternoon-routine-settings'],
 };
 export function ModulesProvider({ children }: { children: ReactNode }) {
   const client = useQueryClient();

@@ -1,5 +1,15 @@
 # Hearth v2 implementation roadmap
 
+## D-136 — Morning additions, Afternoon and linked chores
+
+Local implementation provides shared routine settings/board with independent Afternoon storage
+and module, weekday untimed default, per-child due chore references and canonical check/undo.
+Forward migration, authority, module-off, recurrence, per-child identity, replay, daily reset,
+responsive views and D-pad checks pass in `hearth/docs/evidence/routine-chores.md`. Existing Morning
+profiles/ticks/receipts and chore history are preserved. Family-specific scan/import stays private.
+Publication, live configuration/deployment and physical TV/phone use remain open. No evening
+routine or HA alarm edit in this slice.
+
 ## Word Guess (D-135) — requested 2026-11-05
 
 Add an original unlimited five-letter game, separate adult switch, private permitted word data and

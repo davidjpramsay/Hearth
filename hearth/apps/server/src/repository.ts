@@ -276,6 +276,7 @@ export class InMemoryHearthRepository implements HearthRepository {
         .filter((occurrence) => occurrence.assignee.id === member.id)
         .map((occurrence, index) => ({
           ...occurrence,
+          templateId: `template_${occurrence.id.replace('occurrence_', '')}`,
           locked: this.scenario === 'permission' && member.id === 'member_ezra' && index === 0,
         })),
     }));

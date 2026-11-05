@@ -16,6 +16,12 @@ const planningAreas: Array<{
     focusId: 'planning-morning',
   },
   {
+    title: 'Afternoon Routine',
+    path: '/admin/afternoon-routine',
+    icon: 'sun',
+    focusId: 'planning-afternoon',
+  },
+  {
     title: 'Routines and chores',
     path: '/admin/routines',
     icon: 'chores',

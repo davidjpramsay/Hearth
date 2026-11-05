@@ -10,23 +10,30 @@ import {
   type MorningSettings,
   type UpdateMorningProfiles,
 } from '@hearth/shared';
-import { morningRoutineApi } from '../api/morningRoutine';
+import { routineApi } from '../api/morningRoutine';
+import { choresApi } from '../api/chores';
+import { useModules } from '../modules/context';
 import { createRequestId, HearthApiError } from '../api/core';
 import { queryKeys } from '../api/queryKeys';
 import { AdminError, AdminPage, AdminQueryState } from '../components/AdminPage';
 import { useUnsavedChanges, confirmDiscardChanges } from '../hooks/useUnsavedChanges';
 import './MorningRoutineSettingsScreen.css';
 
-export function MorningRoutineSettingsScreen() {
+export function MorningRoutineSettingsScreen({
+  period = 'morning',
+}: {
+  period?: 'morning' | 'afternoon';
+}) {
+  const title = period === 'morning' ? 'Morning Routine' : 'Afternoon Routine';
   const query = useQuery({
-    queryKey: queryKeys.morningSettings,
-    queryFn: ({ signal }) => morningRoutineApi.settings(signal),
+    queryKey: period === 'morning' ? queryKeys.morningSettings : queryKeys.afternoonSettings,
+    queryFn: ({ signal }) => routineApi(period).settings(signal),
     retry: false,
   });
   if (!query.data)
     return (
       <AdminQueryState
-        title="Morning Routine"
+        title={title}
         backTo="/more"
         backLabel="Back to More"
         error={query.error}
@@ -35,6 +42,7 @@ export function MorningRoutineSettingsScreen() {
     );
   return (
     <MorningForm
+      period={period}
       latest={query.data}
       readError={query.isError}
       refresh={() => void query.refetch()}
@@ -43,14 +51,24 @@ export function MorningRoutineSettingsScreen() {
 }
 
 function MorningForm({
+  period,
   latest,
   readError,
   refresh,
 }: {
+  period: 'morning' | 'afternoon';
   latest: MorningSettings;
   readError: boolean;
   refresh: () => void;
 }) {
+  const title = period === 'morning' ? 'Morning Routine' : 'Afternoon Routine';
+  const modules = useModules();
+  const chores = useQuery({
+    queryKey: queryKeys.choreTemplates,
+    queryFn: () => choresApi.getChoreTemplates(),
+    enabled: modules.chores,
+    retry: false,
+  });
   const client = useQueryClient();
   const [draft, setDraft] = useState<{
     profiles: MorningProfiles;
@@ -140,15 +158,19 @@ function MorningForm({
     setError(null);
     setNotice('');
     try {
-      await morningRoutineApi.save(pending.current);
+      await routineApi(period).save(pending.current);
       pending.current = null;
       setDraft(null);
       setFrozen(false);
       await Promise.all([
-        client.invalidateQueries({ queryKey: queryKeys.morningSettings }),
-        client.invalidateQueries({ queryKey: queryKeys.morningRoutine }),
+        client.invalidateQueries({
+          queryKey: period === 'morning' ? queryKeys.morningSettings : queryKeys.afternoonSettings,
+        }),
+        client.invalidateQueries({
+          queryKey: period === 'morning' ? queryKeys.morningRoutine : queryKeys.afternoonRoutine,
+        }),
       ]);
-      setNotice('Morning Routine saved.');
+      setNotice(`${title} saved.`);
     } catch (failure) {
       if (
         failure instanceof HearthApiError &&
@@ -172,10 +194,10 @@ function MorningForm({
     }
   }
   return (
-    <AdminPage title="Morning Routine" backTo="/more" backLabel="Back to More">
+    <AdminPage title={title} backTo="/more" backLabel="Back to More">
       <p>
-        Different steps for school days and weekends, with a fresh start each day. These checks stay
-        separate from chores and pocket money.
+        Different steps for school days and weekends, with a fresh start each day. Linked chores
+        appear only when due and share their tick with Chores.
       </p>
       {readError ? (
         <AdminError
@@ -280,7 +302,7 @@ function MorningForm({
           {MORNING_PROFILE_LABELS[editingProfile]}
         </h2>
         <fieldset disabled={busy || frozen}>
-          <legend>Morning countdown</legend>
+          <legend>{period === 'morning' ? 'Morning' : 'Afternoon'} countdown</legend>
           <label className="morning-settings__countdown-toggle">
             <input
               type="checkbox"
@@ -369,9 +391,18 @@ function MorningForm({
                             <span>Step {index + 1}</span>
                             <input
                               aria-label={`${person.displayName} step ${index + 1}`}
-                              maxLength={80}
+                              maxLength={step.choreTemplateId ? 140 : 80}
+                              readOnly={Boolean(step.choreTemplateId)}
                               required
-                              value={step.title}
+                              value={
+                                step.choreTemplateId
+                                  ? modules.chores
+                                    ? (chores.data?.templates.find(
+                                        (chore) => chore.id === step.choreTemplateId,
+                                      )?.title ?? 'Unavailable chore')
+                                    : 'Linked chore'
+                                  : step.title
+                              }
                               onChange={(event) =>
                                 editSteps(person.id, (items) =>
                                   items.map((item) =>
@@ -383,6 +414,20 @@ function MorningForm({
                               }
                             />
                           </label>
+                          {step.choreTemplateId ? (
+                            <p className="field-help">
+                              Linked chore · only shown on its scheduled days.{' '}
+                              {!modules.chores ||
+                              !chores.data?.templates.some(
+                                (chore) =>
+                                  chore.id === step.choreTemplateId &&
+                                  !chore.archived &&
+                                  chore.assignees.some((assignee) => assignee.id === person.id),
+                              )
+                                ? 'Currently unavailable; the link is kept.'
+                                : ''}
+                            </p>
+                          ) : null}
                           <div className="morning-editor__actions">
                             <button
                               type="button"
@@ -430,6 +475,61 @@ function MorningForm({
                         </li>
                       ))}
                     </ol>
+                    {modules.chores ? (
+                      <label>
+                        Add one of {person.displayName}’s chores
+                        <select
+                          aria-label={`Add chore for ${person.displayName}`}
+                          value=""
+                          disabled={
+                            stepsFor(person.id).length >= 12 || !chores.data || chores.isError
+                          }
+                          onChange={(event) => {
+                            const chore = chores.data?.templates.find(
+                              (item) => item.id === event.target.value,
+                            );
+                            if (chore)
+                              editSteps(person.id, (steps) => [
+                                ...steps,
+                                {
+                                  id: createRequestId('step'),
+                                  title: 'Linked chore',
+                                  choreTemplateId: chore.id,
+                                },
+                              ]);
+                          }}
+                        >
+                          <option value="">Choose a chore…</option>
+                          {chores.data?.templates
+                            .filter(
+                              (chore) =>
+                                !chore.archived &&
+                                chore.assignees.some((assignee) => assignee.id === person.id) &&
+                                !stepsFor(person.id).some(
+                                  (step) => step.choreTemplateId === chore.id,
+                                ),
+                            )
+                            .map((chore) => (
+                              <option key={chore.id} value={chore.id}>
+                                {chore.title}
+                              </option>
+                            ))}
+                        </select>
+                        <span className="field-help">
+                          Uses the chore’s existing days and pocket money rules.
+                        </span>
+                      </label>
+                    ) : (
+                      <p className="field-help">
+                        Turn on Chores to add linked chores. Saved links are kept.
+                      </p>
+                    )}
+                    {chores.isError && modules.chores ? (
+                      <AdminError
+                        message="Could not load chores."
+                        onRetry={() => void chores.refetch()}
+                      />
+                    ) : null}
                     <button
                       type="button"
                       className="admin-secondary"
@@ -453,7 +553,7 @@ function MorningForm({
         </fieldset>
         <p role="status">{busy ? 'Saving…' : notice}</p>
         <button className="admin-primary" type="submit" disabled={busy || conflict || readError}>
-          {frozen ? 'Retry save' : 'Save Morning Routine'}
+          {frozen ? 'Retry save' : `Save ${title}`}
         </button>
       </form>
     </AdminPage>

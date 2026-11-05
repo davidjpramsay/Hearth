@@ -16,6 +16,7 @@ export const MODULE_IDS = [
   'dailyVerse',
   'nba',
   'morningRoutine',
+  'afternoonRoutine',
   'fitness',
 ] as const;
 export const ModuleIdSchema = z.enum(MODULE_IDS);
@@ -34,6 +35,7 @@ export const MODULE_LABELS: Record<ModuleId, string> = {
   dailyVerse: 'Daily Bible verse',
   nba: 'NBA',
   morningRoutine: 'Morning Routine',
+  afternoonRoutine: 'Afternoon Routine',
   fitness: 'Fitness',
 };
 export const DEFAULT_MODULE_FLAGS: Record<ModuleId, boolean> = {
@@ -50,6 +52,7 @@ export const DEFAULT_MODULE_FLAGS: Record<ModuleId, boolean> = {
   dailyVerse: true,
   nba: false,
   morningRoutine: false,
+  afternoonRoutine: false,
   fitness: false,
 };
 export const ModuleFlagsSchema = z.object({
@@ -66,6 +69,7 @@ export const ModuleFlagsSchema = z.object({
   dailyVerse: z.boolean(),
   nba: z.boolean().default(false),
   morningRoutine: z.boolean().default(false),
+  afternoonRoutine: z.boolean().default(false),
   fitness: z.boolean().default(false),
 });
 export type ModuleFlags = z.infer<typeof ModuleFlagsSchema>;
@@ -113,6 +117,7 @@ export function moduleForPath(path: string): ModuleId | null {
     [/^\/(fitness|admin\/fitness)(?:\/|$)/, 'fitness'],
     [/^\/(nba|admin\/nba)(?:\/|$)/, 'nba'],
     [/^\/(morning-routine|admin\/morning-routine)(?:\/|$)/, 'morningRoutine'],
+    [/^\/(afternoon-routine|admin\/afternoon-routine)(?:\/|$)/, 'afternoonRoutine'],
     [/^\/admin\/connections\/calendar(?:\/|$)/, 'calendar'],
   ];
   return roots.find(([pattern]) => pattern.test(clean))?.[1] ?? null;

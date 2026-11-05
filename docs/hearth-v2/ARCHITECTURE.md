@@ -1,5 +1,17 @@
 # Hearth v2 architecture
 
+## Shared routines and canonical chore references (D-136)
+
+One fixed-period MorningRoutineService instance per routine shares implementation with separate
+SQLite settings/progress/receipts and audit/event names. Existing morning table/receipt identity
+is preserved. `routine-chores.ts` projects references from canonical due occurrences, gated before
+Chores reads. Family UI sends the existing idempotent Chores complete/reversal command for a linked
+row; it never writes a separate routine check or duplicates accounting. Optional template identity
+is a Hearth ID on the safe occurrence DTO. New-link assignment validation runs inside the settings
+command after replay/CAS checks. No provider, background process, credential or network change.
+Canonical details: MORNING_ROUTINE_CONTRACT.md. The original independent-checklist design below
+continues for plain steps; D-136 explicitly supersedes it for linked chores only.
+
 ## Fitness exercise library (D-129)
 
 `FitnessLibraryService` adds separately versioned reusable instructions/clip metadata and private

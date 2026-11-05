@@ -12,6 +12,7 @@ const settingsTitles: Record<string, string> = {
   '/admin/routines': 'Routines and chores',
   '/admin/fitness': 'Fitness',
   '/admin/morning-routine': 'Morning Routine',
+  '/admin/afternoon-routine': 'Afternoon Routine',
   '/admin/chore-day': 'Chores this week',
   '/admin/pocket-money': 'Pocket money',
   '/admin/lists': 'Household lists',

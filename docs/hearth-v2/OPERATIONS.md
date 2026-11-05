@@ -1,5 +1,18 @@
 # Hearth v2 local environment and operations plan
 
+## D-136 release boundary
+
+Use normal verified release gates and a checked v39 recovery snapshot before migration 0040.
+Verify unchanged Morning settings/progress/receipt bytes, chore schedules/completions/payments,
+module flags, phones/screens and HA grants on the NAS; disclose only preservation/count results.
+Afternoon defaults off; configure and enable deliberately. Prepared scan-derived family commands
+remain private and must be applied through authenticated adult administration, preserving current
+Morning step IDs where the same plain task remains and retaining the full Weekend profile.
+Do not overwrite newer settings: re-read current revisions before live configuration. Configure the
+approved new chore schedules first, then bind returned IDs in routines; never invent an ID/match.
+Rollback requires matching pre-v40 database and old images. No live HA automation, restart or
+network change is required. Physical cross-screen completion and day rollover remain separate.
+
 ## Repository rename compatibility (D-132)
 
 Canonical source is `davidjpramsay/Hearth`; the original is `davidjpramsay/old_hearth`. New Pages

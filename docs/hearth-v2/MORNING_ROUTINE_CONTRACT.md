@@ -1,9 +1,73 @@
-# Morning Routine v2 — D-120 / D-123
+# Morning / Afternoon routines v2 — D-120 / D-123 / D-136
+
+## Morning and Afternoon routines — D-136
+
+D-136 extends this contract to two independently switchable modules: `morningRoutine` at
+`/morning-routine` and `afternoonRoutine` at `/afternoon-routine`, with matching adult settings.
+The original v1/v2 names remain for wire compatibility. Both use School days/Weekends profiles,
+explicit participants, stable step IDs, daily household-local reset, settings revisions, guarded
+plain-step versions and exact actor-scoped receipts. Morning defaults/ticks/history are unchanged.
+Afternoon starts off, with empty lists for current children, Monday–Friday, countdown off, and no
+assigned weekend days. Stored optional timer values start 15:00–17:00. No evening routine is added.
+
+An adult may add an ordinary step or choose one of that person's active assigned chores. A linked
+step adds optional `choreTemplateId` to the existing `{id,title}`; omission is not default-injected,
+so old request hashes still replay. Each chore may appear once per person/profile; references in
+Morning and Afternoon intentionally share one underlying occurrence. Selecting/removing a link
+never creates, reschedules, reassigns, archives or deletes a chore. Keep unavailable saved links
+editable/removable; newly added references must match an active household chore assigned to that
+person. Explicitly deselected people's lists remain saved.
+
+Family reads resolve each reference only against the real Chores occurrence for that household,
+child and local date. `ChoreOccurrence` gains optional Hearth `templateId`; no provider identifier.
+An absent, cancelled, skipped, excused or other-person occurrence is omitted. Rest days cannot
+manufacture a due job. The actual occurrence title and completion are authoritative, not the stored
+link label or a routine progress row. The projected row carries a bounded optional `chore` with
+`occurrenceId`, current nullable `completionId` and `locked`. Existing chore snapshot/archival rules
+still apply, including retained completed occurrences. A new due date starts its own completion.
+
+Checking/reopening a linked row calls the **existing** Chores completion/reversal API with a frozen
+request ID and (for undo) the observed completion ID. Its normal authentication, module gate,
+permission, audit, transaction and exact-replay rules apply; no second routine completion, earnings
+record or receipt wrapper is written. Ambiguous outcomes retain that exact command for manual retry.
+The routine plain-step endpoint rejects a linked row. `chore.changed`/`chore-template.changed`
+invalidate both routine overviews, and successful UI commands catch up Chores/Today/pocket money.
+Plain routine checks remain separate from Chores and earnings. This explicitly supersedes the
+D-120/D-123 independence rule only for intentionally selected chore references.
+
+Chores off omits every linked row from both family overviews without accessing the chore repository;
+ordinary steps continue. The settings picker is unavailable and references are retained. Each
+routine's own off gate hides its routes/menus and rejects reads/writes, retaining settings/history.
+Module changes invalidate both overviews to remove stale linked content. No background/offline queue.
+
+Migration **0040** adds empty `afternoon_routine_settings`, `afternoon_routine_progress` (including
+profile identity) and `afternoon_routine_receipts`, and extends the module CHECK constraint. It copies
+all existing flags exactly and never rewrites Morning settings/progress/receipt JSON/hashes, chore
+schedules, completions, payments, device connections or HA grants. Release requires a checked
+pre-migration backup; rollback uses its matching v39 database, not a v40 file in an old server.
+
+Afternoon reuses the existing responsive board/editor, seven-step TV layout, honest paging for
+longer lists, D-pad rail escape/return, compact Bible verse, dark/reduced-motion and stale/error/retry
+states. It has its own headings and greeting. Phone controls remain natural scrolling with the
+existing safe time-field layout. Both lists are adult-editable; order guides, never locks checks.
+
+The existing HA weekday Morning alarm is unchanged. Component 1.5.1 understands the optional
+`afternoonRoutine` module switch only after a fresh explicit approval (15 current module IDs).
+Old responses default it off and legacy grants never gain it. No Afternoon navigation tab, routine
+read/check endpoint, HA install/restart, live automation or live household change is implied by this
+source change. Add an afternoon alarm only with a separately reviewed contract/change/approval.
+
+The family scan and prepared household-specific admin payloads stay outside source control. Local
+fixtures are fictional. Publication, deployment, live list configuration and physical acceptance are
+separate evidence gates.
+
+---
 
 Morning Routine is one optional household module (`morningRoutine`) with two fixed profiles:
 **School days** (`schoolDays`) and **Weekends** (`weekends`). Each has its own participant selection,
-ordered per-person lists, assigned weekdays and countdown setting. This family checklist never
-changes chores, earnings, calendar or medical records, and is not proof an action occurred.
+ordered per-person lists, assigned weekdays and countdown setting. Ordinary checklist steps never
+change chores, earnings, calendar or medical records, and are not proof an action occurred.
+D-136 linked chores use the original Chores completion; see the extension above.
 
 ## Schedule and settings
 

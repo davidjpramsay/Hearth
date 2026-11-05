@@ -20,6 +20,12 @@ export const queryKeys = {
   get fitnessSettings() {
     return [householdId(getHearthRuntime()), 'fitness-settings'] as const;
   },
+  get afternoonRoutine() {
+    return [householdId(getHearthRuntime()), 'afternoon-routine'] as const;
+  },
+  get afternoonSettings() {
+    return [householdId(getHearthRuntime()), 'afternoon-routine-settings'] as const;
+  },
   get morningRoutine() {
     return [householdId(getHearthRuntime()), 'morning-routine'] as const;
   },

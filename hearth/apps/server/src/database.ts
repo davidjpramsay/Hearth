@@ -96,6 +96,7 @@ const migrations = [
   { version: 37, url: new URL('./migrations/0037_fitness_exercise_library.sql', import.meta.url) },
   { version: 38, url: new URL('./migrations/0038_game_modules.sql', import.meta.url) },
   { version: 39, url: new URL('./migrations/0039_word_guess.sql', import.meta.url) },
+  { version: 40, url: new URL('./migrations/0040_afternoon_routine.sql', import.meta.url) },
 ] as const;
 
 const latestMigration = migrations.at(-1);

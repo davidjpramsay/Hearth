@@ -104,3 +104,7 @@ After the existing alarm launches Hearth and confirms the screen is online, a we
 can call `select.select_option` with `option: morning_routine`. Use the exact registered screen
 selector. Preserve the alarm's music, volume, physical wake, guards and weekend behaviour.
 Installing code, approving the connection and proving the real weekday alarm are separate steps.
+
+Component 1.5.1 adds the optional Afternoon Routine module switch after fresh adult approval. Old
+servers default it off and old grants remain frozen. No Afternoon tab, routine contents/checks or
+live alarm changes; the existing Morning alarm stays unchanged.

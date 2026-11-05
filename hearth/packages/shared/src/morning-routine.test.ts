@@ -125,3 +125,23 @@ describe('two scheduled morning profiles', () => {
     expect(JSON.stringify(SetMorningCompletionSchema.parse(input))).toBe(JSON.stringify(input));
   });
 });
+
+it('keeps old command shape unchanged and bounds plain versus linked titles', () => {
+  expect(MorningConfigurationSchema.parse(configuration)).toEqual(configuration);
+  const long = {
+    ...configuration,
+    routines: [{ memberId: 'member_child', steps: [{ id: 'step_chore', title: 'a'.repeat(100) }] }],
+  };
+  expect(MorningConfigurationSchema.safeParse(long).success).toBe(false);
+  expect(
+    MorningConfigurationSchema.safeParse({
+      ...long,
+      routines: [
+        {
+          memberId: 'member_child',
+          steps: [{ ...long.routines[0]!.steps[0]!, choreTemplateId: 'template_chore' }],
+        },
+      ],
+    }).success,
+  ).toBe(true);
+});

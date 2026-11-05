@@ -246,6 +246,7 @@ export const RoutineTimeOfDaySchema = z.enum(ROUTINE_TIME_OF_DAY_VALUES);
 
 export const ChoreOccurrenceSchema = z.object({
   id: OpaqueIdSchema,
+  templateId: OpaqueIdSchema.optional(),
   title: z.string().min(1).max(140),
   assignee: MemberSchema,
   routineLabel: RoutineTimeOfDaySchema,
@@ -1173,8 +1174,11 @@ export const AuditSummarySchema = z.object({
     'fitness.complete',
     'fitness.reopen',
     'morning-routine.settings.update',
+    'afternoon-routine.settings.update',
     'morning-routine.complete',
+    'afternoon-routine.complete',
     'morning-routine.reopen',
+    'afternoon-routine.reopen',
     'chore.complete',
     'chore.undo',
     'chore.skip',
@@ -1427,6 +1431,7 @@ export const RealtimeEventSchema = z.object({
     'nba.changed',
     'fitness.changed',
     'morning-routine.changed',
+    'afternoon-routine.changed',
   ]),
   householdId: OpaqueIdSchema,
   targetId: OpaqueIdSchema,

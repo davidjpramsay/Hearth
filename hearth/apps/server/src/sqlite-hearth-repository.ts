@@ -801,6 +801,7 @@ export class SqliteHearthRepository implements HearthRepository {
   private occurrenceFromRow(row: OccurrenceRow): ChoreOccurrence {
     return ChoreOccurrenceSchema.parse({
       id: row.id,
+      templateId: row.template_id,
       title: row.title_snapshot,
       assignee: memberFromOccurrenceRow(row),
       routineLabel: row.routine_label_snapshot,
@@ -1159,6 +1160,7 @@ interface MemberRow {
 }
 
 interface OccurrenceRow {
+  template_id: string;
   id: string;
   household_id: string;
   assignee_member_id: string;

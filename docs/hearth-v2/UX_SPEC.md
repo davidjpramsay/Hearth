@@ -1,5 +1,15 @@
 # Hearth v2 television and companion UX specification
 
+## Morning / Afternoon linked chores (D-136)
+
+Both routines use the existing board and school/weekend editor. Adult settings offer **Add step**
+and **Add one of [person]'s chores**; the latter lists only active chores assigned to that person.
+A small Chore label explains shared checks. A linked row appears only on a real due day; completing
+or reopening it has the same effect in Chores and either routine. Unavailable links stay removable;
+Chores off hides them from family screens. Afternoon starts weekdays, no countdown. Retain seven
+ordinary rows per supported TV page, readable targets, honest overflow paging, phone scrolling,
+dark/reduced-motion support and explicit D-pad escape/return. See MORNING_ROUTINE_CONTRACT.md.
+
 ## Games choices and Connect Four (D-133)
 
 Games offers clear Connections, Connect Four and Word Guess cards. An adult opens More → Modules → Choose games

@@ -12,6 +12,7 @@ import { BrowserAccess } from './browser-access.js';
 import { NbaService } from './nba-service.js';
 import { FitnessService } from './fitness-service.js';
 import { MorningRoutineService } from './morning-routine-service.js';
+import { projectRoutineChores } from './routine-chores.js';
 import { IndoorClimateService, createDemoIndoorService } from './indoor-climate-service.js';
 import { RestIndoorProvider } from './integrations/indoor-climate-provider.js';
 import {
@@ -431,6 +432,7 @@ export interface BuildServerOptions {
   fitness?: FitnessService;
   fitnessLibrary?: FitnessLibraryService;
   morningRoutine?: MorningRoutineService;
+  afternoonRoutine?: MorningRoutineService;
   indoorClimate?: IndoorClimateService;
   nbaBoxScore?: NbaBoxScoreProvider;
   nbaMedia?: NbaMediaProvider;
@@ -473,6 +475,9 @@ export function buildServer(options: BuildServerOptions = {}): FastifyInstance {
   const fitness = options.fitness ?? new FitnessService(undefined, () => runtime.clock.now());
   const morningRoutine =
     options.morningRoutine ?? new MorningRoutineService(undefined, () => runtime.clock.now());
+  const afternoonRoutine =
+    options.afternoonRoutine ??
+    new MorningRoutineService(undefined, () => runtime.clock.now(), 'afternoon');
   const moduleLeases = new ModuleRequestLeases();
   const moduleRequests = new WeakMap<
     FastifyRequest,
@@ -2752,68 +2757,131 @@ export function buildServer(options: BuildServerOptions = {}): FastifyInstance {
     });
   });
 
-  server.get('/api/v1/households/:householdId/morning-routine', async (request, reply) => {
-    reply.header('Cache-Control', 'private, no-store').header('Vary', 'Cookie, Authorization');
-    const params = parse(HouseholdParamsSchema, request.params, reply);
-    if (!params) return reply;
-    return run(reply, async () =>
-      MorningOverviewSchema.parse(
-        morningRoutine.overview(await adminRepository.getHousehold(params.householdId)),
-      ),
-    );
-  });
-  server.get('/api/v1/households/:householdId/morning-routine/settings', async (request, reply) => {
-    reply.header('Cache-Control', 'private, no-store').header('Vary', 'Cookie, Authorization');
-    const params = parse(HouseholdParamsSchema, request.params, reply);
-    if (!params) return reply;
-    return run(reply, async () => {
-      const overview = await adminRepository.getOverview(
-        params.householdId,
-        actorId(request.headers, options),
-      );
-      return MorningSettingsSchema.parse(morningRoutine.getSettings(overview.household));
-    });
-  });
-  server.put('/api/v1/households/:householdId/morning-routine/settings', async (request, reply) => {
-    reply.header('Cache-Control', 'private, no-store');
-    const params = parse(HouseholdParamsSchema, request.params, reply);
-    const body = parse(MorningSettingsCommandSchema, request.body, reply);
-    if (!params || !body) return reply;
-    return run(reply, async () => {
-      const overview = await adminRepository.getOverview(
-        params.householdId,
-        actorId(request.headers, options),
-      );
-      const result = morningRoutine.update(
-        overview.household,
-        body,
-        commandActor(request.headers, options, adminRepository),
-      );
-      if (!result.replayed)
-        realtime.publish(params.householdId, 'morning-routine.changed', params.householdId);
-      return result;
-    });
-  });
-  server.put(
-    '/api/v1/households/:householdId/morning-routine/completion',
-    async (request, reply) => {
-      reply.header('Cache-Control', 'private, no-store');
+  for (const [period, routine] of [
+    ['morning', morningRoutine],
+    ['afternoon', afternoonRoutine],
+  ] as const) {
+    server.get(`/api/v1/households/:householdId/${period}-routine`, async (request, reply) => {
+      reply.header('Cache-Control', 'private, no-store').header('Vary', 'Cookie, Authorization');
       const params = parse(HouseholdParamsSchema, request.params, reply);
-      const body = parse(SetMorningCompletionSchema, request.body, reply);
-      if (!params || !body) return reply;
+      if (!params) return reply;
       return run(reply, async () => {
-        const home = await adminRepository.getHousehold(params.householdId);
-        const result = morningRoutine.complete(
-          home,
-          body,
-          commandActor(request.headers, options, adminRepository),
+        const overview = routine.overview(await adminRepository.getHousehold(params.householdId));
+        const linked = overview.people.some(({ steps }) =>
+          steps.some((step) => step.choreTemplateId),
         );
-        if (!result.replayed)
-          realtime.publish(params.householdId, 'morning-routine.changed', params.householdId);
-        return result;
+        const occurrences =
+          linked && modules.get(params.householdId).enabled.chores
+            ? (await repository.getChores(params.householdId, overview.localDate)).groups.flatMap(
+                (group) => group.occurrences,
+              )
+            : [];
+        return MorningOverviewSchema.parse(projectRoutineChores(overview, occurrences));
       });
-    },
-  );
+    });
+    server.get(
+      `/api/v1/households/:householdId/${period}-routine/settings`,
+      async (request, reply) => {
+        reply.header('Cache-Control', 'private, no-store').header('Vary', 'Cookie, Authorization');
+        const params = parse(HouseholdParamsSchema, request.params, reply);
+        if (!params) return reply;
+        return run(reply, async () => {
+          const overview = await adminRepository.getOverview(
+            params.householdId,
+            actorId(request.headers, options),
+          );
+          return MorningSettingsSchema.parse(routine.getSettings(overview.household));
+        });
+      },
+    );
+    server.put(
+      `/api/v1/households/:householdId/${period}-routine/settings`,
+      async (request, reply) => {
+        reply.header('Cache-Control', 'private, no-store');
+        const params = parse(HouseholdParamsSchema, request.params, reply);
+        const body = parse(MorningSettingsCommandSchema, request.body, reply);
+        if (!params || !body) return reply;
+        return run(reply, async () => {
+          const overview = await adminRepository.getOverview(
+            params.householdId,
+            actorId(request.headers, options),
+          );
+          const actor = commandActor(request.headers, options, adminRepository);
+          const current = routine.getSettings(overview.household);
+          const oldLinks = new Set(
+            Object.values(current.profiles).flatMap((profile) =>
+              profile.configuration.routines.flatMap((person) =>
+                person.steps
+                  .filter((step) => step.choreTemplateId)
+                  .map((step) => JSON.stringify([person.memberId, step.id, step.choreTemplateId])),
+              ),
+            ),
+          );
+          const configurations =
+            'profiles' in body
+              ? Object.values(body.profiles).map((profile) => profile.configuration)
+              : [body.configuration];
+          const newLinks = configurations.flatMap((configuration) =>
+            configuration.routines.flatMap((person) =>
+              person.steps
+                .filter(
+                  (step) =>
+                    step.choreTemplateId &&
+                    !oldLinks.has(JSON.stringify([person.memberId, step.id, step.choreTemplateId])),
+                )
+                .map((step) => ({ memberId: person.memberId, templateId: step.choreTemplateId! })),
+            ),
+          );
+          const templates =
+            newLinks.length && modules.get(params.householdId).enabled.chores
+              ? (await planningRepository.getChoreTemplates(params.householdId, actor)).templates
+              : [];
+          const result = routine.update(overview.household, body, actor, () => {
+            if (!newLinks.length) return;
+            modules.assertEnabled(params.householdId, 'chores');
+            if (
+              newLinks.some(
+                (link) =>
+                  !templates.some(
+                    (template) =>
+                      template.id === link.templateId &&
+                      !template.archived &&
+                      template.assignees.some((person) => person.id === link.memberId),
+                  ),
+              )
+            )
+              throw new RepositoryError(
+                'VALIDATION_ERROR',
+                'Choose an active chore assigned to that person.',
+              );
+          });
+          if (!result.replayed)
+            realtime.publish(params.householdId, `${period}-routine.changed`, params.householdId);
+          return result;
+        });
+      },
+    );
+    server.put(
+      `/api/v1/households/:householdId/${period}-routine/completion`,
+      async (request, reply) => {
+        reply.header('Cache-Control', 'private, no-store');
+        const params = parse(HouseholdParamsSchema, request.params, reply);
+        const body = parse(SetMorningCompletionSchema, request.body, reply);
+        if (!params || !body) return reply;
+        return run(reply, async () => {
+          const home = await adminRepository.getHousehold(params.householdId);
+          const result = routine.complete(
+            home,
+            body,
+            commandActor(request.headers, options, adminRepository),
+          );
+          if (!result.replayed)
+            realtime.publish(params.householdId, `${period}-routine.changed`, params.householdId);
+          return result;
+        });
+      },
+    );
+  }
 
   server.get('/api/v1/households/:householdId/nba', async (request, reply) => {
     reply.header('Cache-Control', 'private, no-store');
@@ -4016,6 +4084,7 @@ export function buildServer(options: BuildServerOptions = {}): FastifyInstance {
       fitness.reset();
       fitnessLibrary.reset();
       morningRoutine.reset();
+      afternoonRoutine.reset();
       nbaGames.reset();
       homeAssistantPairings.reset();
       homeAssistantBridge.reset();

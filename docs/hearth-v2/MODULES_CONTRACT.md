@@ -7,7 +7,8 @@ availability, never a substitute for authentication or household authorization.
 ## Fixed modules and core
 
 `calendar`, `weather`, `reminders`, `chores`, `lists`, `meals`, `home`, `photos`, `games`, `notices`,
-`dailyVerse`, `nba` (D-113), `morningRoutine` (D-120), `fitness` (D-128). Morning Routine is independent of Chores.
+`dailyVerse`, `nba` (D-113), `morningRoutine` (D-120), `fitness` (D-128). D-136 adds optional `afternoonRoutine` (off by default). Plain routine steps are independent of
+Chores; explicitly linked chores require Chores on and share its canonical completion.
 It defaults off; missing legacy fields also mean off. Chores includes its existing routine groups,
 occurrences and pocket money. Home means the outbound Home
 controls feature, not inbound HA pairing/module management. The original eleven flags default true;

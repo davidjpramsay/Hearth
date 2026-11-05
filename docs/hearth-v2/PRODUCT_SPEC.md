@@ -70,7 +70,10 @@ assignments and optional countdowns. The current school lists/times/ticks are pr
 starts with empty steps and the timer off. The assigned profile appears automatically using the
 household-local date; No routine is a valid day assignment. Each date/profile has separate checks.
 The time bar drains downward with remaining time labelled. It encourages readiness without locking
-steps after the deadline. This independent checklist has no earnings/chore side effects. HA may
+steps after the deadline. Ordinary checklist steps have no earnings/chore side effects. D-136 adds an independently enabled
+Afternoon Routine (school weekdays, untimed initially) and optional per-child chore references to
+both routines. Linked chores show only when actually due and share completion/undo and earnings
+with the original chore, without a duplicate tick or credit. HA may
 select its family destination after the existing weekday alarm launch, under explicit approval;
 weekend behaviour remains separate. See [MORNING_ROUTINE_CONTRACT.md](MORNING_ROUTINE_CONTRACT.md).
 

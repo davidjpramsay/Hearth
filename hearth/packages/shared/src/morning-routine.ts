@@ -17,7 +17,11 @@ export const MorningPersonSchema = MemberSchema.pick({
   role: true,
 });
 export const MorningStepSchema = z
-  .object({ id: OpaqueIdSchema, title: z.string().trim().min(1).max(80) })
+  .object({
+    id: OpaqueIdSchema,
+    title: z.string().trim().min(1).max(140),
+    choreTemplateId: OpaqueIdSchema.optional(),
+  })
   .strict();
 export const MorningConfigurationSchema = z
   .object({
@@ -38,6 +42,21 @@ export const MorningConfigurationSchema = z
         message: 'End time must be after start time on the same day.',
         path: ['endTime'],
       });
+    for (const routine of value.routines) {
+      if (routine.steps.some((step) => !step.choreTemplateId && step.title.length > 80))
+        context.addIssue({
+          code: 'custom',
+          message: 'Ordinary step titles can have up to 80 characters.',
+        });
+      const links = routine.steps.flatMap((step) =>
+        step.choreTemplateId ? [step.choreTemplateId] : [],
+      );
+      if (new Set(links).size !== links.length)
+        context.addIssue({
+          code: 'custom',
+          message: 'Add each chore only once per person in a routine.',
+        });
+    }
     const selected = value.selectedMemberIds;
     const people = value.routines.map((routine) => routine.memberId);
     const steps = value.routines.flatMap((routine) => routine.steps.map((step) => step.id));
@@ -154,6 +173,13 @@ export const MorningSettingsResultSchema = z.object({
   replayed: z.boolean(),
 });
 export const MorningProgressSchema = MorningStepSchema.extend({
+  chore: z
+    .object({
+      occurrenceId: OpaqueIdSchema,
+      completionId: OpaqueIdSchema.nullable(),
+      locked: z.boolean(),
+    })
+    .optional(),
   isCompleted: z.boolean(),
   version: z.number().int().nonnegative(),
 });

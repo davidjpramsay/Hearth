@@ -1,5 +1,16 @@
 # Hearth v2 acceptance and definition of done
 
+## D-136 — Morning / Afternoon chore references (local implementation)
+
+Required: separate routine storage/module, current-child weekday untimed Afternoon defaults,
+unchanged Morning profiles/history/receipts, selected per-child existing chore picker, real due-day
+filtering, one canonical check/undo across Chores and both routines, no duplicate accounting,
+exact ambiguous retry, absent/cancelled/excused/other-person filtering, daily reset, auth and module
+isolation, retained unavailable links, migration preservation and responsive D-pad/accessibility.
+Local command/results and screenshots are recorded in `hearth/docs/evidence/routine-chores.md`.
+Publication/deployment, private scan-derived task setup, physical TV/iPhone and actual HA alarm
+remain **not run** for this change. No evening routine or live automation change is included.
+
 ## Word Guess release preflight — 2026-11-05
 
 The owner authorized publication, private deployment and private word installation. `bf372b9` is

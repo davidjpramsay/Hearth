@@ -242,7 +242,11 @@ export function App() {
             <Route path="/games/word-guess" element={<WordGuessScreen />} />
             <Route path="/nba" element={<NbaScreen />} />
             <Route path="/fitness" element={<FitnessScreen />} />
-            <Route path="/morning-routine" element={<MorningRoutineScreen />} />
+            <Route path="/morning-routine" element={<MorningRoutineScreen key="morning" />} />
+            <Route
+              path="/afternoon-routine"
+              element={<MorningRoutineScreen key="afternoon" period="afternoon" />}
+            />
             <Route path="/appearance" element={<AppearanceSettingsScreen />} />
             <Route path="/admin/appearance" element={<Navigate replace to="/appearance" />} />
             <Route
@@ -263,7 +267,14 @@ export function App() {
               />
               <Route path="/admin/fitness" element={<FitnessSettingsScreen />} />
               <Route path="/admin/fitness/exercises" element={<FitnessLibraryScreen />} />
-              <Route path="/admin/morning-routine" element={<MorningRoutineSettingsScreen />} />
+              <Route
+                path="/admin/morning-routine"
+                element={<MorningRoutineSettingsScreen key="morning" />}
+              />
+              <Route
+                path="/admin/afternoon-routine"
+                element={<MorningRoutineSettingsScreen key="afternoon" period="afternoon" />}
+              />
               <Route path="/admin/household" element={<HouseholdSettingsScreen />} />
               <Route path="/admin/people" element={<PeopleSettingsScreen />} />
               <Route path="/admin/access" element={<AdultAccessScreen />} />

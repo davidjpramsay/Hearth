@@ -7,7 +7,7 @@ import { calendarRefreshPolicy } from '../hooks/calendarRefreshPolicy';
 import { DailyVerseDetailsDialog } from './DailyVerseDetailsDialog';
 import { SummaryBand } from './SummaryBand';
 
-export function MorningRoutineVerse() {
+export function MorningRoutineVerse({ period = 'morning' }: { period?: 'morning' | 'afternoon' }) {
   const query = useQuery({
     queryKey: queryKeys.dailyVerse,
     queryFn: ({ signal }) => dailyVerseApi.get(signal),
@@ -24,7 +24,7 @@ export function MorningRoutineVerse() {
         className="morning-verse"
         focus={{
           'data-focus-id': 'morning-daily-verse',
-          'data-focus-left': 'nav-morning',
+          'data-focus-left': `nav-${period}`,
           'data-focus-right': 'morning-today',
         }}
         icon="book-open"

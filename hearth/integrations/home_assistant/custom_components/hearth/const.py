@@ -23,8 +23,9 @@ MODULE_LABELS = {
     "nba": "NBA",
     "morningRoutine": "Morning Routine",
     "fitness": "Fitness",
+    "afternoonRoutine": "Afternoon Routine",
 }
-LEGACY_MODULE_IDS = tuple(key for key in MODULE_LABELS if key not in ("nba", "morningRoutine", "fitness"))
+LEGACY_MODULE_IDS = tuple(key for key in MODULE_LABELS if key not in ("nba", "morningRoutine", "fitness", "afternoonRoutine"))
 TAB_MODULES = {
     "morning_routine": "morningRoutine",
     "calendar": "calendar",
