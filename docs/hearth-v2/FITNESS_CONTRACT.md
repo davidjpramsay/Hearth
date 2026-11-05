@@ -51,7 +51,7 @@ New UI workouts always belong to a goal. Assignment preserves workout IDs and cu
 - Adult `GET .../fitness/settings`: latest plan/revision/effective date and safe people list.
 - Adult `PUT .../fitness/settings`: `{requestId,expectedRevision,configuration}`.
 - Household `PUT .../fitness/completion`: `{requestId,localDate,memberId,workoutId,planRevision,
-  expectedVersion,isCompleted}`.
+expectedVersion,isCompleted}`.
 
 All paths require existing household authentication and the enabled module before any feature I/O.
 Adult settings also reject screen/mixed credentials. Commands use actor-scoped immutable payload
@@ -67,11 +67,18 @@ completion access. No new HA navigation tab in this slice. No live HA installati
 
 ## Presentation and proof
 
-Family route `/fitness`: person selector, goals/weekly progress, seven labelled days and paged daily
-workout cards with goal labels. The goals dialog lists each separate routine, weekdays and this week's
-progress. Icons always have text equivalents. Select a workout for readable notes and exercise
-name/kg/sets/reps, check/undo and Close/Back with exact opener focus. Long details scroll with arrows and let focus leave at either edge; phones
-scroll naturally. Adult `/admin/fitness` uses ordinary controls with explicit people/day selections,
+Family route `/fitness` shows all selected participants together, with a shared Monday–Sunday selector
+opening today. Each person has an avatar, daily progress, scheduled-day streak and up to four broad
+activity buttons: Run, Swim, Weights and Fitness class. Multiple workouts of one activity are grouped
+only for presentation: opening the activity shows every original session and its goal, quantities,
+notes, exercises and separate check/undo. There is no bulk completion or change to IDs/receipts.
+Goals & progress opens that person's long-term goals, routines, current/best streak and weekly count.
+Five participants with all four activities fit on one supported landscape TV viewport, including
+1280×640. Phones stack readable panels and tablets reflow; larger households remain on the same
+page with natural scrolling rather than a person picker or hidden participants. Icons have text
+labels. Long details scroll with arrows; Close/Back restores the exact activity, and demonstration
+Back restores the exact exercise and scroll. No video is required for instructions.
+Adult `/admin/fitness` uses ordinary controls with explicit people/day selections,
 expandable goal cards containing their own workout editors, move-up/down exercises and clear
 save/effective-date feedback. Keep earlier unassigned routines separate until assigned.
 

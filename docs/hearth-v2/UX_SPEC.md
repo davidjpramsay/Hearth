@@ -26,15 +26,19 @@ recoverable errors without completing or resetting the workout. Ordinary instruc
 
 ## Fitness (D-128)
 
-Fitness appears in the TV rail and phone More only while enabled. Select a person, see their goals,
-current/best scheduled-day streak and weekly session count. Today combines due workouts across all
-active goals; each card and its details show the goal. Open the goals card for each goal's weekly
-routine and session progress, or choose another day and open a workout.
-Four labelled activity icons identify running, swimming, weights and fitness classes. Show four
-session cards per page, explicit remaining pages, rest days and honest future-day read-only details.
-The modal shows notes and an ordered Exercise / kg / Sets / Reps table; a focusable scrolling region
-keeps long instructions accessible with arrows, plus Close/Back and exact card focus restoration.
-Phones scroll naturally; never squeeze exercise names into unreadable TV text.
+Fitness appears in the TV rail and phone More only while enabled. All selected people appear together
+with a shared seven-day selector, opening today. Each compact person panel shows avatar/name, today's
+progress, scheduled-day streak and broad Run / Swim / Weights / Fitness class buttons. Five people
+with all four activities fit the TV, including 1280×640. Phones stack panels; larger households may
+scroll on the same page. No participant is hidden behind a picker or enrolled automatically.
+
+Opening an activity shows every original workout for that person/day/activity with its own goal,
+notes, duration/distance, Exercise / kg / Sets / Reps table, optional demonstrations and check/undo.
+Multiple routines share one activity card with a completion count; completing one never completes
+another. Goals & progress keeps each person's goals/routines, weekly totals and current/best streak
+available without taking over the main view. Long instructions scroll with arrows, Close/Back restores
+the activity button, and video Back restores the exact exercise/scroll. Future days are readable with
+checks disabled. Phones scroll naturally; keep text and targets readable.
 
 Adult Fitness settings has explicit participant selection, a person selector, long-term goals with
 optional target date/achieved status. Each expandable goal contains its own weekly focus and workout

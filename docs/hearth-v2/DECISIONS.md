@@ -1,9 +1,22 @@
 # Hearth v2 decision record
 
+## D-134 — Shared Fitness board with broad daily activities
+
+- Date: 2026-11-05. Status: user-requested UI refinement; release/device proof tracked separately.
+- Show all explicitly selected participants together, with a shared day selector and Run, Swim,
+  Weights and Fitness class buttons. Five people with all four activity types fit the short logical
+  TV viewport; phones/tablets reflow, and larger households scroll on the same page.
+- Group by activity only in presentation. Opening a group retains every original session, its goal,
+  exercise quantities, instructions, demonstration link and separate completion command. Preserve
+  effective plans, IDs/history, streak rules, versioning and exact pending-request identity.
+- Keep goals, best streak and weekly totals in each person's Goals & progress dialog. Details and
+  demonstrations restore the precise opener/scroll; missing clips retain instructions.
+- No schema/API, external-video provider, HA, permissions, runtime, or household configuration change.
+
 ## D-132 — Canonical Hearth repository and preserved legacy source
 
-- Date: 2026-11-04; naming/installed-policy verification 2026-11-05. Status: user-approved repository rename; remaining publication tracked
-  in ACCEPTANCE. Supersedes D-130’s deferral of the repository migration.
+- Date: 2026-11-04; completed naming/release verification 2026-11-05. Status: canonical source,
+  websites, image access and private release verified in ACCEPTANCE. Supersedes D-130’s deferral of the repository migration.
 - Rename the original repository to `old_hearth` and this repository to `Hearth`. Preserve both
   immutable repository identities and histories. Canonical Pages moves to `/Hearth/`; update
   public links, local remotes and the portable installer. Keep GHCR package/runtime names.

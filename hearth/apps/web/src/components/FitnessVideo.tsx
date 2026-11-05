@@ -19,6 +19,9 @@ export function FitnessVideo({
     [error, setError] = useState('');
   useEffect(() => {
     const video = ref.current;
+    // React may replay effect setup after cleanup; restore the protected source then.
+    const source = fitnessLibraryApi.video(assetId);
+    if (video && video.getAttribute('src') !== source) video.setAttribute('src', source);
     playRef.current?.focus();
     const hide = () => {
       if (document.hidden) video?.pause();
@@ -37,7 +40,7 @@ export function FitnessVideo({
       video?.removeAttribute('src');
       video?.load();
     };
-  }, []);
+  }, [assetId]);
   async function play(replay = false) {
     const video = ref.current;
     if (!video) return;

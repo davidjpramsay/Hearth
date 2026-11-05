@@ -1,11 +1,11 @@
 import { FitnessVideo } from '../components/FitnessVideo';
 import { fitnessLibraryApi } from '../api/fitnessLibrary';
 import type { FitnessLibraryExercise } from '@hearth/shared';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { localDateInTimezone } from '@hearth/core';
 import {
-  FITNESS_ACTIVITY_LABELS,
+  FITNESS_ACTIVITIES,
   FITNESS_DAY_LABELS,
   FITNESS_DAYS,
   type FitnessOverview,
@@ -20,7 +20,12 @@ import { FailureState, LoadingState } from '../components/Status';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { useHouseholdDateTime } from '../hooks/useHouseholdClock';
 import { useUnsavedChanges } from '../hooks/useUnsavedChanges';
-import { fitnessDate, fitnessIcon, fitnessTarget } from './fitnessPresentation';
+import {
+  fitnessActivityLabel,
+  fitnessDate,
+  fitnessIcon,
+  fitnessTarget,
+} from './fitnessPresentation';
 import './FitnessScreen.css';
 
 export function FitnessScreen() {
@@ -36,6 +41,10 @@ export function FitnessScreen() {
     <FitnessBoard data={query.data} stale={query.isError} refresh={() => void query.refetch()} />
   );
 }
+type FitnessPerson = FitnessOverview['people'][number];
+type FitnessDay = FitnessPerson['days'][number];
+type FitnessActivity = FitnessSession['workout']['activity'];
+
 function FitnessBoard({
   data,
   stale,
@@ -48,12 +57,11 @@ function FitnessBoard({
   const online = useOnlineStatus(),
     client = useQueryClient(),
     clock = useHouseholdDateTime();
-  const [memberId, setMemberId] = useState(''),
-    [dayDate, setDayDate] = useState(''),
-    [page, setPage] = useState(0);
-  const [opened, setOpened] = useState<string | null>(null),
-    [goalsOpen, setGoalsOpen] = useState(false),
-    [peopleOpen, setPeopleOpen] = useState(false);
+  const [dayDate, setDayDate] = useState('');
+  const [opened, setOpened] = useState<{ memberId: string; activity: FitnessActivity } | null>(
+    null,
+  );
+  const [goalsMember, setGoalsMember] = useState<string | null>(null);
   const [busy, setBusy] = useState(false),
     [hasPending, setHasPending] = useState(false),
     [error, setError] = useState<string | null>(null),
@@ -61,28 +69,33 @@ function FitnessBoard({
   const pending = useRef<SetFitnessCompletion | null>(null),
     running = useRef(false);
   useUnsavedChanges(hasPending);
-  const person = data.people.find((p) => p.person.id === memberId) ?? data.people[0];
-  const day =
-    person?.days.find((d) => d.localDate === dayDate) ??
-    person?.days.find((d) => d.localDate === data.localDate) ??
-    person?.days[0];
-  const session = day?.sessions.find((s) => s.workout.id === opened);
-  const oldDay = localDateInTimezone(clock.instant, data.timezone) !== data.localDate;
-  const unavailable = !online || stale || oldDay;
-  const canCheck = !unavailable && !busy && !hasPending && day?.localDate === data.localDate;
-  const sessions = person?.days.flatMap((d) => d.sessions) ?? [],
-    done = sessions.filter((s) => s.isCompleted).length;
-  const pages = Math.max(1, Math.ceil((day?.sessions.length ?? 0) / 4)),
-    activePage = Math.min(page, pages - 1);
-  async function toggle(check?: FitnessSession) {
+  const days = data.people[0]?.days ?? [];
+  const selectedDate = days.some((d) => d.localDate === dayDate) ? dayDate : data.localDate;
+  const person = data.people.find((p) => p.person.id === opened?.memberId);
+  const day = person?.days.find((d) => d.localDate === selectedDate);
+  const activitySessions =
+    day?.sessions.filter((s) => s.workout.activity === opened?.activity) ?? [];
+  const goalPerson = data.people.find((p) => p.person.id === goalsMember);
+  const goalSessions = goalPerson?.days.flatMap((d) => d.sessions) ?? [];
+  const unavailable =
+    !online || stale || localDateInTimezone(clock.instant, data.timezone) !== data.localDate;
+  const canCheck = !unavailable && !busy && !hasPending && selectedDate === data.localDate;
+  async function toggle(check?: FitnessSession, owner?: FitnessPerson, scheduled?: FitnessDay) {
     if (running.current) return;
-    if (!pending.current && check && day && person && canCheck)
+    if (
+      !pending.current &&
+      check &&
+      owner &&
+      scheduled &&
+      scheduled.localDate === data.localDate &&
+      canCheck
+    )
       pending.current = {
         requestId: createRequestId('fitness'),
-        localDate: day.localDate,
-        memberId: person.person.id,
+        localDate: scheduled.localDate,
+        memberId: owner.person.id,
         workoutId: check.workout.id,
-        planRevision: day.planRevision,
+        planRevision: scheduled.planRevision,
         expectedVersion: check.version,
         isCompleted: !check.isCompleted,
       };
@@ -135,23 +148,13 @@ function FitnessBoard({
           <p className="eyebrow">Make time for you</p>
           <h1>Fitness</h1>
         </div>
-        {person ? (
-          <button
-            type="button"
-            className="fitness-person-picker focusable"
-            data-focus-id="fitness-person"
-            data-focus-entry="true"
-            aria-haspopup="dialog"
-            aria-label={`Fitness for ${person.person.displayName}`}
-            onClick={() => setPeopleOpen(true)}
-          >
-            {person.person.displayName}
-            <Icon name="chevron-right" />
-          </button>
-        ) : null}
+        <span className="fitness-date">
+          {selectedDate === data.localDate ? 'Today · ' : ''}
+          {fitnessDate(selectedDate)}
+        </span>
       </header>
-      {!session && !goalsOpen && !peopleOpen ? feedback : null}
-      {!person ? (
+      {!opened && !goalPerson ? feedback : null}
+      {!data.people.length ? (
         <div className="fitness-empty">
           <Icon name="weights" />
           <h2>Your next chapter starts here</h2>
@@ -159,208 +162,145 @@ function FitnessBoard({
         </div>
       ) : (
         <>
-          <div className="fitness-overview">
-            <button
-              type="button"
-              className="fitness-goals focusable"
-              data-focus-id="fitness-goals"
-              onClick={() => setGoalsOpen(true)}
-            >
-              <span className="fitness-kicker">Long-term goals · {person.goals.length}</span>
-              <strong>
-                {person.goals
-                  .filter((g) => !g.achieved)
-                  .map((g) => g.title)
-                  .join(' · ') ||
-                  (person.goals.length ? 'Goals achieved!' : 'A goal to work towards')}
-              </strong>
-              <span>
-                {person.goals.length
-                  ? `View ${person.goals.length === 1 ? 'goal & routine' : `all ${person.goals.length} goals & routines`}`
-                  : 'Set your goals on an adult phone'}{' '}
-                <Icon name="chevron-right" />
-              </span>
-            </button>
-            <div className="fitness-stat">
-              <Icon name="star" />
-              <strong>{person.streak.current}</strong>
-              <span>day streak</span>
-              <small>Best: {person.streak.best} scheduled days</small>
-            </div>
-            <div className="fitness-stat fitness-stat--week">
-              <span className="fitness-kicker">This week</span>
-              <strong>
-                {done}
-                <span> / {sessions.length}</span>
-              </strong>
-              <span>sessions done</span>
-              <progress
-                aria-label="Weekly workouts completed"
-                max={sessions.length || 1}
-                value={done}
-              />
-            </div>
-          </div>
-          {person.weeklyFocus ? (
-            <p className="fitness-focus" title={person.weeklyFocus}>
-              {person.weeklyFocus}
-            </p>
-          ) : null}
           <div className="fitness-days" role="group" aria-label="Workout day">
-            {person.days.map((d, i) => (
+            {days.map((d, i) => (
               <button
                 key={d.localDate}
                 type="button"
                 className={`focusable${d.localDate === data.localDate ? ' fitness-day--today' : ''}`}
-                aria-pressed={d.localDate === day?.localDate}
-                aria-label={`${FITNESS_DAY_LABELS[i]}, ${fitnessDate(d.localDate)}, ${d.sessions.length} workouts`}
-                onClick={() => {
-                  setDayDate(d.localDate);
-                  setPage(0);
-                }}
+                aria-pressed={d.localDate === selectedDate}
+                aria-label={`${FITNESS_DAY_LABELS[i]}, ${fitnessDate(d.localDate)}`}
+                onClick={() => setDayDate(d.localDate)}
                 data-focus-id={`fitness-day-${i}`}
+                data-focus-entry={d.localDate === selectedDate ? 'true' : undefined}
               >
                 <span>{FITNESS_DAY_LABELS[i]!.slice(0, 3)}</span>
                 <strong>{Number(d.localDate.slice(-2))}</strong>
-                <small>
-                  {d.sessions.length
-                    ? `${d.sessions.filter((s) => s.isCompleted).length}/${d.sessions.length}`
-                    : 'Rest'}
-                </small>
               </button>
             ))}
           </div>
-          <div className="fitness-session-heading">
-            <h2>
-              {day?.localDate === data.localDate
-                ? 'Today'
-                : FITNESS_DAY_LABELS[person.days.indexOf(day!)]}
-            </h2>
-            <span>{day ? fitnessDate(day.localDate) : ''}</span>
-          </div>
-          <div className="fitness-workouts">
-            {!day?.sessions.length ? (
-              <div className="fitness-rest">
-                <Icon name="leaf" />
-                <h3>A little room to recharge</h3>
-                <p>No workouts planned. Rest days don’t break your streak.</p>
-              </div>
-            ) : (
-              day.sessions.slice(activePage * 4, activePage * 4 + 4).map((s) => (
-                <button
-                  type="button"
-                  key={s.workout.id}
-                  className={`fitness-workout focusable fitness-workout--${s.workout.activity}${s.isCompleted ? ' fitness-workout--done' : ''}`}
-                  data-focus-id={`fitness-workout-${s.workout.id}`}
-                  onClick={() => setOpened(s.workout.id)}
-                  aria-label={`${s.workout.title}, ${FITNESS_ACTIVITY_LABELS[s.workout.activity]}${s.isCompleted ? ', done' : ''}${s.goal ? `, Goal: ${s.goal.title}` : ''}`}
+          <div
+            className={`fitness-family${data.people.length > 3 ? ' fitness-family--dense' : ''}`}
+            style={{ '--fitness-columns': Math.min(5, data.people.length) } as CSSProperties}
+          >
+            {data.people.map((p) => {
+              const scheduled = p.days.find((d) => d.localDate === selectedDate);
+              const sessions = scheduled?.sessions ?? [];
+              const done = sessions.filter((s) => s.isCompleted).length;
+              return (
+                <section
+                  key={p.person.id}
+                  className="fitness-person"
+                  aria-label={`${p.person.displayName}’s fitness`}
+                  style={{ '--person-color': p.person.color } as CSSProperties}
                 >
-                  <span className="fitness-activity-icon">
-                    <Icon name={fitnessIcon(s.workout.activity)} />
-                  </span>
-                  <span className="fitness-workout__text">
-                    <small className="fitness-workout-goal" title={s.goal?.title}>
-                      {s.goal?.title ?? 'General fitness'}
-                    </small>
-                    <strong>{s.workout.title}</strong>
-                    <span>
-                      {FITNESS_ACTIVITY_LABELS[s.workout.activity]} ·{' '}
-                      {fitnessTarget(s.workout) ||
-                        (s.workout.exercises.length
-                          ? `${s.workout.exercises.length} exercises`
-                          : 'View plan')}
+                  <header className="fitness-person-header">
+                    <img src={p.person.avatarUrl} alt="" width={56} height={56} />
+                    <div>
+                      <h2>{p.person.displayName}</h2>
+                      <p>{sessions.length ? `${done}/${sessions.length} done` : 'Rest day'}</p>
+                    </div>
+                    <span className="fitness-streak" aria-label={`${p.streak.current} day streak`}>
+                      <Icon name="star" />
+                      {p.streak.current}
                     </span>
-                  </span>
-                  <Icon name={s.isCompleted ? 'check' : 'chevron-right'} />
-                </button>
-              ))
-            )}
+                  </header>
+                  <div className="fitness-person-progress" aria-hidden="true">
+                    <span
+                      style={{ width: `${sessions.length ? (done / sessions.length) * 100 : 0}%` }}
+                    />
+                  </div>
+                  <div className="fitness-activities">
+                    {!sessions.length ? (
+                      <p className="fitness-rest">
+                        <Icon name="leaf" />
+                        Room to recharge.
+                        <br />
+                        Rest days keep your streak.
+                      </p>
+                    ) : (
+                      FITNESS_ACTIVITIES.map((activity) => {
+                        const group = sessions.filter((s) => s.workout.activity === activity);
+                        if (!group.length) return null;
+                        const completed = group.filter((s) => s.isCompleted).length;
+                        const allDone = completed === group.length;
+                        return (
+                          <button
+                            key={activity}
+                            type="button"
+                            className={`fitness-workout focusable fitness-workout--${activity}${allDone ? ' fitness-workout--done' : ''}`}
+                            data-focus-id={`fitness-${p.person.id}-${activity}`}
+                            aria-label={`${p.person.displayName}: ${fitnessActivityLabel(activity)}${allDone ? ', done' : ''}`}
+                            aria-describedby={
+                              group.length > 1
+                                ? `fitness-count-${p.person.id}-${activity}`
+                                : undefined
+                            }
+                            onClick={() => setOpened({ memberId: p.person.id, activity })}
+                          >
+                            <span className="fitness-activity-icon">
+                              <Icon name={fitnessIcon(activity)} />
+                            </span>
+                            <strong>{fitnessActivityLabel(activity)}</strong>
+                            {group.length > 1 ? (
+                              <span
+                                className="fitness-activity-count"
+                                id={`fitness-count-${p.person.id}-${activity}`}
+                                aria-label={`${completed} of ${group.length} workouts done`}
+                              >
+                                {completed}/{group.length}
+                              </span>
+                            ) : (
+                              <Icon name={allDone ? 'check' : 'chevron-right'} />
+                            )}
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    className="fitness-goals-link focusable"
+                    aria-label={`${p.person.displayName}’s goals and weekly progress`}
+                    onClick={() => setGoalsMember(p.person.id)}
+                  >
+                    Goals & progress
+                    <Icon name="chevron-right" />
+                  </button>
+                </section>
+              );
+            })}
           </div>
-          <footer className="fitness-footer">
-            <span>Rest days count as rest. Keep showing up.</span>
-            {pages > 1 ? (
-              <div className="fitness-pager">
-                <button
-                  className="button focusable"
-                  type="button"
-                  disabled={activePage === 0}
-                  onClick={() => setPage(activePage - 1)}
-                >
-                  Previous
-                </button>
-                <span>
-                  {activePage + 1} / {pages}
-                </span>
-                <button
-                  className="button focusable"
-                  type="button"
-                  disabled={activePage === pages - 1}
-                  onClick={() => setPage(activePage + 1)}
-                >
-                  More workouts
-                </button>
-              </div>
-            ) : null}
-          </footer>
-          {session ? (
-            <FitnessWorkoutDialog session={session} onClose={() => setOpened(null)}>
-              <p className="fitness-detail-type">
-                <Icon name={fitnessIcon(session.workout.activity)} />
-                {FITNESS_ACTIVITY_LABELS[session.workout.activity]} · {fitnessDate(day!.localDate)}
-                {fitnessTarget(session.workout) ? ` · ${fitnessTarget(session.workout)}` : ''}
-              </p>
+          {opened && person && day && activitySessions.length ? (
+            <FitnessWorkoutDialog
+              sessions={activitySessions}
+              personName={person.person.displayName}
+              localDate={day.localDate}
+              isToday={selectedDate === data.localDate}
+              canCheck={canCheck}
+              busy={busy}
+              onToggle={(session) => void toggle(session, person, day)}
+              onClose={() => setOpened(null)}
+            >
               {feedback}
-              {day?.localDate !== data.localDate ? (
-                <p className="fitness-detail-help">Checks are available on the scheduled day.</p>
-              ) : null}
-              <button
-                className="button button--primary focusable fitness-complete"
-                type="button"
-                aria-pressed={session.isCompleted}
-                aria-disabled={!canCheck}
-                aria-busy={busy}
-                onClick={() => {
-                  if (canCheck) void toggle(session);
-                }}
-              >
-                <Icon name="check" />
-                {session.isCompleted ? 'Undo completed workout' : 'Mark workout done'}
-              </button>
             </FitnessWorkoutDialog>
           ) : null}
-          {peopleOpen ? (
-            <FitnessDialog title="Choose a person" onClose={() => setPeopleOpen(false)}>
-              <FitnessScrollRegion label="People with fitness plans">
-                <div className="fitness-people">
-                  {data.people.map((p) => (
-                    <button
-                      type="button"
-                      className="button focusable"
-                      key={p.person.id}
-                      aria-pressed={p.person.id === person.person.id}
-                      onClick={() => {
-                        setMemberId(p.person.id);
-                        setPage(0);
-                        setOpened(null);
-                        setPeopleOpen(false);
-                      }}
-                    >
-                      {p.person.displayName}
-                    </button>
-                  ))}
-                </div>
-              </FitnessScrollRegion>
-            </FitnessDialog>
-          ) : null}
-          {goalsOpen ? (
+          {goalPerson ? (
             <FitnessDialog
-              title={`${person.person.displayName}’s goals`}
-              onClose={() => setGoalsOpen(false)}
+              title={`${goalPerson.person.displayName}’s goals`}
+              onClose={() => setGoalsMember(null)}
             >
               <FitnessScrollRegion label="Long-term goals">
-                {person.goals.length ? (
+                <p className="fitness-goal-summary">
+                  <strong>{goalPerson.streak.current} day streak</strong> · Best:{' '}
+                  {goalPerson.streak.best} scheduled days
+                  <br />
+                  This week: {goalSessions.filter((s) => s.isCompleted).length} /{' '}
+                  {goalSessions.length} sessions done
+                </p>
+                {goalPerson.goals.length ? (
                   <ul className="fitness-goal-list">
-                    {person.goals.map((g) => (
+                    {goalPerson.goals.map((g) => (
                       <li key={g.id}>
                         <Icon name={g.achieved ? 'check' : 'star'} />
                         <div>
@@ -375,8 +315,11 @@ function FitnessBoard({
                           {g.weeklyFocus ? <p>{g.weeklyFocus}</p> : null}
                           <p className="fitness-goal-progress">
                             This week:{' '}
-                            {sessions.filter((s) => s.goal?.id === g.id && s.isCompleted).length} /{' '}
-                            {sessions.filter((s) => s.goal?.id === g.id).length} sessions done
+                            {
+                              goalSessions.filter((s) => s.goal?.id === g.id && s.isCompleted)
+                                .length
+                            }{' '}
+                            / {goalSessions.filter((s) => s.goal?.id === g.id).length} sessions done
                           </p>
                           {g.routine.length ? (
                             <ul
@@ -406,10 +349,10 @@ function FitnessBoard({
                 ) : (
                   <p>Add long-term goals in Fitness settings on an adult phone.</p>
                 )}
-                {person.weeklyFocus ? (
+                {goalPerson.weeklyFocus ? (
                   <>
                     <h3>Weekly focus</h3>
-                    <p>{person.weeklyFocus}</p>
+                    <p>{goalPerson.weeklyFocus}</p>
                   </>
                 ) : null}
                 <p>
@@ -466,11 +409,23 @@ function FitnessFeedback({
   );
 }
 function FitnessWorkoutDialog({
-  session,
+  sessions,
+  personName,
+  localDate,
+  isToday,
+  canCheck,
+  busy,
+  onToggle,
   onClose,
   children,
 }: {
-  session: FitnessSession;
+  sessions: FitnessSession[];
+  personName: string;
+  localDate: string;
+  isToday: boolean;
+  canCheck: boolean;
+  busy: boolean;
+  onToggle: (session: FitnessSession) => void;
   onClose: () => void;
   children: React.ReactNode;
 }) {
@@ -482,6 +437,12 @@ function FitnessWorkoutDialog({
   const [watch, setWatch] = useState<string | null>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
   const exercise = library.data?.exercises.find((e) => e.id === watch);
+  const firstSession = sessions[0];
+  const title = firstSession
+    ? sessions.length === 1
+      ? firstSession.workout.title
+      : fitnessActivityLabel(firstSession.workout.activity)
+    : 'Workout';
   const back = () => {
     setWatch(null);
     requestAnimationFrame(() => {
@@ -491,20 +452,58 @@ function FitnessWorkoutDialog({
   };
   return (
     <FitnessDialog
-      title={watch && exercise ? exercise.name : session.workout.title}
+      title={watch && exercise ? exercise.name : title}
       closeLabel={watch ? 'Back to exercises' : 'Close'}
       onClose={watch ? back : onClose}
       video={watch !== null}
     >
       <div hidden={watch !== null} className="fitness-workout-detail-body">
-        <WorkoutDetails
-          session={session}
-          library={library.data?.exercises ?? []}
-          onWatch={(id, button) => {
-            opener.current = button;
-            setWatch(id);
-          }}
-        />
+        <p className="fitness-detail-type">
+          {personName} · {fitnessDate(localDate)}
+        </p>
+        <FitnessScrollRegion label="Workout instructions">
+          {sessions.map((session) => (
+            <section
+              key={session.workout.id}
+              className="fitness-session-detail"
+              aria-label={session.workout.title}
+            >
+              {sessions.length > 1 ? <h3>{session.workout.title}</h3> : null}
+              {fitnessTarget(session.workout) ? (
+                <p className="fitness-detail-type">{fitnessTarget(session.workout)}</p>
+              ) : null}
+              <WorkoutDetails
+                session={session}
+                library={library.data?.exercises ?? []}
+                onWatch={(id, button) => {
+                  opener.current = button;
+                  setWatch(id);
+                }}
+              />
+              <button
+                className="button button--primary focusable fitness-complete"
+                type="button"
+                aria-pressed={session.isCompleted}
+                aria-disabled={!canCheck}
+                aria-busy={busy}
+                aria-label={
+                  sessions.length > 1
+                    ? `${session.isCompleted ? 'Undo' : 'Complete'} ${session.workout.title}`
+                    : undefined
+                }
+                onClick={() => {
+                  if (canCheck) onToggle(session);
+                }}
+              >
+                <Icon name="check" />
+                {session.isCompleted ? 'Undo completed workout' : 'Mark workout done'}
+              </button>
+            </section>
+          ))}
+        </FitnessScrollRegion>
+        {!isToday ? (
+          <p className="fitness-detail-help">Checks are available on the scheduled day.</p>
+        ) : null}
         {library.isError ? (
           <p className="fitness-detail-help">
             Demonstrations could not refresh. Your workout details are still here.{' '}
@@ -545,7 +544,7 @@ function WorkoutDetails({
   onWatch: (id: string, button: HTMLButtonElement) => void;
 }) {
   return (
-    <FitnessScrollRegion label="Workout instructions">
+    <>
       {session.goal ? <p className="fitness-detail-goal">Goal: {session.goal.title}</p> : null}
       {session.workout.notes ? (
         <p className="fitness-detail-notes">{session.workout.notes}</p>
@@ -570,7 +569,7 @@ function WorkoutDetails({
                       <button
                         className="button focusable fitness-exercise-watch"
                         type="button"
-                        data-focus-id={`exercise-watch-${e.id}`}
+                        data-focus-id={`exercise-watch-${session.workout.id}-${e.id}`}
                         aria-label={`Watch ${e.name} demonstration`}
                         onClick={(event) => onWatch(entry.id, event.currentTarget)}
                       >
@@ -595,7 +594,7 @@ function WorkoutDetails({
       ) : !session.workout.notes ? (
         <p>Your time to move. An adult can add workout instructions in settings.</p>
       ) : null}
-    </FitnessScrollRegion>
+    </>
   );
 }
 // Labelled scroll regions must be keyboard focusable to read long plans on a TV.

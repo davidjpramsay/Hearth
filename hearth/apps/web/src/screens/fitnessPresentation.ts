@@ -18,3 +18,7 @@ export function fitnessTarget(workout: FitnessWorkout) {
     .filter(Boolean)
     .join(' · ');
 }
+
+export function fitnessActivityLabel(activity: FitnessWorkout['activity']) {
+  return { running: 'Run', swimming: 'Swim', weights: 'Weights', class: 'Fitness class' }[activity];
+}

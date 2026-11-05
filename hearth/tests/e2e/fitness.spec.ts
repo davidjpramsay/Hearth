@@ -4,13 +4,10 @@ import { mkdir } from 'node:fs/promises';
 test('goals show their own routines and daily cards keep their goal labels', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto('/fitness');
-  await expect(page.locator('.fitness-workout-goal')).toHaveText([
-    'Run a comfortable 5 km',
-    'Run a comfortable 5 km',
-    'Build full-body strength',
-    'Build full-body strength',
-  ]);
-  const goals = page.locator('[data-focus-id="fitness-goals"]');
+  await expect(page.locator('.fitness-person')).toHaveCount(2);
+  await expect(page.getByRole('button', { name: 'Maya: Run', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Maya: Swim', exact: true })).toBeVisible();
+  const goals = page.getByRole('button', { name: 'Maya’s goals and weekly progress', exact: true });
   await goals.focus();
   await page.keyboard.press('Enter');
   const dialog = page.getByRole('dialog');
@@ -82,7 +79,7 @@ test('earlier unassigned workouts can join a goal without losing identity or cur
     data: { requestId: 'request_legacy_settings', expectedRevision: 0, configuration: legacy },
   });
   await page.goto('/fitness');
-  await page.getByRole('button', { name: 'Easy run, Running' }).click();
+  await page.getByRole('button', { name: 'Ezra: Run' }).click();
   await page.getByRole('button', { name: 'Mark workout done' }).click();
   await expect(page.getByRole('button', { name: 'Undo completed workout' })).toBeVisible();
   await page.goto('/admin/fitness');
@@ -101,8 +98,9 @@ test('earlier unassigned workouts can join a goal without losing identity or cur
   expect(ezra.workouts[0].goalId).toBe('goal_member_ezra');
   expect(ezra.workouts[1].goalId).toBeUndefined();
   await page.goto('/fitness');
-  await expect(page.getByRole('button', { name: 'Easy run, Running, done' })).toBeVisible();
-  await expect(page.locator('.fitness-workout-goal').first()).toHaveText('General fitness');
+  await expect(page.getByRole('button', { name: 'Ezra: Run, done' })).toBeVisible();
+  await page.getByRole('button', { name: 'Ezra: Run, done', exact: true }).click();
+  await expect(page.getByRole('dialog').getByText('Goal:', { exact: false })).toHaveCount(0);
 });
 const api = 'http://127.0.0.1:4310/api/v1',
   home = `${api}/households/household_hearth_demo`;
@@ -194,7 +192,7 @@ for (const viewport of [
       await expect(page).toHaveTitle(/Hearth/);
       await expect(page).toHaveURL(/\/fitness$/);
       await expect(page.getByRole('heading', { name: 'Fitness', exact: true })).toBeVisible();
-      await expect(page.getByRole('button', { name: 'Full-body strength, Weights' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Maya: Weights' })).toBeVisible();
       await expect(page.locator('vite-error-overlay')).toHaveCount(0);
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
@@ -212,7 +210,7 @@ for (const viewport of [
           path: `/tmp/hearth-fitness-goals-evidence/fitness-${viewport.width}-${theme}.png`,
         });
       }
-      const opener = page.getByRole('button', { name: 'Full-body strength, Weights' });
+      const opener = page.getByRole('button', { name: 'Maya: Weights' });
       await opener.click();
       const dialog = page.getByRole('dialog');
       await expect(dialog.getByRole('heading', { name: 'Full-body strength' })).toBeVisible();
@@ -241,37 +239,29 @@ test('TV check, undo, Sunday details and rest-day navigation survive reopening',
   await page.getByRole('link', { name: 'Fitness', exact: true }).click();
   await expect(page.getByRole('link', { name: 'Fitness', exact: true })).toBeFocused();
   await page.keyboard.press('ArrowRight');
-  await expect(page.locator('[data-focus-id="fitness-person"]')).toBeFocused();
+  await expect(page.locator('[data-focus-id="fitness-day-0"]')).toBeFocused();
   await page.keyboard.press('ArrowDown');
-  await expect(page.locator(':focus')).not.toHaveAttribute('data-focus-id', 'fitness-person');
-  await page.locator('[data-focus-id="fitness-person"]').focus();
-  await page.keyboard.press('Enter');
-  await page.getByRole('button', { name: 'Maya', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Fitness for Maya' })).toBeFocused();
-  await page.getByRole('button', { name: 'Full-body strength, Weights' }).click();
+  await expect(page.locator(':focus')).not.toHaveAttribute('data-focus-id', 'fitness-day-0');
+  await page.getByRole('button', { name: 'Maya: Weights' }).click();
   await page.getByRole('button', { name: 'Mark workout done' }).click();
   await expect(page.getByRole('button', { name: 'Undo completed workout' })).toBeVisible();
   await page.keyboard.press('Escape');
   await page.reload();
-  await page.getByRole('button', { name: 'Fitness for Ezra' }).click();
-  await page.getByRole('button', { name: 'Maya', exact: true }).click();
-  await expect(
-    page.getByRole('button', { name: 'Full-body strength, Weights, done' }),
-  ).toBeVisible();
-  await page.getByRole('button', { name: 'Full-body strength, Weights, done' }).click();
+  await expect(page.getByRole('button', { name: 'Maya: Weights, done' })).toBeVisible();
+  await page.getByRole('button', { name: 'Maya: Weights, done' }).click();
   await page.getByRole('button', { name: 'Undo completed workout' }).click();
   await expect(page.getByRole('button', { name: 'Mark workout done' })).toBeVisible();
   await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: /Sunday,.*1 workouts/ }).click();
-  await page.getByRole('button', { name: 'Full-body strength, Weights' }).click();
+  await page.getByRole('button', { name: /^Sunday,/ }).click();
+  await page.getByRole('button', { name: 'Maya: Weights' }).click();
   await expect(page.getByText('Checks are available on the scheduled day.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Mark workout done' })).toHaveAttribute(
     'aria-disabled',
     'true',
   );
   await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: /Tuesday,.*0 workouts/ }).click();
-  await expect(page.getByRole('heading', { name: 'A little room to recharge' })).toBeVisible();
+  await page.getByRole('button', { name: /^Tuesday,/ }).click();
+  await expect(page.getByText('Room to recharge.', { exact: false })).toHaveCount(2);
   for (let n = 0; n < 10; n++) await page.keyboard.press('ArrowLeft');
   await expect(page.locator(':focus')).toHaveAttribute('data-focus-id', /nav-/);
 });
@@ -335,7 +325,7 @@ test('unknown check result retries the exact command without double counting', a
     } else await route.fulfill({ response });
   });
   await page.goto('/fitness');
-  await page.getByRole('button', { name: 'Full-body strength, Weights' }).click();
+  await page.getByRole('button', { name: 'Maya: Weights' }).click();
   await page.getByRole('button', { name: 'Mark workout done' }).click();
   await expect(page.getByRole('button', { name: 'Retry check' })).toBeVisible();
   await page.getByRole('button', { name: 'Retry check' }).click();
@@ -380,7 +370,11 @@ test('long instructions stay within the TV and scroll with arrows; focus stays i
   await page.route('**/api/v1/households/*/fitness', (route) => route.fulfill({ json: data }));
   await page.setViewportSize({ width: 1366, height: 768 });
   await page.goto('/fitness');
-  await page.getByRole('button', { name: new RegExp(workout.title) }).focus();
+  const activity = page.getByRole('button', {
+    name: `${data.people[0].person.displayName}: Weights`,
+    exact: true,
+  });
+  await activity.focus();
   await page.keyboard.press('Enter');
   await expect(page.getByRole('button', { name: 'Close', exact: true })).toBeFocused();
   await page.keyboard.press('ArrowDown');
@@ -391,7 +385,7 @@ test('long instructions stay within the TV and scroll with arrows; focus stays i
   await region.evaluate((el) => {
     el.scrollTop = el.scrollHeight;
   });
-  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Tab');
   await expect(page.getByRole('button', { name: 'Mark workout done' })).toBeFocused();
   for (let i = 0; i < 10; i++) {
     await page.keyboard.press('Tab');
@@ -400,14 +394,14 @@ test('long instructions stay within the TV and scroll with arrows; focus stays i
     ).toBe(true);
   }
   await page.keyboard.press('Escape');
-  await expect(page.getByRole('button', { name: new RegExp(workout.title) })).toBeFocused();
+  await expect(activity).toBeFocused();
 });
 test('offline saved view disables checks and retains readable instructions', async ({
   page,
   context,
 }) => {
   await page.goto('/fitness');
-  await page.getByRole('button', { name: 'Full-body strength, Weights' }).click();
+  await page.getByRole('button', { name: 'Maya: Weights' }).click();
   await context.setOffline(true);
   await expect(page.getByRole('button', { name: 'Mark workout done' })).toHaveAttribute(
     'aria-disabled',
@@ -469,26 +463,26 @@ test('first plan can be created from an empty phone setup and used today', async
   await page.getByRole('button', { name: 'Save Fitness', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('Ready to use today');
   await page.goto('/fitness');
-  await expect(page.locator('.fitness-workout-goal')).toHaveText([
-    'Build a steady exercise habit',
-    'Run a comfortable 5 km',
-  ]);
-  await page.getByRole('button', { name: 'Strength session, Weights' }).click();
+  await page.getByRole('button', { name: 'Maya: Weights', exact: true }).click();
+  await expect(
+    page.getByText('Goal: Build a steady exercise habit', { exact: true }),
+  ).toBeVisible();
   await expect(page.getByRole('row', { name: 'Squat 20 3 8' })).toBeVisible();
   await page.getByRole('button', { name: 'Mark workout done' }).click();
   await expect(page.getByRole('button', { name: 'Undo completed workout' })).toBeVisible();
   await page.keyboard.press('Escape');
-  await expect(page.locator('.fitness-stat').first().locator('strong')).toHaveText('0');
-  await page.getByRole('button', { name: 'Gentle run, Running' }).click();
+  await expect(page.getByLabel('0 day streak', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Maya: Run', exact: true }).click();
   await page.getByRole('button', { name: 'Mark workout done' }).click();
   await expect(page.getByRole('button', { name: 'Undo completed workout' })).toBeVisible();
   await page.keyboard.press('Escape');
-  await expect(page.locator('.fitness-stat').first()).toContainText('1');
-  await page.getByRole('button', { name: /Wednesday,.*1 workouts/ }).click();
+  await expect(page.getByLabel('1 day streak', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: /^Wednesday,/ }).click();
   await expect(page.locator('.fitness-workout')).toHaveCount(1);
-  await expect(page.locator('.fitness-workout-goal')).toHaveText('Run a comfortable 5 km');
+  await page.getByRole('button', { name: 'Maya: Run', exact: true }).click();
+  await expect(page.getByText('Goal: Run a comfortable 5 km', { exact: true })).toBeVisible();
 });
-test('many workouts page within the TV without losing the later sessions', async ({
+test('all same-activity routines stay behind one broad activity, including the fourteenth', async ({
   page,
   request,
 }) => {
@@ -496,20 +490,250 @@ test('many workouts page within the TV without losing the later sessions', async
   const day = data.people[0].days[0];
   day.sessions = Array.from({ length: 14 }, (_, i) => ({
     ...day.sessions[0],
-    workout: { ...day.sessions[0].workout, id: `page_workout_${i}`, title: `Session ${i + 1}` },
+    workout: { ...day.sessions[0].workout, id: `group_workout_${i}`, title: `Session ${i + 1}` },
   }));
   await page.route('**/api/v1/households/*/fitness', (route) => route.fulfill({ json: data }));
   await page.setViewportSize({ width: 1280, height: 640 });
   await page.goto('/fitness');
-  await expect(page.locator('.fitness-workout')).toHaveCount(4);
-  expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1)).toBe(
-    true,
-  );
-  const more = page.getByRole('button', { name: 'More workouts', exact: true });
-  for (let i = 0; i < 3; i++) await more.click();
-  await expect(page.locator('.fitness-workout')).toHaveCount(2);
-  await page.getByRole('button', { name: /Session 14, Running/ }).click();
-  await expect(page.getByRole('heading', { name: 'Session 14', exact: true })).toBeVisible();
+  const person = page.getByRole('region', {
+    name: `${data.people[0].person.displayName}’s fitness`,
+    exact: true,
+  });
+  await expect(person.locator('.fitness-workout')).toHaveCount(1);
+  await expect(person.locator('.fitness-activity-count')).toHaveText('0/14');
+  await person.getByRole('button', { name: /: Run$/ }).click();
+  await expect(page.getByRole('heading', { name: 'Session 14', exact: true })).toBeAttached();
+  const last = page.getByRole('button', { name: 'Complete Session 14', exact: true });
+  await last.focus();
+  await expect(last).toBeInViewport();
   await page.keyboard.press('Escape');
-  await expect(page.getByRole('button', { name: /Session 14, Running/ })).toBeFocused();
+  await expect(person.getByRole('button', { name: /: Run$/ })).toBeFocused();
+});
+
+for (const viewport of [
+  { width: 1920, height: 1080 },
+  { width: 3840, height: 2160 },
+  { width: 1366, height: 768 },
+  { width: 1280, height: 640 },
+  { width: 390, height: 844 },
+  { width: 820, height: 1180 },
+])
+  for (const theme of ['light', 'dark'] as const) {
+    test(`five people and all activities fit ${viewport.width} ${theme} @visual @a11y`, async ({
+      page,
+      request,
+    }) => {
+      const data = await (await request.get(`${home}/fitness`)).json();
+      const original = data.people[0];
+      data.people = ['Ezra', 'Maya', 'Alex', 'Noah', 'Zara'].map((name, i) => ({
+        ...structuredClone(original),
+        person: { ...original.person, id: `family_${i}`, displayName: name },
+      }));
+      await page.route('**/api/v1/households/*/fitness', (route) => route.fulfill({ json: data }));
+      const errors: string[] = [];
+      page.on('pageerror', (e) => errors.push(e.message));
+      page.on('console', (m) => {
+        if (['error', 'warning'].includes(m.type())) errors.push(m.text());
+      });
+      await page.setViewportSize(viewport);
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
+      await page.goto('/fitness');
+      await expect(page.locator('.fitness-person')).toHaveCount(5);
+      await expect(page.locator('.fitness-workout')).toHaveCount(20);
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+      ).toBe(true);
+      if (viewport.width >= 1200) {
+        for (const person of await page.locator('.fitness-person').all()) {
+          const bounds = await person.boundingBox();
+          expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(viewport.height);
+          expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width);
+        }
+        expect(
+          await page
+            .locator('.app-content')
+            .evaluate((el) => el.scrollHeight <= el.clientHeight + 1),
+        ).toBe(true);
+      }
+      expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+      await mkdir('/tmp/hearth-fitness-family-evidence', { recursive: true });
+      await page.screenshot({
+        path: `/tmp/hearth-fitness-family-evidence/family-${viewport.width}-${theme}.png`,
+        fullPage: viewport.width < 1200,
+      });
+      const card = page.getByRole('button', { name: 'Zara: Weights', exact: true });
+      await card.click();
+      await expect(page.getByRole('rowheader', { name: 'Squat' })).toBeVisible();
+      await page.keyboard.press('Escape');
+      await expect(card).toBeFocused();
+      if (viewport.width === 1280) {
+        await page.getByRole('button', { name: 'Ezra: Weights', exact: true }).focus();
+        for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowRight');
+        await expect(card).toBeFocused();
+        await page.keyboard.press('Enter');
+        await expect(page.getByRole('dialog')).toHaveAccessibleName('Full-body strength');
+        await page.keyboard.press('Escape');
+        await expect(card).toBeFocused();
+        for (let i = 0; i < 6; i++) await page.keyboard.press('ArrowLeft');
+        await expect(page.locator(':focus')).toHaveAttribute('data-focus-id', /nav-/);
+      }
+      expect(errors).toEqual([]);
+    });
+  }
+
+test('an unknown check stays bound to its person when another activity is opened', async ({
+  page,
+}) => {
+  const commands: Array<{ memberId: string; workoutId: string }> = [];
+  let fail = true;
+  await page.route('**/fitness/completion', async (route) => {
+    commands.push(route.request().postDataJSON());
+    const response = await route.fetch();
+    if (fail) {
+      fail = false;
+      await route.abort();
+    } else await route.fulfill({ response });
+  });
+  await page.goto('/fitness');
+  await page.getByRole('button', { name: 'Maya: Weights', exact: true }).click();
+  await page.getByRole('button', { name: 'Mark workout done', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Retry check' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Ezra: Weights', exact: true }).click();
+  await expect(
+    page.getByRole('button', { name: 'Mark workout done', exact: true }),
+  ).toHaveAttribute('aria-disabled', 'true');
+  await page.getByRole('button', { name: 'Retry check' }).click();
+  await expect(
+    page.getByRole('button', { name: 'Mark workout done', exact: true }),
+  ).toHaveAttribute('aria-disabled', 'false');
+  expect(commands).toHaveLength(2);
+  expect(commands[0]!.memberId).toBe('member_maya');
+  expect(commands[1]).toEqual(commands[0]);
+  await page.keyboard.press('Escape');
+  await expect(
+    page.getByRole('button', { name: 'Maya: Weights, done', exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Ezra: Weights', exact: true })).toBeVisible();
+});
+
+test('two goals of the same activity keep independent checks and quantities', async ({
+  page,
+  request,
+}) => {
+  await request.post(`${api}/demo/reset`);
+  await request.put(`${home}/modules/fitness`, {
+    headers: adult,
+    data: { requestId: 'request_group_on', enabled: true },
+  });
+  const grouped = structuredClone(configuration);
+  grouped.selectedMemberIds = ['member_maya'];
+  grouped.plans = [grouped.plans[0]!];
+  grouped.plans[0]!.workouts.push({
+    ...grouped.plans[0]!.workouts[0]!,
+    id: 'workout_second_run',
+    goalId: 'goal_strength_member_maya',
+    title: 'Hill intervals',
+    durationMinutes: 15,
+    distanceKm: 1,
+  });
+  expect(
+    (
+      await request.put(`${home}/fitness/settings`, {
+        headers: adult,
+        data: { requestId: 'request_group_setup', expectedRevision: 0, configuration: grouped },
+      })
+    ).ok(),
+  ).toBe(true);
+  await page.goto('/fitness');
+  const activity = page.getByRole('button', { name: 'Maya: Run', exact: true });
+  await expect(activity).toContainText('0/2');
+  await expect(activity).toHaveAccessibleDescription('0 of 2 workouts done');
+  await activity.click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByText('Goal: Run a comfortable 5 km', { exact: true })).toBeVisible();
+  await expect(dialog.getByText('Goal: Build full-body strength', { exact: true })).toBeVisible();
+  await expect(dialog.getByText('30 min · 3 km', { exact: true })).toBeVisible();
+  await expect(dialog.getByText('15 min · 1 km', { exact: true })).toBeVisible();
+  await dialog.getByRole('button', { name: 'Complete Easy run', exact: true }).click();
+  await expect(dialog.getByRole('button', { name: 'Undo Easy run', exact: true })).toBeVisible();
+  await expect(
+    dialog.getByRole('button', { name: 'Complete Hill intervals', exact: true }),
+  ).toBeVisible();
+  const overview = await (await request.get(`${home}/fitness`)).json();
+  const today = overview.people[0].days.find(
+    (d: { localDate: string }) => d.localDate === overview.localDate,
+  );
+  expect(today.sessions.filter((s: { isCompleted: boolean }) => s.isCompleted)).toHaveLength(1);
+  await page.keyboard.press('Escape');
+  await expect(activity).toContainText('1/2');
+  await expect(activity).toBeFocused();
+  await activity.click();
+  await dialog.getByRole('button', { name: 'Complete Hill intervals', exact: true }).click();
+  await expect(
+    dialog.getByRole('button', { name: 'Undo Hill intervals', exact: true }),
+  ).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button', { name: 'Maya: Run, done', exact: true })).toContainText(
+    '2/2',
+  );
+  await expect(page.getByLabel('0 day streak', { exact: true })).toBeVisible();
+});
+
+test('large households keep every participant on the same page without a picker', async ({
+  page,
+  request,
+}) => {
+  const data = await (await request.get(`${home}/fitness`)).json();
+  data.people = Array.from({ length: 20 }, (_, i) => ({
+    ...structuredClone(data.people[0]),
+    person: { ...data.people[0].person, id: `large_${i}`, displayName: `Person ${i + 1}` },
+  }));
+  await page.route('**/api/v1/households/*/fitness', (route) => route.fulfill({ json: data }));
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto('/fitness');
+  await expect(page.locator('.fitness-person')).toHaveCount(20);
+  const last = page.getByRole('button', { name: 'Person 20: Weights', exact: true });
+  await last.focus();
+  await expect(last).toBeInViewport();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('rowheader', { name: 'Squat' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(last).toBeFocused();
+});
+
+test('five full plans keep grouped counts and labels inside the short TV', async ({
+  page,
+  request,
+}) => {
+  const data = await (await request.get(`${home}/fitness`)).json();
+  const original = data.people[0];
+  data.people = ['Alexandria Patterson', 'Maya', 'Alex', 'Noah', 'Zara'].map((name, i) => {
+    const person = structuredClone(original);
+    person.person = { ...person.person, id: `full_${i}`, displayName: name };
+    person.days[0].sessions = Array.from({ length: 14 }, (_, j) => ({
+      ...structuredClone(original.days[0].sessions[j % 4]),
+      workout: {
+        ...structuredClone(original.days[0].sessions[j % 4].workout),
+        id: `full_${i}_${j}`,
+      },
+    }));
+    return person;
+  });
+  await page.route('**/api/v1/households/*/fitness', (route) => route.fulfill({ json: data }));
+  await page.setViewportSize({ width: 1280, height: 640 });
+  await page.goto('/fitness');
+  await expect(page.locator('.fitness-workout')).toHaveCount(20);
+  expect(
+    await page.locator('.app-content').evaluate((el) => el.scrollHeight <= el.clientHeight + 1),
+  ).toBe(true);
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  for (const card of await page.locator('.fitness-workout').all()) {
+    const label = await card.locator('strong').boundingBox();
+    const count = await card.locator('.fitness-activity-count').boundingBox();
+    expect(label!.x + label!.width).toBeLessThanOrEqual(count!.x);
+    expect(
+      await card.locator('strong').evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
+    ).toBe(true);
+  }
 });

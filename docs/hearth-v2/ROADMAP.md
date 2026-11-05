@@ -8,6 +8,13 @@ TV remote Back/focus, and phone/tablet/TV layouts. Keep public puzzle archives e
 release source. Local acceptance does not claim a deployed update or physical TV/iPhone proof.
 Online multiplayer and external content downloading are outside this slice.
 
+## Fitness family board (D-134) — requested 2026-11-05
+
+Replace the one-person picker with all selected participants and broad daily activities. Preserve
+plans, separate session checks, goal routines, streaks and exact retries. Verify five-person/four-
+activity TV fit, responsive phone/tablet, long/multiple-session details and demonstration Back/focus.
+Publication, private deployment and actual TV/iPhone acceptance remain separate from local evidence.
+
 ## Fitness demonstrations (D-129) — requested 2026-11-04
 
 Add and verify reusable exercise library, optional plan links, private bounded uploads/range reads,
@@ -19,7 +26,7 @@ configuration is part of this implementation. Canonical behavior: FITNESS_CONTRA
 ## Fitness (D-128) — requested 2026-11-04
 
 Implement the optional end-to-end module: explicit participants, multiple long-term goals with their
-own weekly routines, a combined daily checklist with goal labels, workout details, TV checks,
+own weekly routines, an all-participant daily board with broad activities and goal-labelled details, TV checks,
 scheduled-day streaks, history-safe editing and adult setup. Preserve earlier unassigned routines
 and exact receipts while adding goal associations. Verify
 shared/core validation, SQLite/migration/atomic retry/access isolation, UI state recovery, supported

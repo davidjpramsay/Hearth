@@ -107,9 +107,7 @@ test.beforeEach(async ({ request }) => {
 });
 async function openVideo(page: Page) {
   await page.goto('/fitness');
-  await page
-    .getByRole('button', { name: 'Sunday weights, Weights, Goal: Build strength', exact: true })
-    .click();
+  await page.getByRole('button', { name: 'Maya: Weights', exact: true }).click();
   await expect(page.getByText('Stretch written instructions.', { exact: true })).toBeVisible();
   const exercise = page.getByRole('button', { name: 'Watch Squat demonstration' });
   await exercise.click();
@@ -149,7 +147,7 @@ test('remote Play/Pause/Replay/Back keep the exact exercise and workout check', 
   await page.keyboard.press('Escape');
   await expect(
     page.getByRole('button', {
-      name: 'Sunday weights, Weights, Goal: Build strength',
+      name: 'Maya: Weights',
       exact: true,
     }),
   ).toBeFocused();
@@ -268,9 +266,7 @@ test('unavailable clip can be retried, and deleted demonstrations leave workout 
     route.fulfill({ status: 503, body: '' }),
   );
   await page.goto('/fitness');
-  await page
-    .getByRole('button', { name: 'Sunday weights, Weights, Goal: Build strength', exact: true })
-    .click();
+  await page.getByRole('button', { name: 'Maya: Weights', exact: true }).click();
   await page.getByRole('button', { name: 'Watch Squat demonstration' }).click();
   await expect(page.getByRole('alert')).toContainText('unavailable');
   await page.unroute('**/api/v1/households/*/fitness/demonstrations/*');
@@ -360,10 +356,8 @@ test('Sunday long workout returns to the same exercise and scroll position', asy
     },
   });
   await page.goto('/fitness');
-  await page.getByRole('button', { name: 'Sunday, 9 Aug, 1 workouts', exact: true }).click();
-  await page
-    .getByRole('button', { name: 'Sunday weights, Weights, Goal: Build strength', exact: true })
-    .click();
+  await page.getByRole('button', { name: 'Sunday, 9 Aug', exact: true }).click();
+  await page.getByRole('button', { name: 'Maya: Weights', exact: true }).click();
   const last = page.getByRole('button', { name: 'Watch Movement 20 demonstration' });
   await last.focus();
   await last.scrollIntoViewIfNeeded();

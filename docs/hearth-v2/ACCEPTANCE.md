@@ -1,5 +1,48 @@
 # Hearth v2 acceptance and definition of done
 
+## Fitness family board — D-134, local proof 2026-11-05
+
+All selected participants now share one daily page. Run, Swim, Weights and Fitness class open the
+original sessions, with goal labels, quantities, instructions, optional demonstrations and separate
+check/undo. Five people with four activities each fit 1280×640 through 4K without page overflow;
+phones stack panels and tablets reflow. Even five full fourteen-session plans remain bounded by
+four activity groups. Twenty-person households remain on the same scrollable page rather than a
+picker. Goals & progress retains routines, current/best streak and weekly totals.
+
+Passed in the isolated Fitness worktree:
+
+- `pnpm verify:code`: formatting, lint, strict type checks, **773 unit tests**, **312 API/integration
+  tests**, **32 migration tests**, deployment/installer checks, production web/server builds and
+  isolated fresh private backend/owner/Today proof. Existing plans, receipts and API are unchanged.
+- `pnpm verify:ci`: workflow policy checks and complete non-overlapping **1,436-test** shard catalogue.
+  This validates the catalogue, not execution of the whole browser suite.
+- `pnpm exec playwright test --config /tmp/hearth-fitness-built.config.ts fitness.spec.ts
+fitness-demonstrations.spec.ts modules.spec.ts`: **68 passed**, against the production build.
+  The local config retains the CI servers/demo fixture and selects installed Chrome. The Browser
+  plugin was not available, so repository Playwright was used. Both themes, 1280×640, 1366×768,
+  1920×1080, 3840×2160, phone portrait/landscape and tablet sizes were covered.
+- After the final grouped-count accessibility description, targeted lint/typecheck/web build and
+  `pnpm exec playwright test --config /tmp/hearth-fitness-built.config.ts fitness.spec.ts
+--grep 'two goals|five full plans'`: **2 passed**, including accessible completion descriptions,
+  Axe and label/count bounds for five full plans.
+- Route/title/nonblank/overlay and console checks pass. Remote arrows cross all five people and
+  return to the rail; Select/Back restore activity focus. Checks/undo, scheduled-day gating, stale/
+  offline reads, exact retry after switching people, shared-activity independent completions,
+  goal/history preservation, video Play/Pause/Replay and exact exercise/scroll restoration pass.
+- `git diff --check` passes. Screenshots were visually inspected outside Git in
+  `/tmp/hearth-fitness-family-evidence`, `/tmp/hearth-fitness-goals-evidence` and
+  `/tmp/hearth-fitness-demonstrations`.
+
+Resolved during verification: a missing CSS fallback, obsolete one-person test selectors, narrow-TV
+wrapping/overflow and a pre-existing development StrictMode cleanup that removed the video source.
+The latter now restores only its protected source on effect setup, with a regression proving no
+autoplay and source release on close. Final checks have no remaining failures.
+
+Not run for D-134: GitHub publication, private deployment, physical Google TV and actual iPhone Safari
+acceptance. No live Fitness configuration, household data, HA, pairing, networking, video provider,
+API or schema change is included. The earlier canonical repository release is separately deployed
+below; it must not be described as deploying this subsequent Fitness refinement.
+
 ## Repository naming migration — 2026-11-05 (D-132)
 
 The owner completed the private maintenance step. Installed verifier SHA-256 is
@@ -13,10 +56,21 @@ The installed privileged verifier accepts existing release `24f6a2c` under the c
 The unchanged `GitHubVerifiedReleaseProvider` with the old configured `hearth-v2` name followed
 GitHub's redirect and returned that same release. Trusted private readiness remained ready/private.
 
-The prepared policy previously passed 10 isolated Linux-root tests and 14 portable installer tests.
-Canonical public links, Pages publication, matching setup downloads, legacy notice/archive and final
-registry/release verification are completed separately from the naming API operations; evidence
-will be recorded with the resulting canonical release. Source and app contracts remain unchanged.
+Canonical release `ad78e40d5c5d250743148cf62ad095ac227b3313` is pushed and deployed privately.
+Hosted Verify Hearth run `41944757170` passed all eight jobs, including 1,420 browser tests and
+published verified images. Canonical Pages run `41944757341` passed; the old site's archive notice
+run `41944473873` passed and `old_hearth` is now archived. The two public sites were rendered on
+desktop/mobile, with a working preview gallery and no console warnings/errors. Both unchanged
+GHCR package names allow anonymous pulls of the exact canonical release. The protected policy
+also passed ten isolated Linux-root tests; the portable installer tests passed fourteen cases.
+
+`activate-private-release.sh ad78e40d5c5d250743148cf62ad095ac227b3313` passed through the existing
+root-owned updater. Trusted-TLS health/readiness/runtime report this release ready/private;
+migration 38, SQLite quick-check and foreign keys pass. Firewall digest, private archive metadata
+and the bounded household record counts match the prior Games checkpoint. The live server setup
+ZIP contains the canonical installer. Package/container names, networking, credentials and household
+state were retained. No fresh physical phone/TV installation or owner recovery was performed.
+The naming update does not include the subsequent local D-134 Fitness work.
 
 ## Games release preflight — 2026-11-05
 
