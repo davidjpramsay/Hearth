@@ -1,5 +1,33 @@
 # Hearth v2 acceptance and definition of done
 
+## Connect Four main-menu return — local proof 2026-11-05
+
+Reproduced: after a win, Left can reach the TV rail but Right targets the disabled Drop entry.
+The unchanged shared focus layer correctly rejects disabled controls, so the page cannot be entered.
+An active round did not reproduce the trap. Connect Four now exposes Drop as its entry only while
+playing and New round after a win/draw. Re-entry does not start/reset a round or change its board.
+The shared focus algorithm, game rules, local save format, module/auth and server APIs are unchanged.
+
+Passed:
+
+- `pnpm --filter @hearth/web build`, web typecheck, targeted ESLint and Prettier, `git diff --check`.
+- `pnpm --filter @hearth/web exec vitest run src/focus/focusGraph.test.ts
+src/focus/useRemoteNavigation.test.tsx`: **29 passed**.
+- `pnpm exec playwright test --config /tmp/hearth-fitness-built.config.ts connect-four.spec.ts`:
+  **22 passed** (the existing 20 game/layout/module checks plus the initial two return regressions).
+- Final expanded regressions via the same command with `--grep 'remote returns|a restored draw'`:
+  **5 passed**, covering 1280×720/1920×1080 active/ended rounds, a restored 42-counter draw at
+  1366×768, another unselected menu row, unchanged boards, explicit restart and subsequent play.
+  Console/runtime checks are clean. Together these cover the final 25 Connect Four cases.
+- `pnpm verify:ci`: policy checks and complete non-overlapping **1,441-test** browser catalogue.
+  Browser plugin unavailable; repository Playwright used the production build with installed Chrome.
+  Light/dark phone/tablet/TV through 4K, accessibility, Back and round confirmation were retained.
+- Visually inspected `/tmp/hearth-connect-four-menu-return.png`: New round has the visible return
+  focus with the completed board retained. The draw screenshot is also outside Git.
+
+Not run: physical TV confirmation, GitHub push or deployment of this fix. It is prepared with the
+local Fitness refinement; the deployed canonical-name release does not yet contain either update.
+
 ## Fitness family board — D-134, local proof 2026-11-05
 
 All selected participants now share one daily page. Run, Swim, Weights and Fitness class open the

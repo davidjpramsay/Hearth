@@ -208,3 +208,95 @@ test('all games off shows a useful empty menu without deleting local state', asy
     await expect(page).toHaveURL(/\/games$/);
   }
 });
+
+for (const size of [
+  { width: 1280, height: 720 },
+  { width: 1920, height: 1080 },
+])
+  for (const finished of [false, true]) {
+    test(`remote returns from the main menu to an ${finished ? 'ended' : 'active'} Connect Four round at ${size.width}`, async ({
+      page,
+    }) => {
+      const errors: string[] = [];
+      page.on('pageerror', (error) => errors.push(error.message));
+      page.on('console', (message) => {
+        if (['error', 'warning'].includes(message.type())) errors.push(message.text());
+      });
+      await page.setViewportSize(size);
+      await page.goto('/games/connect-four');
+      const drop = page.locator('[data-focus-id="four-drop"]');
+      if (finished) {
+        let column = 3;
+        for (const target of [0, 6, 1, 6, 2, 5, 3]) {
+          while (column !== target) {
+            await drop.press('ArrowRight');
+            column = (column + 1) % 7;
+          }
+          await drop.press('Enter');
+        }
+        await expect(drop).toHaveText('Player 1 wins!');
+      }
+      const board = page.getByRole('img', { name: /Connect Four board/ });
+      const savedBoard = await board.getAttribute('aria-label');
+      await page.getByRole('button', { name: 'Previous column', exact: true }).focus();
+      await page.keyboard.press('ArrowLeft');
+      await expect(page.locator(':focus')).toHaveAttribute('data-focus-id', /^nav-/);
+      await page.keyboard.press('ArrowRight');
+      await expect(finished ? page.locator('[data-focus-id="four-new"]') : drop).toBeFocused();
+      await expect(board).toHaveAttribute('aria-label', savedBoard!);
+      expect(errors).toEqual([]);
+      if (finished && size.width === 1920)
+        await page.screenshot({ path: '/tmp/hearth-connect-four-menu-return.png', fullPage: true });
+    });
+  }
+
+test('a restored draw can be re-entered from another menu row, then returns to active play', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto('/games');
+  await page.evaluate(() =>
+    localStorage.setItem(
+      'hearth.connect-four.v1.demo.household_hearth_demo',
+      JSON.stringify({
+        firstPlayer: 1,
+        moves: [
+          4, 2, 4, 4, 4, 5, 6, 3, 0, 1, 3, 0, 5, 4, 5, 2, 1, 1, 0, 2, 2, 6, 6, 1, 6, 4, 2, 2, 0, 6,
+          0, 6, 5, 1, 3, 0, 1, 5, 5, 3, 3, 3,
+        ],
+      }),
+    ),
+  );
+  await page.getByRole('link', { name: 'Connect Four', exact: true }).click();
+  const drop = page.locator('[data-focus-id="four-drop"]');
+  const restart = page.getByRole('button', { name: 'New round', exact: true });
+  await expect(drop).toHaveText('A draw. Well played!');
+  await page.getByRole('button', { name: 'Previous column', exact: true }).focus();
+  await page.keyboard.press('ArrowLeft');
+  await expect(page.locator(':focus')).toHaveAttribute('data-focus-id', /^nav-/);
+  await page.keyboard.press('ArrowUp');
+  await page.keyboard.press('ArrowRight');
+  await expect(restart).toBeFocused();
+  await expect(page).toHaveURL(/\/games\/connect-four$/);
+  await expect(page.getByRole('img', { name: /Connect Four board/ })).toHaveAttribute(
+    'aria-label',
+    /42 counters/,
+  );
+  await page.screenshot({ path: '/tmp/hearth-connect-four-draw-menu-return.png', fullPage: true });
+  await page.keyboard.press('Enter');
+  await expect(drop).toHaveText('Drop in column 4');
+  await expect(page.getByRole('img', { name: /Connect Four board/ })).toHaveAttribute(
+    'aria-label',
+    /0 counters/,
+  );
+  await page.getByRole('button', { name: 'Previous column', exact: true }).focus();
+  await page.keyboard.press('ArrowLeft');
+  await expect(page.locator(':focus')).toHaveAttribute('data-focus-id', /^nav-/);
+  await page.keyboard.press('ArrowRight');
+  await expect(drop).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('img', { name: /Connect Four board/ })).toHaveAttribute(
+    'aria-label',
+    /1 counters/,
+  );
+});

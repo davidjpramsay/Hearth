@@ -11,7 +11,9 @@ and ownership do not depend on colour alone. A landing preview identifies the ch
 Previous / Drop / Next controls work on phones. With Drop focused, Left/Right chooses a column and
 OK drops; Up reaches Games and Down reaches New round. Back dismisses confirmation before leaving
 the game. New round confirms before discarding an unfinished board and alternates the starting
-player. A completed board stays visible and cannot accept more counters. The current round resumes
+player. Right from the main rail returns to Drop while a round is active. After a win or draw,
+it returns to New round instead of the unavailable Drop control, without starting or clearing a round.
+A completed board stays visible and cannot accept more counters. The current round resumes
 on this device. Text board reading, live turn/win feedback, dark mode and visible focus remain.
 
 ## Fitness exercise demonstrations (D-129)

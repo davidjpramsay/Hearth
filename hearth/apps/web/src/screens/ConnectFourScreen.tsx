@@ -184,7 +184,7 @@ function ConnectFourGame({ storageKey }: { storageKey: string }) {
             type="button"
             className="four-drop focusable"
             data-focus-id="four-drop"
-            data-focus-entry="true"
+            data-focus-entry={finished ? undefined : 'true'}
             data-focus-up="four-back"
             data-focus-down="four-new"
             aria-disabled={finished || undefined}
@@ -208,6 +208,7 @@ function ConnectFourGame({ storageKey }: { storageKey: string }) {
             type="button"
             className="button focusable four-new"
             data-focus-id="four-new"
+            data-focus-entry={finished ? 'true' : undefined}
             data-focus-up="four-drop"
             onClick={() => (round.moves.length && !finished ? setConfirm(true) : restart())}
           >
