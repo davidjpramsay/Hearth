@@ -60,6 +60,14 @@ installation, and the entire hosted release gate. Repository publication/naming 
 on D-132's private NAS compatibility maintenance. No live networking, pairings, data, archive or
 app container was changed by this game implementation.
 
+Release preflight, 2026-11-05: the source is pushed in PR #3. Hosted run 41937837412 passed web/server,
+Android and container checks, then stopped at an admin browser assertion hardcoding migration 37.
+The actual Games schema is 38. The health-screen assertion now imports the current migration
+constant so future additive migrations do not leave this unrelated UI check stale. Local correction
+checks passed: `pnpm test:e2e:built tests/e2e/admin.spec.ts:728 tests/e2e/connect-four.spec.ts
+--max-failures=1` (21 passed), formatting, lint, CI inventory/policy and `git diff --check`. A complete
+successful hosted run and private activation are still required before calling this deployed.
+
 ## Repository naming migration — 2026-11-04 (D-132)
 
 User-approved targets: current repository `davidjpramsay/Hearth` (ID 1327675743), original repository

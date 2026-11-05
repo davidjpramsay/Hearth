@@ -5,6 +5,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type APIRequestContext } from '@playwright/test';
 import { LEGACY_BRIDGE_MODULE_IDS } from '../../packages/shared/src/home-assistant-bridge';
 import { MODULE_IDS } from '../../packages/shared/src/modules';
+import { LATEST_MIGRATION_VERSION } from '../../apps/server/src/database';
 
 import { captureEvidence } from './visualEvidence';
 
@@ -733,7 +734,9 @@ test('adult sees concise system health and can create an advanced recovery copy'
   await page.getByRole('link', { name: /System health/ }).click();
   await expect(page.getByRole('heading', { name: 'System health' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Hearth is protected' })).toBeVisible();
-  await expect(page.getByText('Migration 37 · checked 3 Aug 2026, 7:42 am')).toBeVisible();
+  await expect(
+    page.getByText(`Migration ${LATEST_MIGRATION_VERSION} · checked 3 Aug 2026, 7:42 am`),
+  ).toBeVisible();
   await expect(page.getByText(/Last backup 3 Aug 2026, 1:00 pm · 2.5 MB/)).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Connections and photos' })).toBeVisible();
   const calendar = page.locator('.system-connection-row').filter({ hasText: 'Calendar' });
