@@ -1,5 +1,30 @@
 # Hearth v2 acceptance and definition of done
 
+## Word Guess release preflight — 2026-11-05
+
+The owner authorized publication, private deployment and private word installation. `bf372b9` is
+pushed to canonical GitHub main. Downloaded words remain outside Git/images, installed privately
+as service-owned mode 0600 with source notices: 1,785 answers / 5,221 allowed guesses. Existing
+Connections checksum/metadata and firewall are unchanged, and a checked NAS-only SQLite backup
+precedes activation. Private installation is separate from actual TV play.
+
+Hosted Verify Hearth `41968622763` passed code/API/dependency checks, Android and image builds,
+then correctly blocked image publication/deployment on the pre-existing Morning Routine midnight
+test. Its running virtual clock could cross midnight during startup before the first School days
+assertion. A controlled 1.5-second pre-assert delay reproduces the exact failure locally. Fix only
+that test: hold `Date` at the starting instant while timers run normally, then explicitly set the
+post-midnight instant and retain the same profile/refetch assertions. This follows Playwright's
+[fixed-time guidance](https://playwright.dev/docs/clock#test-with-predefined-time). No app behavior,
+test timeout, retry count or assertion is weakened. The corrected check passes five repetitions
+with the same artificial delay; that diagnostic delay is removed from committed source.
+Final `pnpm exec playwright test --config /tmp/hearth-word-guess-built.config.ts
+morning-profiles.spec.ts` passes all **14** profile checks. Targeted ESLint, formatting,
+`git diff --check` and `pnpm verify:ci` pass; browser inventory remains 1,464 cases.
+
+The subsequent complete hosted gate must pass before activation. The live server remains on
+`508733a` during this preflight. Release/deployed/device evidence belongs to the private operation
+record; no physical TV or iPhone proof is claimed here.
+
 ## Word Guess — D-135, local implementation 2026-11-05
 
 Implemented on isolated branch `codex/word-guess`, based on `508733a`. Games has a third, original
@@ -56,7 +81,7 @@ candidates / 5,221 allowed guesses**, **56,092 JSON bytes**. This is not a full 
 review. No NYT answer list is used. No downloaded words enter source, test fixtures, screenshots,
 public bundles, ZIPs or images. The existing private Connections archive is untouched.
 
-Not run/authorized for this slice: GitHub push/merge/hosted workflow, NAS deployment or private word
+Not run at the initial local handoff: GitHub push/merge/hosted workflow, NAS deployment or private word
 installation, Android APK/emulator, physical Google TV and actual iPhone/iPad Safari acceptance.
 No HA installation/restart, device navigation or network change occurred. Existing deployed features
 are separate from this new local game. WORD_GUESS_CONTRACT.md defines the remaining release boundary.

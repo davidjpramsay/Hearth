@@ -303,7 +303,8 @@ test('a foreground screen switches profiles at household midnight before the nex
   request,
 }) => {
   await enable(request);
-  await page.clock.install({ time: new Date('2026-08-07T23:59:59+08:00') });
+  // Keep the date fixed while the page loads; a slow runner must not cross midnight first.
+  await page.clock.setFixedTime(new Date('2026-08-07T23:59:59+08:00'));
   await page.route('**/api/v1/runtime', async (route) => {
     const response = await route.fetch();
     await route.fulfill({
@@ -351,7 +352,7 @@ test('a foreground screen switches profiles at household midnight before the nex
   });
   await page.goto('/morning-routine');
   await expect(page.locator('.morning-day-label')).toHaveText('School days');
-  await page.clock.runFor(2_000);
+  await page.clock.setFixedTime(new Date('2026-08-08T00:00:01+08:00'));
   await expect(page.locator('.morning-day-label')).toHaveText('Weekends');
   expect(reads).toBeGreaterThan(1);
 });
