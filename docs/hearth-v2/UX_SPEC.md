@@ -2,8 +2,8 @@
 
 ## Games choices and Connect Four (D-133)
 
-Games offers clear Connections and Connect Four cards. An adult opens More → Modules → Choose games
-for two familiar On/Off switches, immediately below the parent Games row. If all children are off,
+Games offers clear Connections, Connect Four and Word Guess cards. An adult opens More → Modules → Choose games
+for three familiar On/Off switches, immediately below the parent Games row. If all children are off,
 show a calm empty state explaining where to choose games. Parent off preserves child choices.
 
 Connect Four uses Hearth typography, an eucalyptus board and numbered coral/gold counters, so turn
@@ -15,6 +15,16 @@ player. Right from the main rail returns to Drop while a round is active. After 
 it returns to New round instead of the unavailable Drop control, without starting or clearing a round.
 A completed board stays visible and cannot accept more counters. The current round resumes
 on this device. Text board reading, live turn/win feedback, dark mode and visible focus remain.
+
+### Word Guess (D-135)
+
+Six rows of five letters sit beside a large remote keyboard on TV and above a compact keyboard on
+phone. Correct spot, elsewhere and absent use symbols and accessible descriptions as well as colour.
+Unknown/incomplete/repeated guesses keep the attempt. Next word appears only after win/loss; unfinished
+Restart confirms first. Back closes that confirmation before returning to Games and restoring focus.
+Right from the main menu enters a letter while active or Next word when finished. Reopening keeps
+the same word, guesses and partial input. Word-list setup, read failure, stale/offline play and blocked
+device storage have intentional states. No daily lock or automatic advance. See WORD_GUESS_CONTRACT.md.
 
 ## Fitness exercise demonstrations (D-129)
 

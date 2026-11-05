@@ -23,3 +23,6 @@ tests
 content
 **/connections.json
 **/nyt-connections*.json
+
+**/word-guess.json
+**/wordle*.json

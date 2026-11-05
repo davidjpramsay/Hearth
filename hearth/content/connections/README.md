@@ -9,3 +9,6 @@ If you want an archive, ask your agent:
 Your agent can follow `docs/hearth-v2/OPERATIONS.md` and the `GamesArchive` adapter’s format. Configure `HEARTH_GAMES_ARCHIVE_PATH` as an absolute, server-only path to your own private JSON file. Do not put the file in this folder; only this README belongs in Git. A fresh private install without an archive shows an empty Connections state. Connect Four needs no archive or external service.
 
 To play NYT puzzles, use the [official Connections game](https://www.nytimes.com/games/connections). Permission to play or share your result does not grant permission to redistribute its puzzle archive.
+
+For the five-letter game, see [Word Guess data setup](../word-guess/README.md). Each household obtains
+and keeps its own permitted data for both games; neither game's third-party database is part of Hearth.

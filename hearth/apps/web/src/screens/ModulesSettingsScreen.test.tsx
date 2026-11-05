@@ -16,10 +16,10 @@ import { useModulePathAvailable } from '../modules/context';
 
 vi.mock('../api/modules', () => ({ modulesApi: { get: vi.fn(), update: vi.fn() } }));
 let flags: ModuleFlags;
-let gameFlags = { connections: true, connectFour: true };
+let gameFlags = { connections: true, connectFour: true, wordGuess: true };
 beforeEach(() => {
   flags = { ...DEFAULT_MODULE_FLAGS };
-  gameFlags = { connections: true, connectFour: true };
+  gameFlags = { connections: true, connectFour: true, wordGuess: true };
   configureHearthClient({
     mode: 'demo',
     generatedAt: '2026-10-15T00:00:00Z',

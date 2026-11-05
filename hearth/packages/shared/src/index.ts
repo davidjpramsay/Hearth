@@ -15,3 +15,5 @@ export * from './photo-uploads.js';
 export * from './fitness.js';
 
 export * from './fitness-library.js';
+
+export * from './word-guess.js';

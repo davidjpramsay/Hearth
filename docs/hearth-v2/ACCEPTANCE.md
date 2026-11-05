@@ -1,5 +1,66 @@
 # Hearth v2 acceptance and definition of done
 
+## Word Guess — D-135, local implementation 2026-11-05
+
+Implemented on isolated branch `codex/word-guess`, based on `508733a`. Games has a third, original
+Word Guess choice and an adult On/Off switch. Five letters/six attempts, duplicate-aware scoring,
+invalid/repeated-guess feedback, explicit unlimited Next word, confirmed unfinished Restart and
+device-local validated restore are included. Word Guess, Connections and Connect Four retain
+separate choices/saves under the Games parent. No gameplay server writes or new HA authority.
+
+Changed boundaries: shared word schemas and game flag/path mapping; pure core rules/restore;
+private server file adapter, authenticated gated GET and migration 0039; lazy web screen, keyboard,
+menu/settings/cache guards; local preparation helper; README/content guards and authoritative
+product/UX/architecture/data/integration/operations/roadmap/decision documents. No dependency,
+live networking/configuration, calendar, account, existing private archive or Android shell change.
+
+Passed from `hearth/` with the existing tool wrappers on PATH:
+
+- `pnpm verify:code`: public-content guard/preparer tests (**6**), formatting, lint, all strict type
+  checks, **785 unit tests** (116 shared, 71 core, 123 server, 475 web), **315 API/integration tests**,
+  **33 migration tests**, deployment/installer checks, production web/server builds and isolated
+  fresh private backend/owner/Today proof. It copies all **39** migrations. Local fresh-boot proof
+  does not establish Docker/trusted HTTPS, a real phone or TV commissioning.
+- `pnpm verify:ci`: workflow policy checks and complete non-overlapping **1,464-test** browser
+  catalogue, 366 per shard. This proves the catalogue, not execution of the full browser suite.
+- After the remote keyboard correction: targeted ESLint, web typecheck, `pnpm format:check`,
+  `pnpm --filter @hearth/web build` and `git diff --check` pass. The private-adapter tests rerun
+  through `pnpm --filter @hearth/server exec vitest run src/word-guess-archive.unit.test.ts`:
+  **3 passed**, including actual atomic file replacement and last-good retention.
+- Targeted production-build browser regressions for a complete arrows/OK word and missing/stale/
+  offline/changed-list handling: **2 passed**.
+- Final `pnpm exec playwright test --config /tmp/hearth-word-guess-built.config.ts word-guess.spec.ts
+connect-four.spec.ts games-menu.spec.ts games.spec.ts games-remote.spec.ts modules.spec.ts`:
+  **85 passed**, including all **23 Word Guess** cases and **62** existing game/module regressions.
+  No remaining failures. The complete 1,464-case browser suite was not executed locally.
+
+Browser plugin unavailable; repository Playwright uses the existing CI production server/demo fixture
+and installed Chrome via `/tmp/hearth-word-guess-built.config.ts`. Nine phone portrait/landscape,
+tablet and TV/4K sizes from 320×740 to 3840×2160 are covered in light/dark with Axe, route/title,
+nonblank/overlay, no-horizontal-overflow, TV fit and phone action-bar clearance checks. Tests also
+cover keyboard input, duplicate letters, wins/losses, restart/Back, reopen, parent/child guards and
+save retention. The real keyboard-row skip found by arrows-only play is corrected in this game;
+the shared spatial focus layer remains unchanged. The narrow phone action layout and effect cleanup
+lint issue found during verification were corrected. Screenshots contain original demo data only.
+Visually inspected 320×740 dark, 390×844 light, 1280×720 dark and 1920×1080 light views plus
+the coloured duplicate-letter feedback view. Durable local logs and TV/phone screenshots are in
+`~/Library/Caches/HearthDevelopment/word-guess-20261105/`; the temporary PNGs use
+`/tmp/hearth-word-guess-<width>-<height>-<theme>.png` and browser log is
+`/tmp/hearth-word-guess-browser-final.log`.
+
+Private content proof: independently permitted ESDB/SCOWL Australian-English source was staged
+outside Git at `~/Library/Caches/HearthWordGuess`, pinned to official generated-word-list commit
+`7f2f4078354752045ee16a041605686561122185`. Full permission/Australian notices and private provenance
+remain with the data. The local helper and compiled production parser validate **1,785 answer
+candidates / 5,221 allowed guesses**, **56,092 JSON bytes**. This is not a full child-suitability
+review. No NYT answer list is used. No downloaded words enter source, test fixtures, screenshots,
+public bundles, ZIPs or images. The existing private Connections archive is untouched.
+
+Not run/authorized for this slice: GitHub push/merge/hosted workflow, NAS deployment or private word
+installation, Android APK/emulator, physical Google TV and actual iPhone/iPad Safari acceptance.
+No HA installation/restart, device navigation or network change occurred. Existing deployed features
+are separate from this new local game. WORD_GUESS_CONTRACT.md defines the remaining release boundary.
+
 ## Connect Four main-menu return — local proof 2026-11-05
 
 Reproduced: after a win, Left can reach the TV rail but Right targets the disabled Drop entry.

@@ -42,7 +42,7 @@ describe('0036 Fitness module', () => {
       for (const table of ['fitness_plans', 'fitness_progress', 'fitness_receipts'])
         expect(database.prepare(`SELECT * FROM ${table}`).all()).toEqual([]);
       expect(database.prepare('SELECT max(version) AS n FROM schema_migrations').get()).toEqual({
-        n: 38,
+        n: 39,
       });
       expect(database.pragma('foreign_key_check')).toEqual([]);
       database
@@ -197,7 +197,7 @@ describe('0031 additive connection codes', () => {
       database.prepare('SELECT count(*) AS n FROM controller_phone_invitation_codes').get(),
     ).toEqual({ n: 0 });
     expect(database.prepare('SELECT max(version) AS n FROM schema_migrations').get()).toEqual({
-      n: 38,
+      n: 39,
     });
     expect(database.pragma('foreign_key_check')).toEqual([]);
     database.close();
@@ -1557,7 +1557,35 @@ it('0037 adds an empty demonstration library without rewriting Fitness plans, ch
       'fitness_library_retired',
     ])
       expect(db.prepare(`SELECT count(*) n FROM ${table}`).get()).toEqual({ n: 0 });
-    expect(db.prepare('SELECT max(version) n FROM schema_migrations').get()).toEqual({ n: 38 });
+    expect(db.prepare('SELECT max(version) n FROM schema_migrations').get()).toEqual({ n: 39 });
+  } finally {
+    db.close();
+  }
+});
+
+it('0039 retains all game flags and exact receipts while permitting the third game', () => {
+  const db = new Database(':memory:');
+  try {
+    for (const file of readdirSync(fileURLToPath(new URL('.', import.meta.url)))
+      .filter((file) => /^\d{4}_.*\.sql$/.test(file) && Number(file.slice(0, 4)) <= 38)
+      .sort())
+      db.exec(readFileSync(new URL(file, import.meta.url), 'utf8'));
+    db.exec(`INSERT INTO households VALUES ('household_kept','Kept','Australia/Perth','en-AU',1,'now','now');
+    INSERT INTO household_game_modules VALUES ('household_kept','connections',0,'kept');
+    INSERT INTO household_game_modules VALUES ('household_kept','connectFour',1,'kept');
+    INSERT INTO household_game_module_receipts VALUES ('household_kept','member:kept','request_kept','unchanged','{"legacy":true}','kept');`);
+    const tables = ['households', 'household_game_modules', 'household_game_module_receipts'];
+    const before = tables.map((t) => db.prepare('SELECT * FROM ' + t).all());
+    applyMigrations(db);
+    applyMigrations(db);
+    expect(tables.map((t) => db.prepare('SELECT * FROM ' + t).all())).toEqual(before);
+    db.prepare('INSERT INTO household_game_modules VALUES (?,?,?,?)').run(
+      'household_kept',
+      'wordGuess',
+      0,
+      'later',
+    );
+    expect(db.pragma('foreign_key_check')).toEqual([]);
   } finally {
     db.close();
   }

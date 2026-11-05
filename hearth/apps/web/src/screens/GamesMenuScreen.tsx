@@ -12,6 +12,11 @@ const choices: Array<{ id: GameModuleId; path: string; description: string }> = 
     path: '/games/connect-four',
     description: 'Two players. Four in a row. One more round?',
   },
+  {
+    id: 'wordGuess',
+    path: '/games/word-guess',
+    description: 'Find the five-letter word in six guesses.',
+  },
 ];
 export function GamesMenuScreen() {
   const { search } = useLocation();
@@ -39,7 +44,7 @@ export function GamesMenuScreen() {
             aria-describedby={`${game.id}-description`}
             to={game.path}
             state={{ fromGamesMenu: true }}
-            data-focus-id={`games-${game.id === 'connections' ? 'connections' : 'connect-four'}`}
+            data-focus-id={`games-${game.path.split('/').at(-1)}`}
             data-focus-entry={index === 0 ? 'true' : undefined}
             data-focus-left="nav-games"
           >
@@ -49,6 +54,10 @@ export function GamesMenuScreen() {
                   {[1, 2, 3, 4].map((n) => (
                     <i key={n} />
                   ))}
+                </span>
+              ) : game.id === 'wordGuess' ? (
+                <span className="games-word-mark" aria-hidden="true">
+                  A
                 </span>
               ) : (
                 <Icon name="games" />

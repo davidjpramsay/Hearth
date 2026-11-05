@@ -1,5 +1,18 @@
 # Hearth v2 domain and data model
 
+## Word Guess extension (D-135)
+
+Migration `0039_word_guess.sql` extends the game flag constraint with `wordGuess`, copying existing
+flags/timestamps unchanged and retaining all receipts. The new child defaults on, matching D-133.
+Old result schemas fill the missing new flag in memory; do not rewrite receipt JSON or input hashes.
+Current reads remain authoritative. No per-turn database writes.
+
+Private word data is a version-1 JSON file outside Git, with unique lowercase five-letter `answers`
+and `allowedGuesses`; the answer pool is a subset. Bounds and source notices are in WORD_GUESS_CONTRACT.md.
+`hearth.word-guess.v1.<mode>.<household>` stores only snapshot ID, word index, accepted guesses and
+partial input (bounded 2,048-character read). Restore validates/replays turns and rejects changed-list,
+out-of-range, duplicate, invalid and post-terminal progress. Marks are recomputed. Off retains data.
+
 ## Game submodules and Connect Four (D-133)
 
 Migration `0038_game_modules.sql` adds household game flags keyed by `connections` or `connectFour`

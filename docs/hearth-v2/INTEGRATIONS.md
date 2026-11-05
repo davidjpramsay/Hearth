@@ -8,6 +8,13 @@ Hearth settings. Connections reads only an explicitly configured private local a
 repository ships original demo puzzles and `hearth/content/connections/README.md`, never an NYT
 archive. The README points agents toward content the user is permitted to use and private setup.
 
+Word Guess (D-135) also works without HA. Its independent permitted dictionary is an operator-supplied
+private file, not NYT's answer list or a runtime web integration. The repository ships only an original
+small demo. `hearth/content/README.md` links acquisition/setup notes for both word games, and
+`prepare-word-guess.py` validates already-acquired text files locally. Keep upstream notices beside
+private data; a free spelling list is not a guarantee of child suitability. No new HA capability,
+credential, network rule, external download, scraper or third-party request during play/build/tests.
+
 ## Fitness demonstration boundary (D-129)
 
 Optional uploaded exercise MP4 clips are served by Hearth itself with household authentication,

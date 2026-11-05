@@ -86,9 +86,11 @@ export function GameModulesSettingsScreen() {
             <span>
               <strong>{GAME_MODULE_LABELS[id]}</strong>
               <small>
-                {id === 'connectFour'
-                  ? 'Two players on this screen'
-                  : 'Your private word puzzle archive'}
+                {id === 'wordGuess'
+                  ? 'Your private five-letter word list'
+                  : id === 'connectFour'
+                    ? 'Two players on this screen'
+                    : 'Your private word puzzle archive'}
               </small>
             </span>
             <span className="module-switch__state">{enabled[id] ? 'On' : 'Off'}</span>

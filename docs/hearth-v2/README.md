@@ -19,7 +19,7 @@ phone browser. It owns reminders, chores, routines, pocket money, lists, meals, 
 connected calendars remain provider-owned.
 
 The active product includes Today, Week, Month, Weather, Hearth reminders, Chores, Lists, Meals,
-Home, Photos, Games with Connections and Connect Four and phone administration. Home Assistant remains the authority for physical devices
+Home, Photos, Games with Connections, Connect Four and Word Guess and phone administration. Home Assistant remains the authority for physical devices
 and voice. Native television media apps remain separate.
 
 ## Source of truth
@@ -37,6 +37,12 @@ and voice. Native television media apps remain separate.
 | [`OPERATIONS.md`](OPERATIONS.md)     | Local and Synology operation    |
 
 ## Current boundaries
+
+D-135 adds [Word Guess](WORD_GUESS_CONTRACT.md): an original unlimited five-letter game with
+its own adult switch and device-local saved round. Households supply permitted private word data;
+the [game content notes](../../hearth/content/README.md) explain both word games. No downloaded
+word database or NYT puzzle ships in the repository or images. Local proof, private data installation,
+publication, deployment and physical TV/phone acceptance remain distinct in ACCEPTANCE.
 
 D-127 adds [guided private installation and optional connections](SHARING_SETUP_CONTRACT.md),
 a Get started page and matching code-only HA downloads. Local fixtures/browser verification do

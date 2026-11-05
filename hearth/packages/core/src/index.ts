@@ -8,3 +8,5 @@ export * from './appliance-recovery.js';
 export * from './morning-routine.js';
 export * from './fitness.js';
 export * from './connect-four.js';
+
+export * from './word-guess.js';

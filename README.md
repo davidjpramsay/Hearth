@@ -70,3 +70,5 @@ retain their own terms. The licence does not redistribute household content or p
 This is the current **Hearth** application. The original implementation is preserved in
 [`old_hearth`](https://github.com/davidjpramsay/old_hearth). Existing `hearth-v2-server` and
 `hearth-v2-web` container package names are retained for installation and update compatibility.
+
+Game databases are supplied privately by each household. See [game data setup](hearth/content/README.md); no NYT puzzles or downloaded word lists are distributed.

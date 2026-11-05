@@ -180,7 +180,7 @@ for (const size of [
       await page.emulateMedia({ colorScheme: theme });
       await page.goto('/admin/modules/games');
       await expect(page.getByRole('heading', { name: 'Game modules', exact: true })).toBeVisible();
-      await expect(page.getByRole('switch')).toHaveCount(2);
+      await expect(page.getByRole('switch')).toHaveCount(3);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
       );
@@ -195,7 +195,7 @@ test('all games off shows a useful empty menu without deleting local state', asy
   page,
   request,
 }) => {
-  for (const id of ['connections', 'connectFour'])
+  for (const id of ['connections', 'connectFour', 'wordGuess'])
     await request.put(`${api}/game-modules/${id}`, {
       headers: { 'X-Hearth-Demo-Actor': 'member_maya' },
       data: { requestId: `request_empty_${id.toLowerCase()}`, enabled: false },
@@ -203,7 +203,12 @@ test('all games off shows a useful empty menu without deleting local state', asy
   await page.goto('/games');
   await expect(page.getByText('No games are turned on.', { exact: false })).toBeVisible();
   await expect(page.locator('.games-choice')).toHaveCount(0);
-  for (const path of ['/games/connections', '/games/connect-four', '/games?puzzle=2']) {
+  for (const path of [
+    '/games/connections',
+    '/games/connect-four',
+    '/games/word-guess',
+    '/games?puzzle=2',
+  ]) {
     await page.goto(path);
     await expect(page).toHaveURL(/\/games$/);
   }

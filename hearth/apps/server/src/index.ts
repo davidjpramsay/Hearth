@@ -1,6 +1,6 @@
 import { readFile, unlink } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import {
   IndoorClimateService,
   createDemoIndoorService,
@@ -17,6 +17,7 @@ import { FitnessLibraryService } from './fitness-library-service.js';
 import { FitnessService } from './fitness-service.js';
 import { MorningRoutineService } from './morning-routine-service.js';
 import { GamesArchive } from './games-archive.js';
+import { WordGuessArchive } from './word-guess-archive.js';
 import { RealtimeHub } from './realtime.js';
 import {
   CalendarConnectionService,
@@ -339,6 +340,13 @@ const server = buildServer({
   ),
   modules,
   gamesArchive: new GamesArchive(process.env.HEARTH_GAMES_ARCHIVE_PATH, demoMode),
+  wordGuessArchive: new WordGuessArchive(
+    process.env.HEARTH_WORD_GUESS_PATH ??
+      (!demoMode && databasePath !== ':memory:'
+        ? resolve(dirname(databasePath), 'game-archives', 'word-guess.json')
+        : undefined),
+    demoMode,
+  ),
   realtimeHub,
   demoMode,
   runtime: { mode: runtimeMode, householdId: runtimeHouseholdId, clock },

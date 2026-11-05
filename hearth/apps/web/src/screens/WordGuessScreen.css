@@ -1,0 +1,392 @@
+.word-guess-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-height: 0;
+}
+.word-guess-screen .screen-header {
+  margin-bottom: 0;
+  min-height: 80px;
+}
+.word-play {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.15fr);
+  align-items: center;
+  gap: 60px;
+  max-width: 1380px;
+  width: 100%;
+  margin: auto;
+}
+.word-board-panel {
+  min-width: 0;
+}
+.word-number {
+  margin: 0 0 16px;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--eucalyptus);
+}
+.word-number span {
+  color: var(--muted);
+  font-size: 0.8em;
+  font-weight: 400;
+}
+.word-board {
+  display: grid;
+  gap: 9px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.word-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 9px;
+}
+.word-cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1.15;
+  border: 2px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 38px;
+  font-weight: 750;
+}
+.word-row--current .word-cell {
+  border-color: var(--eucalyptus);
+}
+.word-cell small {
+  position: absolute;
+  right: 5px;
+  bottom: 0;
+  font-size: 16px;
+  line-height: 1;
+}
+.word-cell--exact,
+.word-key--exact {
+  background: #386747 !important;
+  color: #fff !important;
+  border-color: #386747;
+}
+.word-cell--present,
+.word-key--present {
+  background: #eed48c !important;
+  color: #352b12 !important;
+  border-color: #eed48c;
+}
+.word-cell--absent,
+.word-key--absent {
+  background: #505959 !important;
+  color: #fff !important;
+  border-color: #505959;
+}
+.word-controls-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+.word-feedback {
+  font-size: 30px;
+  line-height: 1.25;
+  margin: 0;
+  min-height: 40px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.word-feedback--finished {
+  color: var(--eucalyptus);
+}
+.word-legend {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  font-size: 21px;
+  color: var(--muted);
+}
+.word-keyboard {
+  display: grid;
+  gap: 10px;
+}
+.word-key-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.word-key {
+  display: grid;
+  place-items: center;
+  width: calc((100% - 72px) / 10);
+  min-height: 64px;
+  padding: 4px;
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 26px;
+  font-weight: 650;
+  flex-shrink: 0;
+}
+.word-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+.word-actions > button {
+  flex: 1;
+}
+.word-guess-screen .button,
+.word-confirm .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 10px 18px;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 24px;
+  text-decoration: none;
+}
+.word-guess-screen .button--primary,
+.word-confirm .button--primary {
+  background: var(--eucalyptus);
+  color: var(--surface);
+  border-color: var(--eucalyptus);
+}
+.word-guess-screen [aria-disabled='true'] {
+  opacity: 0.7;
+  cursor: default;
+}
+.word-next {
+  align-self: flex-start;
+}
+.word-notice {
+  color: var(--muted);
+  font-size: 20px;
+  margin: 0;
+}
+.word-empty {
+  margin: auto;
+  padding: 30px;
+  max-width: 760px;
+  background: var(--surface-soft);
+  border-radius: 20px;
+  font-size: 24px;
+  text-align: center;
+}
+.word-confirm {
+  width: min(700px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--hairline);
+  border-radius: 20px;
+  padding: 28px;
+  font-size: 24px;
+}
+.word-confirm::backdrop {
+  background: #0008;
+}
+.word-confirm h2 {
+  margin: 0;
+  font-size: 32px;
+}
+@media (min-width: 1200px) and (max-height: 850px) {
+  .word-guess-screen {
+    gap: 12px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+  .word-guess-screen .screen-header {
+    min-height: 70px;
+  }
+  .word-play {
+    grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.2fr);
+    max-width: 1100px;
+    gap: 42px;
+  }
+  .word-board-panel {
+    max-width: 390px;
+    width: 100%;
+    justify-self: center;
+  }
+  .word-cell {
+    aspect-ratio: 1.35;
+    font-size: 30px;
+  }
+  .word-board,
+  .word-row {
+    gap: 7px;
+  }
+  .word-controls-panel {
+    gap: 14px;
+  }
+  .word-key {
+    min-height: 52px;
+    font-size: 22px;
+  }
+  .word-key-row {
+    gap: 5px;
+  }
+  .word-key {
+    width: calc((100% - 45px) / 10);
+  }
+  .word-feedback {
+    font-size: 26px;
+  }
+  .word-legend {
+    font-size: 18px;
+    gap: 12px;
+  }
+}
+@media (max-width: 1199px) {
+  .word-guess-screen {
+    gap: 14px;
+  }
+  .word-play {
+    grid-template-columns: 1fr;
+    width: min(100%, 620px);
+    gap: 22px;
+    margin: 0 auto;
+  }
+  .word-board-panel {
+    max-width: 350px;
+    width: 100%;
+    justify-self: center;
+  }
+  .word-number {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+  .word-board,
+  .word-row {
+    gap: 5px;
+  }
+  .word-cell {
+    font-size: 26px;
+    border-radius: 8px;
+    aspect-ratio: 1.3;
+  }
+  .word-cell small {
+    font-size: 12px;
+    right: 3px;
+  }
+  .word-controls-panel {
+    gap: 12px;
+  }
+  .word-feedback {
+    font-size: 22px;
+    min-height: 28px;
+  }
+  .word-legend {
+    font-size: 14px;
+    gap: 12px;
+  }
+  .word-key {
+    width: calc((100% - 27px) / 10);
+    min-height: 48px;
+    font-size: 18px;
+    padding: 2px;
+    border-radius: 6px;
+  }
+  .word-key-row {
+    gap: 3px;
+  }
+  .word-keyboard {
+    gap: 6px;
+  }
+  .word-guess-screen .button,
+  .word-confirm .button {
+    min-height: 48px;
+    font-size: 18px;
+    padding: 8px 12px;
+  }
+  .word-notice,
+  .word-empty,
+  .word-confirm {
+    font-size: 18px;
+  }
+  .word-confirm h2 {
+    font-size: 26px;
+  }
+}
+@media (min-width: 700px) and (max-width: 1199px) and (min-height: 650px) {
+  .word-play {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    width: 100%;
+    max-width: 980px;
+    gap: 24px;
+  }
+}
+@media (max-width: 599px) {
+  .word-guess-screen {
+    gap: 10px;
+  }
+  .word-guess-screen .screen-header {
+    min-height: 56px;
+  }
+  .word-guess-screen .screen-header h1 {
+    font-size: 28px;
+  }
+  .word-play {
+    gap: 12px;
+  }
+  .word-board-panel {
+    max-width: 340px;
+  }
+  .word-number {
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+  .word-cell {
+    aspect-ratio: 1.8;
+    font-size: 24px;
+  }
+  .word-board,
+  .word-row {
+    gap: 4px;
+  }
+  .word-controls-panel {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .word-controls-panel > p,
+  .word-legend,
+  .word-keyboard {
+    grid-column: 1/-1;
+  }
+  .word-feedback {
+    font-size: 20px;
+    min-height: 26px;
+  }
+  .word-legend {
+    gap: 9px;
+    font-size: 12px;
+  }
+  .word-key {
+    min-height: 44px;
+  }
+  .word-actions {
+    display: contents;
+  }
+  .word-controls-panel .button {
+    font-size: 16px;
+    padding: 8px;
+  }
+  .word-controls-panel .button svg {
+    display: none;
+  }
+  .word-next {
+    align-self: stretch;
+  }
+}

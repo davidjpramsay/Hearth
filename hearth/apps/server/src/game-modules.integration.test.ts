@@ -5,6 +5,9 @@ import { ModulesService } from './modules-repository.js';
 import { applyMigrations } from './database.js';
 import { SqliteAdminRepository } from './admin-repository.js';
 import { GamesArchive } from './games-archive.js';
+import { WordGuessArchive } from './word-guess-archive.js';
+import { RepositoryError } from './repository.js';
+import type { CompanionAuthRepository } from './companion-auth.js';
 import { DEMO_HOUSEHOLD_ID } from './demo/seed.js';
 
 const base = `/api/v1/households/${DEMO_HOUSEHOLD_ID}`;
@@ -19,7 +22,8 @@ afterEach(async () => {
 function harness() {
   const modules = new ModulesService();
   const gamesArchive = new GamesArchive(undefined, true);
-  const app = buildServer({ logger: false, modules, gamesArchive });
+  const wordGuessArchive = new WordGuessArchive(undefined, true);
+  const app = buildServer({ logger: false, modules, gamesArchive, wordGuessArchive });
   apps.push(app);
   const set = (
     game: string,
@@ -33,7 +37,7 @@ function harness() {
       headers,
       payload: { requestId, enabled },
     });
-  return { modules, gamesArchive, app, set };
+  return { modules, gamesArchive, wordGuessArchive, app, set };
 }
 describe('game submodules', () => {
   it('gates catalogue and direct puzzle reads independently of the parent, with adult-only changes', async () => {
@@ -50,7 +54,7 @@ describe('game submodules', () => {
       expect((await h.app.inject(url)).json().error.code).toBe('MODULE_DISABLED');
     const config = (await h.app.inject(`${base}/modules`)).json();
     expect(config.enabled.games).toBe(true);
-    expect(config.games).toEqual({ connections: false, connectFour: true });
+    expect(config.games).toEqual({ connections: false, connectFour: true, wordGuess: true });
     expect((await h.set('connectFour', false)).statusCode).toBe(200);
     expect((await h.set('connections', true)).statusCode).toBe(200);
     expect((await h.app.inject(path)).statusCode).toBe(200);
@@ -72,6 +76,7 @@ describe('game submodules', () => {
     expect(h.modules.get(DEMO_HOUSEHOLD_ID).games).toEqual({
       connections: false,
       connectFour: false,
+      wordGuess: true,
     });
     expect((await h.set('unknown', false)).statusCode).toBe(400);
     expect(
@@ -150,4 +155,113 @@ describe('game submodules', () => {
     );
     expect(read).toHaveBeenCalledTimes(1);
   });
+});
+
+it('gates Word Guess before provider I/O and keeps separate game switches', async () => {
+  const h = harness();
+  const read = vi.spyOn(h.wordGuessArchive, 'catalogue');
+  const result = await h.app.inject(`${base}/games/word-guess`);
+  expect(result.statusCode).toBe(200);
+  expect(result.headers['cache-control']).toBe('private, no-store');
+  expect(result.json().snapshot.answers.length).toBeGreaterThan(0);
+  expect((await h.set('wordGuess', false)).statusCode).toBe(200);
+  expect((await h.app.inject(`${base}/games/word-guess`)).json().error.code).toBe(
+    'MODULE_DISABLED',
+  );
+  expect(read).toHaveBeenCalledTimes(1);
+  expect((await h.app.inject(`${base}/games/word-groups`)).statusCode).toBe(200);
+  expect((await h.set('wordGuess', true)).statusCode).toBe(200);
+  h.modules.update(
+    DEMO_HOUSEHOLD_ID,
+    'games',
+    { requestId: 'request_all_games_off', enabled: false },
+    actor,
+  );
+  expect((await h.app.inject(`${base}/games/word-guess`)).statusCode).toBe(403);
+  expect(
+    (
+      await h.set('wordGuess', false, 'request_word_child_denied', {
+        'X-Hearth-Demo-Actor': 'member_ezra',
+      })
+    ).statusCode,
+  ).toBe(403);
+});
+
+it('denies unauthenticated, mixed and wrong-household word-list reads before provider access', async () => {
+  const provider = new WordGuessArchive(undefined, true);
+  const read = vi.spyOn(provider, 'catalogue');
+  const auth = {
+    session: (token: string) => {
+      if (token !== 'fixture') throw new RepositoryError('UNAUTHENTICATED', 'Sign in.');
+      return {
+        authenticated: true,
+        householdId: DEMO_HOUSEHOLD_ID,
+        memberId: actor.id,
+        displayName: 'Maya',
+        expiresAt: '2027-01-01T00:00:00Z',
+      };
+    },
+    authenticate: () => actor,
+  } as unknown as CompanionAuthRepository;
+  const app = buildServer({
+    logger: false,
+    wordGuessArchive: provider,
+    companionAuth: auth,
+    runtime: {
+      mode: 'private',
+      householdId: DEMO_HOUSEHOLD_ID,
+      clock: { now: () => new Date('2026-11-05T00:00:00Z') },
+    },
+  });
+  apps.push(app);
+  expect((await app.inject(`${base}/games/word-guess`)).statusCode).toBe(401);
+  expect(
+    (
+      await app.inject({
+        url: `${base.replace(DEMO_HOUSEHOLD_ID, 'household_other')}/games/word-guess`,
+        headers: { cookie: 'hearth_session=fixture' },
+      })
+    ).statusCode,
+  ).toBe(403);
+  expect(
+    (
+      await app.inject({
+        url: `${base}/games/word-guess`,
+        headers: { cookie: 'hearth_session=fixture', authorization: 'Bearer wrong' },
+      })
+    ).statusCode,
+  ).not.toBe(200);
+  expect(read).not.toHaveBeenCalled();
+});
+
+it('replays an old game receipt without rewriting it or resetting the new game switch', () => {
+  const db = new Database(':memory:');
+  databases.push(db);
+  applyMigrations(db);
+  new SqliteAdminRepository(db);
+  const modules = new ModulesService(db);
+  const input = { requestId: 'request_legacy_game', enabled: false };
+  modules.games.update(DEMO_HOUSEHOLD_ID, 'connections', input, actor);
+  const row = db.prepare('SELECT result_json FROM household_game_module_receipts').get() as {
+    result_json: string;
+  };
+  const old = JSON.parse(row.result_json);
+  delete old.configuration.enabled.wordGuess;
+  const stored = JSON.stringify(old);
+  db.prepare('UPDATE household_game_module_receipts SET result_json=?').run(stored);
+  modules.games.update(
+    DEMO_HOUSEHOLD_ID,
+    'wordGuess',
+    { requestId: 'request_words_off', enabled: false },
+    actor,
+  );
+  expect(modules.games.update(DEMO_HOUSEHOLD_ID, 'connections', input, actor).replayed).toBe(true);
+  expect(modules.get(DEMO_HOUSEHOLD_ID).games.wordGuess).toBe(false);
+  expect(
+    (
+      db
+        .prepare('SELECT result_json FROM household_game_module_receipts WHERE request_id=?')
+        .get(input.requestId) as { result_json: string }
+    ).result_json,
+  ).toBe(stored);
 });

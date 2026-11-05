@@ -15,7 +15,7 @@ const domains: Partial<Record<ModuleId, readonly string[]>> = {
   meals: ['meals', 'saved-meal-library'],
   home: ['home', 'home-assistant-connection'],
   photos: ['photos', 'photo-source'],
-  games: ['games', 'word-groups'],
+  games: ['games', 'word-groups', 'word-guess'],
   nba: ['nba', 'nba-settings'],
   fitness: ['fitness', 'fitness-settings', 'fitness-library'],
   morningRoutine: ['morning-routine', 'morning-routine-settings'],
@@ -42,6 +42,7 @@ export function ModulesProvider({ children }: { children: ReactNode }) {
       disabled.add('games');
       disabled.add('word-groups');
     }
+    if (query.data?.games?.wordGuess === false) disabled.add('word-guess');
     const household = query.data?.householdId;
     const predicate = (item: { queryKey: readonly unknown[] }) =>
       item.queryKey[0] === household && disabled.has(String(item.queryKey[1]));

@@ -378,9 +378,13 @@ that custom flow and its target-player mapping have been installed and tested.
 
 ### 12. Family games
 
-- Games is the top-level family destination, with Connections and Connect Four in its submenu.
-  More → Modules → Choose games independently turns either game on/off without deleting progress.
-  The parent Games switch hides both while preserving those choices.
+- Games is the top-level family destination, with Connections, Connect Four and Word Guess in its submenu.
+  More → Modules → Choose games independently turns each game on/off without deleting progress.
+  The parent Games switch hides every child while preserving those choices.
+- Word Guess (D-135) is an original five-letter, six-attempt game with unlimited rounds and explicit
+  Next word. Save the current round on the device, distinguish duplicate-letter feedback correctly,
+  and use the household's permitted private answer/guess lists. No NYT answer list, daily schedule,
+  remote content fetch, tracking or shared-game write API. See WORD_GUESS_CONTRACT.md.
 - Connect Four is an original local two-player game: seven columns, six rows, alternating counters,
   four-in-a-row wins, draws and full-column feedback. Save the current round on this device, offer
   a confirmed New round, and keep controls usable by D-pad and touch. No account/provider is needed.

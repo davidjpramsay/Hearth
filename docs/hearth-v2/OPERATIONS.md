@@ -959,8 +959,8 @@ enter household data until that origin/certificate is commissioned.
 
 ## Household Games archive
 
-Family navigation is **Games → Connections / Connect Four** (D-131/D-133). Adults choose individual
-On/Off games in **More → Modules → Choose games**. The parent Games switch gates both, retaining
+Family navigation is **Games → Connections / Connect Four / Word Guess** (D-131/D-133/D-135). Adults choose individual
+On/Off games in **More → Modules → Choose games**. The parent Games switch gates all children, retaining
 child choices. Connect Four needs no archive/provider and keeps the current round on its device.
 `/games` is the menu; the puzzle is at
 `/games/connections`. Existing explicit `/games?puzzle=N` links still open that puzzle. The existing
@@ -984,6 +984,30 @@ missing archives do not block startup or household services. Back up the complet
 to retain the archive; SQLite copies do not contain it. Browser game progress remains per device.
 Refreshing pinned Compose for this new environment field is a separate approved helper step;
 preserve commissioned DNS/bridge settings rather than overwriting them with the generic template.
+
+### Private Word Guess data (D-135)
+
+See [game content notes](../../hearth/content/README.md) and the
+[Word Guess README](../../hearth/content/word-guess/README.md). Obtain a permitted answer pool and
+allowed dictionary independently; preserve its permission notices and curate answers for the family.
+Never import NYT's answer list or publish downloaded words in Git, screenshots, ZIPs or images.
+The local `hearth/scripts/prepare-word-guess.py` helper accepts two lowercase five-letter text files
+and exclusively creates validated JSON outside the repository. It makes no network request and
+does not install anything. `pnpm verify:public-games` checks both private-content placeholders.
+
+Production reads `game-archives/word-guess.json` beside the configured database, normally
+`/data/game-archives/word-guess.json`. Optional `HEARTH_WORD_GUESS_PATH` must be an absolute server
+path. Install only after explicit live release/data approval into the existing protected data volume,
+retaining its service ownership/ACL and required source notices. No Compose mount, firewall, DNS,
+pairing, calendar or HA change is required. Do not replace the Connections archive.
+
+The UTF-8 file has `{version:1,answers:[...],allowedGuesses:[...]}` with unique lowercase ASCII
+five-letter words, every answer in allowed guesses, at most 10,000 answers/30,000 guesses/1 MiB.
+Answer order defines successive rounds and wraps after the last word. Atomically replace with a
+validated file; a later read refreshes after the one-minute cache. Missing words show setup guidance;
+failed refresh retains the last-good data as stale. The runtime never downloads a dictionary.
+Back up the private data and notices together; SQLite contains only the new module flag/receipts.
+Switching off retains private files and browser progress. Changed lists safely start a new local round.
 
 ## Synology paths
 

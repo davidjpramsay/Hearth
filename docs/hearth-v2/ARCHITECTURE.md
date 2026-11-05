@@ -319,7 +319,17 @@ availability; authenticated `/modules` embeds its flags and adult-only PUT
 orders child off after preceding feature responses. Parent `games` and child `connections` must both
 be on before catalogue/puzzle I/O. Query cancellation removes disabled puzzle cache entries; a
 module event/refetch gates child routes. Settings remain accessible with the parent off.
-HA controls the parent only and maps both exact game routes to its existing Games tab.
+HA controls the parent only and maps all three exact game routes to its existing Games tab.
+
+D-135 adds lazy `/games/word-guess`, pure core scoring/restore and a bounded device-local round.
+Authenticated household GET `…/games/word-guess` checks Games and `wordGuess` before provider I/O
+under the same lease and returns a private/no-store validated catalogue. The adapter lazily reads a
+descriptor-pinned regular file (1 MiB, 10,000 answers, 30,000 guesses), rejects symlinks/unstable input,
+coalesces reads and refreshes at most once a minute. Missing data is unconfigured; invalid data is
+unavailable or stale with a last-good snapshot. Content-derived IDs prevent old progress being used
+against a changed answer set. Browser solutions are ordinary household game data, not an anti-cheat
+boundary. No gameplay server writes or runtime downloads. Migration 0039 extends the existing child
+ID constraint; old receipt JSON/hash/flags stay unchanged. WORD_GUESS_CONTRACT.md is canonical.
 
 Games serves only the household-supplied archive through authenticated, no-store household GETs:
 `…/games/word-groups` returns bounded puzzle metadata; `…/games/word-groups/:puzzleId` returns one

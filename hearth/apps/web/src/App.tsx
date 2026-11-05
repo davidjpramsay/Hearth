@@ -158,6 +158,10 @@ const SystemActivityScreen = lazy(async () => ({
   default: (await import('./screens/SystemActivityScreen')).SystemActivityScreen,
 }));
 
+const WordGuessScreen = lazy(async () => ({
+  default: (await import('./screens/WordGuessScreen')).WordGuessScreen,
+}));
+
 export function App() {
   const location = useLocation();
   const { preferences } = useAppearance();
@@ -235,6 +239,7 @@ export function App() {
             <Route path="/games" element={<GamesMenuScreen />} />
             <Route path="/games/connections" element={<GamesScreen />} />
             <Route path="/games/connect-four" element={<ConnectFourScreen />} />
+            <Route path="/games/word-guess" element={<WordGuessScreen />} />
             <Route path="/nba" element={<NbaScreen />} />
             <Route path="/fitness" element={<FitnessScreen />} />
             <Route path="/morning-routine" element={<MorningRoutineScreen />} />

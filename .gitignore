@@ -39,3 +39,7 @@ hearth/content/connections/*
 !hearth/content/connections/README.md
 **/connections.json
 **/nyt-connections*.json
+hearth/content/word-guess/*
+!hearth/content/word-guess/README.md
+**/word-guess.json
+**/wordle*.json

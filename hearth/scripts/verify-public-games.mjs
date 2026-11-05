@@ -8,19 +8,28 @@ function hasPuzzle(value) {
   if (!value || typeof value !== 'object') return false;
   return (
     'starting_board' in value ||
+    (Array.isArray(value.answers) && Array.isArray(value.allowedGuesses)) ||
     ('groups' in value && ('board' in value || 'puzzle_number' in value)) ||
     Object.values(value).some(hasPuzzle)
   );
 }
 export function isPrivatePuzzleFile(name, content) {
-  if (/^hearth\/content\/connections\//.test(name))
-    return name !== 'hearth/content/connections/README.md';
+  if (/^hearth\/content\/(?:connections|word-guess)\//.test(name))
+    return !/^hearth\/content\/(?:connections|word-guess)\/README\.md$/.test(name);
   if (
-    /(?:^|\/)(?:connections|nyt-connections[^/]*)\.(?:json|jsonl|csv|zip|gz|tar|tgz)$/i.test(name)
+    /(?:^|\/)(?:connections|nyt-connections[^/]*|word-guess|wordle[^/]*)\.(?:json|jsonl|csv|zip|gz|tar|tgz)$/i.test(
+      name,
+    )
   )
     return true;
   // Inspect JSON data even if renamed to .txt; source code and original TS demo fixtures are not archives.
   const text = content.toString('utf8').trim();
+  const lines = text.split(/\r?\n/).filter(Boolean);
+  if (
+    lines.length >= 30 &&
+    lines.filter((line) => /^[a-z]{5}$/.test(line)).length / lines.length > 0.9
+  )
+    return true;
   if (!['[', '{'].includes(text[0])) return false;
   try {
     return hasPuzzle(JSON.parse(text));

@@ -1,5 +1,23 @@
 # Hearth v2 decision record
 
+## D-135 — Original unlimited Word Guess with private word data
+
+- Date: 2026-11-05. Status: user-requested implementation; release/device evidence tracked separately.
+- Add Word Guess under Games with its own adult switch. Unlimited rounds, five letters, six attempts,
+  duplicate-aware scoring, confirmed unfinished restart and explicit Next word; resume the exact round.
+  Use Hearth typography/colours, remote keyboard, symbols and accessible feedback. No NYT branding,
+  answer schedule, copied answer list, remote runtime download or anti-cheat claim.
+- Supply only small original demo/test data. Households obtain permitted private answer/guess lists
+  and retain notices; both word-game folders document that responsibility. Extend the public-content
+  guard and Docker exclusions. A bounded local helper writes outside Git and never overwrites data.
+- Reuse authenticated household/module leases, add read-only catalogue and migration 0039 child-ID
+  extension, preserve old flags/receipt hashes/JSON and replay compatibility. Store only bounded,
+  replay-validated device progress; content-derived snapshot identity rejects changed-list saves.
+- Default private words beside the database, optional absolute server-only path, safe bounded regular
+  file reads and last-good stale fallback. No mount/networking/credential, HA permission or game-state
+  upload. Private data installation requires its own release authorization. WORD_GUESS_CONTRACT.md
+  defines the precise boundary and proof.
+
 ## D-134 — Shared Fitness board with broad daily activities
 
 - Date: 2026-11-05. Status: user-requested UI refinement; release/device proof tracked separately.

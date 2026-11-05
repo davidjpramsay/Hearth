@@ -1,5 +1,14 @@
 # Hearth v2 implementation roadmap
 
+## Word Guess (D-135) — requested 2026-11-05
+
+Add an original unlimited five-letter game, separate adult switch, private permitted word data and
+device-local saved rounds. Prove scoring/duplicate letters, terminal/invalid/reopen states, private
+file bounds and stale refresh, auth/module gates, retained receipts, TV D-pad/Back and phone layout.
+Content READMEs and source guards must exclude downloaded databases from all public artefacts.
+Local implementation does not install a private dictionary or establish GitHub, deployment or actual
+TV/iPhone proof. No daily NYT schedule, scraping, multiplayer or gameplay server writes.
+
 ## Independent games (D-133)
 
 Implement original local two-player Connect Four, persistent current round, and adult game choices

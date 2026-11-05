@@ -270,6 +270,8 @@ import {
 } from './home-assistant-connection-repository.js';
 import { RealtimeHub } from './realtime.js';
 import { GamesArchive } from './games-archive.js';
+import { WordGuessArchive } from './word-guess-archive.js';
+import { WordGuessCatalogueSchema } from '@hearth/shared';
 import { GameModuleIdSchema, GameModuleCommandResultSchema } from '@hearth/shared';
 import { createTodayReader } from './today-reader.js';
 import { TodayVerseCache } from './integrations/today-verse-cache.js';
@@ -424,6 +426,7 @@ export interface BuildServerOptions {
   trustedProxyAddresses?: string[];
   readiness?: () => Promise<void> | void;
   gamesArchive?: GamesArchive;
+  wordGuessArchive?: WordGuessArchive;
   nba?: NbaService;
   fitness?: FitnessService;
   fitnessLibrary?: FitnessLibraryService;
@@ -451,6 +454,7 @@ export function buildServer(options: BuildServerOptions = {}): FastifyInstance {
         });
   const demoMode = runtime.mode !== 'private';
   const gamesArchive = options.gamesArchive ?? new GamesArchive(undefined, demoMode);
+  const wordGuessArchive = options.wordGuessArchive ?? new WordGuessArchive(undefined, demoMode);
   const nbaMedia = options.nbaMedia ?? (demoMode ? new NoNbaMedia() : new EspnNbaMedia());
   const nba =
     options.nba ??
@@ -794,6 +798,7 @@ export function buildServer(options: BuildServerOptions = {}): FastifyInstance {
       const module = moduleForApiRoute(route);
       if (module) modules.assertEnabled(id, module);
       if (route.includes('/games/word-groups')) modules.games.assertEnabled(id, 'connections');
+      if (route.includes('/games/word-guess')) modules.games.assertEnabled(id, 'wordGuess');
     });
   });
   const finishModuleRequest = async (request: FastifyRequest) => {
@@ -2260,6 +2265,16 @@ export function buildServer(options: BuildServerOptions = {}): FastifyInstance {
         ),
       ),
     );
+  });
+
+  server.get('/api/v1/households/:householdId/games/word-guess', async (request, reply) => {
+    const params = parse(HouseholdParamsSchema, request.params, reply);
+    if (!params) return reply;
+    reply.header('Cache-Control', 'private, no-store').header('Vary', 'Cookie, Authorization');
+    return run(reply, async () => {
+      await adminRepository.getHousehold(params.householdId);
+      return WordGuessCatalogueSchema.parse(await wordGuessArchive.catalogue());
+    });
   });
 
   server.get('/api/v1/households/:householdId/games/word-groups', async (request, reply) => {

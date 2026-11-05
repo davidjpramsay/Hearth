@@ -97,3 +97,13 @@
 .games-empty {
   color: var(--muted);
 }
+
+.games-word-mark {
+  font-size: 36px;
+  font-weight: 750;
+  line-height: 1;
+}
+.games-choice__icon--wordGuess {
+  color: #fff;
+  background: #386747;
+}
