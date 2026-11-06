@@ -1,5 +1,21 @@
 # Hearth v2 decision record
 
+## D-139 — Full-height routines with measured task paging
+
+- Date: 2026-11-06. Status: accepted UI refinement; local/release/device evidence separate.
+- Both routine boards use the TV’s available height, with a full-width content-height Bible verse
+  at the bottom safe edge. Remove the duplicate Today button; the normal rail/phone navigation
+  remains. Household paging and optional messages go above the verse.
+- Replace five/seven/task-title-length paging thresholds with measured wrapped row, header, gap
+  and pager sizes per person. Reserve a pager only if all rows do not fit; full pages use the
+  whole task area. Final pages stay naturally sized. Keep 56px/20px TV minimum targets/text and
+  all tasks in natural companion scrolling. Recalculate on resize/fonts/header/feedback/verse
+  changes, accounting for 4K CSS zoom; preserve focused task identity and D-pad escape/return.
+- Preserve the existing three-people TV grouping, task order, completion/chore commands, profile/
+  date semantics, IDs, history, permissions and exact retries. No saved household or HA change.
+- Supersedes the fixed-count paging presentation in D-120/D-123/D-136, without a wire, database,
+  dependency, APK, provider, credential, networking or deployment change.
+
 ## D-138 — Workout-first Fitness with optional goals
 
 - Date: 2026-11-05. Status: accepted refinement; local/release/device evidence stays separate.

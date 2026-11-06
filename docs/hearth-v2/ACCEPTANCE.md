@@ -1,5 +1,38 @@
 # Hearth v2 acceptance and definition of done
 
+## Full-height routine boards — D-139, local proof 2026-11-06
+
+- Both TV routines anchor a full-width, content-height Bible verse to the bottom safe edge and
+  remove the duplicate Today button. Normal Today navigation remains. Tasks use measured row/
+  header/gap/pager space, including wrapping and 4K CSS zoom, instead of fixed five/seven counts.
+  Full pages reach their pager; final pages keep natural rows. Verse off gives its space back.
+  Companion lists scroll naturally with the verse after the complete lists.
+- Passed `pnpm --filter @hearth/web typecheck`, targeted ESLint/Prettier, production
+  `pnpm --filter @hearth/web build` and `git diff --check`.
+  `pnpm --filter @hearth/web test:unit` passes **481 tests / 68 files**, including six focused
+  fit-policy cases for exact/nine-row fits, pager reservation, wrapped rows, recovered space,
+  fractional geometry and finite small/empty layouts. `pnpm verify:ci` passes policy tests and
+  complete nonoverlapping coverage of **1,496** browser tests.
+- `pnpm test:e2e:built tests/e2e/morning-routine.spec.ts tests/e2e/morning-profiles.spec.ts tests/e2e/routine-chores.spec.ts --max-failures=0 --reporter=line --output=/tmp/hearth-routine-fit-results`
+  passes **63/63** in Chromium. Final WebKit verification imports the built config in
+  `/tmp/hearth-routine-fit-webkit.config.ts` with `browserName: 'webkit'` and the project working
+  directory preserved; running the Morning/Profiles specs with
+  `--grep 'nine tasks|pages only|verse gives|empty routine without|long steps|untimed weekend'`
+  passes **23/23**. An empty read-only panel uses programmatic focus, without adding an unnecessary
+  Tab stop. Phone/TV dark/light, timed/untimed weekdays/weekends, 1280×640 through 4K, nine tasks at
+  1258×856, long labels, longer/extra-person lists, verse errors/off/on, resize/focus, module gates,
+  stale reads, linked-chore undo and exact retries pass. D-pad reaches the bottom verse, opens/closes
+  the full text and returns to the rail/task. Existing checks are not changed by layout/module tests.
+- Browser plugin unavailable; repository Playwright uses fictional demo data at
+  `http://127.0.0.1:4320`. Route/title, meaningful content, no framework overlay or relevant app
+  console errors, no overflow, rendered screenshots, accessibility and interaction are checked.
+  Screenshots inspected outside Git under `/tmp/hearth-routine-fit-results/` and
+  `/tmp/hearth-routine-fit-webkit-results/`; no private family data is copied into source/evidence.
+- Not run: unrelated full browser suite, backend/unit/API/migration/Android reruns (their code is
+  unchanged), hosted release, push, private deployment, actual Google TV/iPhone and live HA alarm.
+  Existing settings/ticks/history, API/schema, providers, permissions, credentials and networking
+  remain unchanged. Local WebKit proof does not establish actual iPhone acceptance.
+
 ## Afternoon icon — local proof 2026-11-06
 
 Afternoon uses the shared setting-sun SVG on its board, TV/phone navigation, adult menus, Modules,

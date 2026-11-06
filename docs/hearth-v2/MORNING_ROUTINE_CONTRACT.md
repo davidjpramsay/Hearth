@@ -1,4 +1,4 @@
-# Morning / Afternoon routines v2 — D-120 / D-123 / D-136
+# Morning / Afternoon routines v2 — D-120 / D-123 / D-136 / D-139
 
 ## Morning and Afternoon routines — D-136
 
@@ -46,8 +46,8 @@ all existing flags exactly and never rewrites Morning settings/progress/receipt 
 schedules, completions, payments, device connections or HA grants. Release requires a checked
 pre-migration backup; rollback uses its matching v39 database, not a v40 file in an old server.
 
-Afternoon reuses the existing responsive board/editor, seven-step TV layout, honest paging for
-longer lists, D-pad rail escape/return, compact Bible verse, dark/reduced-motion and stale/error/retry
+Afternoon reuses the existing responsive board/editor, measured full-height TV layout and paging,
+D-pad rail escape/return, compact Bible verse, dark/reduced-motion and stale/error/retry
 states. It has its own headings and greeting. Phone controls remain natural scrolling with the
 existing safe time-field layout. Both lists are adult-editable; order guides, never locks checks.
 
@@ -107,16 +107,25 @@ and step version. Unknown outcomes retry the original payload; an exact replay r
 result without mutating today's new profile/date. Old v1 completions without `profileId` refer only
 to School days. Auth/module gates still precede receipt lookup; stale/new-profile commands conflict.
 
-The existing TV composition remains: up to three people per page, seven ordinary steps visible
-on supported TVs down to 1280×640, explicit paging for longer labels/lists and natural phone flow.
+The TV composition keeps up to three people per page. D-139 fills the available screen height and
+measures each person’s natural wrapped rows before paging. Seven ordinary steps still fit supported
+TVs down to 1280×640; seven is not a maximum. Show all nine or twelve when they genuinely fit,
+without reserving a pager. Only overflow reserves measured pager space; each full page uses the
+remaining vertical task area above the verse. Final pages retain natural readable rows. Resize,
+font/header changes, feedback and verse visibility recalculate fit, including the 4K shell’s CSS zoom.
+Keep the focused task as the page anchor; selecting Earlier/More focuses the first new task.
+Phones/tablets show all tasks in natural flow instead of artificial task pages.
 Retain 20px TV step text, 56px targets and 30px checks; do not shrink to fit. Both timed and untimed
 profiles support dark mode, reduced motion, D-pad/Back and focus restoration. Save feedback remains
 announced, with errors/retry visible. The clock anchors to server time and refetches at foreground/
 interval/date change. Saved/offline reads remain visible but stale-day or unconfirmed data disables
 new checks. This is not an offline write queue.
 
-When Daily Bible verse is enabled, retain its compact content-height bottom card, independent of
-Today's visibility setting. Reuse the existing narrow household/module-gated `GET .../daily-verse`,
+When Daily Bible verse is enabled, its compact content-height card spans the full width at the
+bottom safe edge of both TV routines. People controls and any footer message sit above it, never
+beside it. Remove the duplicate Today shortcut; normal navigation still offers Today. On phones
+the verse follows the complete lists without covering tasks or bottom navigation. Its visibility
+remains independent of Today’s summary setting. Reuse the existing narrow household/module-gated `GET .../daily-verse`,
 shared nonblocking cache/provider/key, attribution/full-text dialog and Back focus. Missing/failed/
 stale verse states never block checks. No new provider, persistence or HA authority.
 

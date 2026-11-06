@@ -77,7 +77,9 @@ Afternoon Routine (school weekdays, untimed initially) and optional per-child ch
 both routines. Linked chores show only when actually due and share completion/undo and earnings
 with the original chore, without a duplicate tick or credit. HA may
 select its family destination after the existing weekday alarm launch, under explicit approval;
-weekend behaviour remains separate. See [MORNING_ROUTINE_CONTRACT.md](MORNING_ROUTINE_CONTRACT.md).
+weekend behaviour remains separate. D-139 uses the full TV height, a bottom-aligned full-width
+Bible verse and task paging only when measured rows cannot all fit above it. Keep normal Today
+navigation and remove the duplicate routine-footer shortcut. See [MORNING_ROUTINE_CONTRACT.md](MORNING_ROUTINE_CONTRACT.md).
 
 Adults can turn Calendar, Weather, Reminders, Chores & pocket money, Lists, Meals, Home controls,
 Photos, Games, Notices and Daily Bible verse on/off from one simple Modules page. Off is household-wide:

@@ -7,7 +7,13 @@ import { calendarRefreshPolicy } from '../hooks/calendarRefreshPolicy';
 import { DailyVerseDetailsDialog } from './DailyVerseDetailsDialog';
 import { SummaryBand } from './SummaryBand';
 
-export function MorningRoutineVerse({ period = 'morning' }: { period?: 'morning' | 'afternoon' }) {
+export function MorningRoutineVerse({
+  period = 'morning',
+  entry = false,
+}: {
+  period?: 'morning' | 'afternoon';
+  entry?: boolean;
+}) {
   const query = useQuery({
     queryKey: queryKeys.dailyVerse,
     queryFn: ({ signal }) => dailyVerseApi.get(signal),
@@ -25,7 +31,7 @@ export function MorningRoutineVerse({ period = 'morning' }: { period?: 'morning'
         focus={{
           'data-focus-id': 'morning-daily-verse',
           'data-focus-left': `nav-${period}`,
-          'data-focus-right': 'morning-today',
+          ...(entry ? { 'data-focus-entry': 'true' as const } : {}),
         }}
         icon="book-open"
         label={stale && verse ? 'Daily verse · saved' : 'Daily verse'}

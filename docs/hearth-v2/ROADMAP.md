@@ -1,5 +1,12 @@
 # Hearth v2 implementation roadmap
 
+## D-139 — Routine height and bottom verse
+
+Use full TV height for both routines, remove the redundant Today shortcut, keep the verse on the
+bottom safe edge and page tasks from measured room rather than fixed counts. Local proof passes
+for nine-task fit, wrapped rows, longer lists, verse off/on, timer/profile states, font/resize/4K
+behavior and focus/D-pad restoration (see ACCEPTANCE). Keep local checks, publication/deployment and physical-device acceptance separate.
+
 ## D-138 — Simple weekly Fitness workouts
 
 Make goals optional and put the compact weekly workout list first. Keep optional exercise/video

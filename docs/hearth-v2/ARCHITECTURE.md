@@ -12,6 +12,14 @@ command after replay/CAS checks. No provider, background process, credential or 
 Canonical details: MORNING_ROUTINE_CONTRACT.md. The original independent-checklist design below
 continues for plain steps; D-136 explicitly supersedes it for linked chores only.
 
+D-139 keeps rendering geometry local: a shared per-person ResizeObserver measures hidden,
+noninteractive natural row/pager probes against the actual available card height. Pure greedy
+pagination fills that space; no fixed task-count or title-length rule. Scaled DOM geometry accounts
+for the existing 4K CSS zoom. Font/header/viewport/verse changes remeasure; clock/completion changes
+do not reinstall observers. Focused task identity anchors resizing and page controls restore a task.
+Both TV boards have fixed available height and a bottom verse; companion lists remain natural flow.
+No plan, tick, persistence, API, provider, HA, security or background-work change.
+
 ## Fitness exercise library (D-129)
 
 `FitnessLibraryService` adds separately versioned reusable instructions/clip metadata and private

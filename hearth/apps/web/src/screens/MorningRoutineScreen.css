@@ -108,6 +108,8 @@
   min-height: 0;
 }
 .morning-person {
+  position: relative;
+  min-height: 0;
   --person-color: var(--eucalyptus);
   min-width: 0;
   padding: 24px 18px;
@@ -173,7 +175,8 @@
   display: grid;
   gap: 10px;
 }
-.morning-step {
+.morning-step,
+.morning-step-measure {
   display: flex;
   gap: 10px;
   align-items: center;
@@ -185,10 +188,12 @@
   background: var(--surface-soft);
   color: var(--ink);
   font-size: 26px;
+  line-height: 1.25;
   text-align: left;
   cursor: pointer;
 }
-.morning-step > span:nth-child(2) {
+.morning-step > span:nth-child(2),
+.morning-step-measure > span:nth-child(2) {
   flex: 1;
   overflow-wrap: anywhere;
 }
@@ -219,21 +224,23 @@
 }
 .morning-footer {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: stretch;
   gap: 12px;
+  margin-top: auto;
+  flex: 0 0 auto;
   color: var(--eucalyptus);
   font-size: 24px;
-  min-height: 38px;
 }
-.morning-footer > .button {
-  margin-inline-start: auto;
+.morning-footer:empty {
+  display: none;
 }
-.morning-footer > span {
-  flex: 0 1 25%;
+.morning-footer > .morning-pager {
+  align-self: flex-end;
 }
 .morning-footer .morning-verse {
-  flex: 1;
+  flex: 0 0 auto;
+  width: 100%;
   min-width: 0;
   min-height: 74px;
   padding: 10px 16px;
@@ -294,7 +301,7 @@
   color: var(--ochre);
 }
 @media (min-width: 1200px) {
-  .morning-screen--seven {
+  .morning-screen {
     height: 100%;
   }
 }
@@ -353,7 +360,8 @@
   .morning-person__badge {
     font-size: 26px;
   }
-  .morning-step {
+  .morning-step,
+  .morning-step-measure {
     font-size: 20px;
     min-height: 56px;
     padding: 8px;
@@ -384,47 +392,48 @@
     width: 24px;
     height: 24px;
   }
-  .morning-screen--seven {
+  .morning-screen--compact {
     gap: 8px;
   }
-  .morning-screen--seven .morning-layout {
+  .morning-screen--compact .morning-layout {
     grid-template-columns: 150px minmax(0, 1fr);
     gap: 12px;
   }
-  .morning-screen--seven .morning-timer .morning-header {
+  .morning-screen--compact .morning-timer .morning-header {
     width: 100%;
     flex-direction: column;
     gap: 8px;
   }
-  .morning-screen--seven .morning-timer .morning-header h1 {
+  .morning-screen--compact .morning-timer .morning-header h1 {
     max-width: 100%;
   }
-  .morning-screen--seven .morning-person {
+  .morning-screen--compact .morning-person {
     padding: 8px;
     gap: 8px;
   }
-  .morning-screen--seven .morning-person__header > div {
+  .morning-screen--compact .morning-person__header > div {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
     gap: 4px 8px;
   }
-  .morning-screen--seven .morning-person__header p {
+  .morning-screen--compact .morning-person__header p {
     margin: 0;
   }
-  .morning-screen--seven .morning-person__badge,
-  .morning-screen--seven .morning-person__progress {
+  .morning-screen--compact .morning-person__badge,
+  .morning-screen--compact .morning-person__progress {
     display: none;
   }
-  .morning-screen--seven .morning-steps {
+  .morning-screen--compact .morning-steps {
     gap: 4px;
   }
-  .morning-screen--seven .morning-step {
+  .morning-screen--compact .morning-step,
+  .morning-screen--compact .morning-step-measure {
     padding: 3px 6px;
     gap: 6px;
     line-height: 1.2;
   }
-  .morning-screen--seven .morning-step:focus-visible {
+  .morning-screen--compact .morning-step:focus-visible {
     outline-offset: -3px;
   }
 }
@@ -495,7 +504,8 @@
   .morning-person__empty {
     font-size: 17px;
   }
-  .morning-step {
+  .morning-step,
+  .morning-step-measure {
     font-size: 18px;
     min-height: 60px;
   }
@@ -505,10 +515,6 @@
   .morning-footer {
     font-size: 17px;
     flex-wrap: wrap;
-  }
-  .morning-footer > span,
-  .morning-footer .morning-verse {
-    flex-basis: 100%;
   }
   .morning-verse p {
     font-size: 17px;
@@ -560,4 +566,44 @@
   font-size: 0.7em;
   opacity: 0.72;
   line-height: 1;
+}
+
+.morning-measure {
+  position: absolute;
+  inset: 0;
+  padding: inherit;
+  visibility: hidden;
+  pointer-events: none;
+  overflow: hidden;
+  contain: layout style;
+}
+.morning-measure [data-label]::before {
+  content: attr(data-label);
+}
+.morning-measure .morning-pager {
+  margin-top: 0;
+}
+@media (min-width: 1200px) {
+  .morning-layout,
+  .morning-people {
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .morning-person__header,
+  .morning-person__progress,
+  .morning-person > .morning-steps,
+  .morning-person > .morning-pager {
+    flex-shrink: 0;
+  }
+  .morning-person--page-full > .morning-steps {
+    flex: 1;
+    min-height: 0;
+    grid-auto-rows: minmax(min-content, 1fr);
+  }
+  .morning-person--page-full > .morning-steps > li {
+    display: flex;
+    min-height: 0;
+  }
+  .morning-person--page-full > .morning-steps .morning-step {
+    height: 100%;
+  }
 }

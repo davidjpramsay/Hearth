@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
 import { morningClock } from '@hearth/core';
 import {
   MORNING_PROFILE_LABELS,
@@ -16,6 +15,7 @@ import { MorningRoutineVerse } from '../components/MorningRoutineVerse';
 import { useModules } from '../modules/context';
 import { FailureState, LoadingState } from '../components/Status';
 import { useTodayViewportClass } from '../layout/todayRailCapacity';
+import { useRoutinePagination } from '../layout/routinePagination';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import './MorningRoutineScreen.css';
 
@@ -122,13 +122,11 @@ function MorningBoard({
     viewport === 'companion'
       ? scheduledPeople
       : scheduledPeople.slice(activePage * 3, activePage * 3 + 3);
-  const sevenStepLayout =
+  const compactLayout =
     viewport !== 'companion' &&
-    people.some(
-      ({ steps }) =>
-        steps.length > 5 && steps.length <= 7 && steps.every((step) => step.title.length <= 40),
-    );
-  const embeddedHeader = sevenStepLayout && viewport !== 'full-tv';
+    viewport !== 'full-tv' &&
+    people.some(({ steps }) => steps.length > 5);
+  const embeddedHeader = compactLayout;
   const total = scheduledPeople.reduce((sum, person) => sum + person.steps.length, 0);
   const done = scheduledPeople.reduce(
     (sum, person) => sum + person.steps.filter((step) => step.isCompleted).length,
@@ -224,7 +222,7 @@ function MorningBoard({
     </header>
   );
   return (
-    <section className={`screen morning-screen${sevenStepLayout ? ' morning-screen--seven' : ''}`}>
+    <section className={`screen morning-screen${compactLayout ? ' morning-screen--compact' : ''}`}>
       {embeddedHeader ? null : heading}
       <div className={needsRefresh || error ? 'morning-feedback' : 'sr-only'} aria-live="polite">
         {needsRefresh ? (
@@ -247,6 +245,8 @@ function MorningBoard({
             onClick={() => (pending.current ? void toggle() : refresh())}
             disabled={busy}
             type="button"
+            data-focus-id="morning-refresh"
+            data-focus-entry="true"
           >
             {hasPending ? 'Retry check' : 'Refresh routine'}
           </button>
@@ -324,7 +324,13 @@ function MorningBoard({
           style={{ '--morning-columns': Math.max(1, people.length) } as CSSProperties}
         >
           {people.length === 0 ? (
-            <div className="morning-empty">
+            <div
+              className="morning-empty focusable"
+              tabIndex={-1}
+              data-focus-id="morning-empty"
+              data-focus-left={`nav-${period}`}
+              data-focus-entry={!modules.dailyVerse ? 'true' : undefined}
+            >
               <Icon name={period === 'morning' ? 'sun' : 'sunset'} />
               <h2>{data.profileId === null ? 'No routine scheduled today' : 'A fresh start'}</h2>
               <p>
@@ -344,19 +350,7 @@ function MorningBoard({
                 railExit={viewport !== 'companion' && index === 0}
                 canCheck={canCheck}
                 busy={busy}
-                capacity={
-                  viewport === 'companion'
-                    ? 12
-                    : steps.some((step) => step.title.length > 40)
-                      ? viewport === 'short-tv'
-                        ? 1
-                        : 2
-                      : steps.length > 7
-                        ? viewport === 'short-tv'
-                          ? 4
-                          : 5
-                        : 7
-                }
+                paginate={viewport !== 'companion'}
                 onToggle={(step) => void toggle(person.id, step)}
               />
             ))
@@ -365,15 +359,6 @@ function MorningBoard({
       </div>
       <footer className="morning-footer">
         {footerMessage ? <span>{footerMessage}</span> : null}
-        {modules.dailyVerse ? <MorningRoutineVerse period={period} /> : null}
-        <Link
-          className="button focusable"
-          data-focus-id="morning-today"
-          data-focus-entry={!canCheck || total === 0 ? 'true' : undefined}
-          to="/today"
-        >
-          Today
-        </Link>
         {viewport !== 'companion' && pages > 1 ? (
           <div className="morning-pager">
             <button
@@ -397,6 +382,9 @@ function MorningBoard({
             </button>
           </div>
         ) : null}
+        {modules.dailyVerse ? (
+          <MorningRoutineVerse period={period} entry={!canCheck || total === 0} />
+        ) : null}
       </footer>
     </section>
   );
@@ -410,7 +398,7 @@ function MorningPerson({
   railExit,
   canCheck,
   busy,
-  capacity,
+  paginate,
   onToggle,
 }: MorningOverview['people'][number] & {
   period: 'morning' | 'afternoon';
@@ -418,17 +406,33 @@ function MorningPerson({
   railExit: boolean;
   canCheck: boolean;
   busy: boolean;
-  capacity: number;
+  paginate: boolean;
   onToggle: (step: MorningOverview['people'][number]['steps'][number]) => void;
 }) {
-  const [page, setPage] = useState(0);
-  const pages = Math.max(1, Math.ceil(steps.length / capacity));
-  const activePage = Math.min(page, pages - 1);
+  const { cardRef, measureRef, pages } = useRoutinePagination(steps, paginate);
+  const [anchor, setAnchor] = useState<string | null>(null);
+  const anchorIndex = Math.max(
+    0,
+    steps.findIndex((step) => step.id === anchor),
+  );
+  const activePage = Math.max(
+    0,
+    pages.findIndex((range) => range.start <= anchorIndex && range.end > anchorIndex),
+  );
+  const range = pages[activePage]!;
+  function changePage(next: number) {
+    const step = steps[pages[next]!.start];
+    setAnchor(step?.id ?? null);
+    requestAnimationFrame(() => {
+      if (step) document.getElementById(`morning-${person.id}-${step.id}`)?.focus();
+    });
+  }
   const completed = steps.filter((step) => step.isCompleted).length;
   const allDone = steps.length > 0 && completed === steps.length;
   return (
     <section
-      className={`morning-person${allDone ? ' morning-person--ready' : ''}`}
+      ref={cardRef}
+      className={`morning-person${allDone ? ' morning-person--ready' : ''}${activePage < pages.length - 1 ? ' morning-person--page-full' : ''}`}
       aria-label={`${person.displayName}’s ${period}`}
       style={{ '--person-color': person.color } as CSSProperties}
     >
@@ -454,8 +458,8 @@ function MorningPerson({
       {steps.length === 0 ? (
         <p className="morning-person__empty">An adult can add your steps from their phone.</p>
       ) : null}
-      <ol className="morning-steps" start={activePage * capacity + 1}>
-        {steps.slice(activePage * capacity, (activePage + 1) * capacity).map((step, index) => (
+      <ol className="morning-steps" start={range.start + 1}>
+        {steps.slice(range.start, range.end).map((step, index) => (
           <li key={step.id}>
             <button
               className={`morning-step focusable${step.isCompleted ? ' morning-step--done' : ''}`}
@@ -467,12 +471,14 @@ function MorningPerson({
               onClick={() => {
                 if (canCheck && !step.chore?.locked) onToggle(step);
               }}
+              id={`morning-${person.id}-${step.id}`}
+              onFocus={() => setAnchor(step.id)}
               data-focus-entry={entry && index === 0 && canCheck ? 'true' : undefined}
               data-focus-id={`morning-${person.id}-${step.id}`}
               data-focus-left={railExit ? `nav-${period}` : undefined}
             >
               <span className="morning-step__number" aria-hidden="true">
-                {activePage * capacity + index + 1}
+                {range.start + index + 1}
               </span>
               <span>
                 {step.title}
@@ -485,29 +491,53 @@ function MorningPerson({
           </li>
         ))}
       </ol>
-      {pages > 1 ? (
+      {pages.length > 1 ? (
         <div className="morning-pager">
           <button
             className="button focusable"
             type="button"
             aria-label={`Previous steps for ${person.displayName}`}
             disabled={activePage === 0}
-            onClick={() => setPage(activePage - 1)}
+            onClick={() => changePage(activePage - 1)}
           >
             Earlier
           </button>
           <span>
-            {activePage + 1} / {pages}
+            {activePage + 1} / {pages.length}
           </span>
           <button
             className="button focusable"
             type="button"
             aria-label={`More steps for ${person.displayName}`}
-            disabled={activePage === pages - 1}
-            onClick={() => setPage(activePage + 1)}
+            disabled={activePage === pages.length - 1}
+            onClick={() => changePage(activePage + 1)}
           >
             More
           </button>
+        </div>
+      ) : null}
+      {paginate ? (
+        <div ref={measureRef} className="morning-measure" aria-hidden="true">
+          <ol className="morning-steps">
+            {steps.map((step, index) => (
+              <li key={step.id}>
+                <div className="morning-step-measure">
+                  <span className="morning-step__number" data-label={String(index + 1)} />
+                  <span data-label={step.title}>
+                    {step.chore ? (
+                      <small className="morning-step__chore" data-label="Chore" />
+                    ) : null}
+                  </span>
+                  <span className="morning-step__check" />
+                </div>
+              </li>
+            ))}
+          </ol>
+          <div className="morning-pager">
+            <span className="button" data-label="Earlier" />
+            <span data-label="1 / 2" />
+            <span className="button" data-label="More" />
+          </div>
         </div>
       ) : null}
     </section>

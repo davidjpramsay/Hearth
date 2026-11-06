@@ -9,7 +9,10 @@ and **Add one of [person]'s chores**; the latter lists only active chores assign
 A small Chore label explains shared checks. A linked row appears only on a real due day; completing
 or reopening it has the same effect in Chores and either routine. Unavailable links stay removable;
 Chores off hides them from family screens. Afternoon starts weekdays, no countdown. Retain seven
-ordinary rows per supported TV page, readable targets, honest overflow paging, phone scrolling,
+ordinary rows on the shortest supported TV; use measured room for additional tasks before any paging.
+D-139 anchors a full-width verse to the TV bottom safe edge and removes the extra Today shortcut.
+Measure wrapped rows, headers, feedback and pager space per person; fill each full task page down
+to its pager/verse while keeping final-page rows natural. Retain readable targets, phone scrolling,
 dark/reduced-motion support and explicit D-pad escape/return. See MORNING_ROUTINE_CONTRACT.md.
 
 ## Games choices and Connect Four (D-133)

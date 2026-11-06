@@ -68,6 +68,7 @@ interface SummaryBandProps {
 
 interface SummaryBandFocusProps {
   'data-focus-id': string;
+  'data-focus-entry'?: 'true';
   'data-focus-up'?: string;
   'data-focus-down'?: string;
   'data-focus-left'?: string;

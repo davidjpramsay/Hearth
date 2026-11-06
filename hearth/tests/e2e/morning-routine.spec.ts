@@ -233,8 +233,7 @@ test('lists longer than seven keep honest paging beside seven-step neighbours on
         page.getByRole('button', { name: 'More steps for Bo', exact: true }),
       ).toHaveCount(0);
     }
-    await next.click();
-    await next.click();
+    while (await next.isEnabled()) await next.click();
     await expect(
       page.getByRole('button', { name: 'Ari: Choose a book', exact: true }),
     ).toBeInViewport({ ratio: 1 });
@@ -552,7 +551,7 @@ test('unassigned days and failed-refresh states prevent stale writes', async ({ 
   );
   await page.goto('/morning-routine');
   await expect(page.getByRole('heading', { name: 'No routine scheduled today' })).toBeVisible();
-  await expect(page.locator('[data-focus-id="morning-today"]')).toBeFocused();
+  await expect(page.locator('.morning-verse')).toBeFocused();
   await expect(page.getByRole('button', { name: 'Ari: Shoes and socks', exact: true })).toHaveCount(
     0,
   );
@@ -631,3 +630,242 @@ for (const viewport of [
     ).toBe(true);
   });
 }
+
+for (const period of ['morning', 'afternoon'] as const) {
+  for (const theme of ['light', 'dark'] as const) {
+    test(`${period} nine tasks use the complete screen above the bottom verse ${theme}`, async ({
+      page,
+    }, info) => {
+      await page.setViewportSize({ width: 1258, height: 856 });
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
+      await page.route('**/api/v1/households/*/modules', (route) =>
+        route.fulfill({
+          json: {
+            householdId: overview.householdId,
+            enabled: {
+              ...DEFAULT_MODULE_FLAGS,
+              morningRoutine: true,
+              afternoonRoutine: true,
+              dailyVerse: true,
+            },
+          },
+        }),
+      );
+      const people = overview.people.map((person, i) => ({
+        ...person,
+        steps:
+          i === 2
+            ? person.steps.slice(0, 4)
+            : [
+                ...person.steps,
+                ...['Check the weather', 'Choose a book'].map((title, j) => ({
+                  id: `extra_${i}_${j}`,
+                  title,
+                  isCompleted: false,
+                  version: 0,
+                })),
+              ],
+      }));
+      await page.route(`**/api/v1/households/*/${period}-routine`, (route) =>
+        route.fulfill({ json: { ...overview, people } }),
+      );
+      await page.route('**/api/v1/households/*/daily-verse', (route) =>
+        route.fulfill({ json: verse }),
+      );
+      await page.goto(`/${period}-routine`);
+      await expect(page.getByRole('link', { name: 'Today', exact: true })).toHaveCount(1);
+      await expect(page.locator('.morning-footer').getByRole('link')).toHaveCount(0);
+      await expect(page.getByRole('button', { name: /^More steps for / })).toHaveCount(0);
+      await expect(page.locator('.morning-step')).toHaveCount(22);
+      for (const row of await page.locator('.morning-step').all())
+        await expect(row).toBeInViewport({ ratio: 1 });
+      const verseCard = page.getByRole('button', { name: 'Read Demo preview', exact: true });
+      expect(
+        await verseCard.evaluate((el) => {
+          const screen = el.closest('.morning-screen')!;
+          return Math.abs(
+            el.getBoundingClientRect().bottom -
+              (screen.getBoundingClientRect().bottom -
+                parseFloat(getComputedStyle(screen).paddingBottom)),
+          );
+        }),
+      ).toBeLessThanOrEqual(1);
+      expect(
+        await page.locator('.app-content').evaluate((el) => el.scrollHeight <= el.clientHeight + 1),
+      ).toBe(true);
+      const last = page.getByRole('button', { name: 'Ari: Choose a book', exact: true });
+      await last.focus();
+      await page.keyboard.press('ArrowDown');
+      await expect(verseCard).toBeFocused();
+      await page.keyboard.press('Enter');
+      await expect(page.getByRole('dialog')).toBeVisible();
+      await page.keyboard.press('Escape');
+      await expect(verseCard).toBeFocused();
+      expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+      await page.screenshot({ path: info.outputPath('full-height-nine-tasks.png') });
+    });
+  }
+  for (const initial of [
+    { width: 1920, height: 1080 },
+    { width: 3840, height: 2160 },
+  ])
+    test(`${period} pages only when needed, fills its task area and preserves focus through resizing ${initial.width}`, async ({
+      page,
+    }, info) => {
+      await page.setViewportSize(initial);
+      await page.route('**/api/v1/households/*/modules', (route) =>
+        route.fulfill({
+          json: {
+            householdId: overview.householdId,
+            enabled: {
+              ...DEFAULT_MODULE_FLAGS,
+              morningRoutine: true,
+              afternoonRoutine: true,
+              dailyVerse: true,
+            },
+          },
+        }),
+      );
+      const people = overview.people.map((person, i) => ({
+        ...person,
+        steps: Array.from({ length: 12 }, (_, j) => ({
+          id: `task_${i}_${j}`,
+          title: `Get ready for activity ${j + 1}`,
+          isCompleted: false,
+          version: 0,
+        })),
+      }));
+      await page.route(`**/api/v1/households/*/${period}-routine`, (route) =>
+        route.fulfill({ json: { ...overview, people } }),
+      );
+      await page.route('**/api/v1/households/*/daily-verse', (route) =>
+        route.fulfill({ json: verse }),
+      );
+      await page.goto(`/${period}-routine`);
+      const person = page.getByRole('region', { name: `Ari’s ${period}`, exact: true });
+      const more = page.getByRole('button', { name: 'More steps for Ari', exact: true });
+      await expect(more).toBeVisible();
+      const rows = person.locator('.morning-step');
+      expect(await rows.count()).toBeGreaterThan(5);
+      const last = rows.last();
+      expect(
+        await last.evaluate((el) => {
+          const card = el.closest('.morning-person')!;
+          const pager = card.querySelector(':scope > .morning-pager')!;
+          return Math.abs(
+            pager.getBoundingClientRect().top -
+              el.getBoundingClientRect().bottom -
+              (parseFloat(getComputedStyle(card).rowGap) * card.getBoundingClientRect().width) /
+                card.clientWidth,
+          );
+        }),
+      ).toBeLessThanOrEqual(1);
+      await last.focus();
+      const label = await last.getAttribute('aria-label');
+      await page.setViewportSize({ width: 1258, height: 856 });
+      await expect(page.getByRole('button', { name: label!, exact: true })).toBeFocused();
+      await expect(page.getByRole('button', { name: label!, exact: true })).toBeInViewport({
+        ratio: 1,
+      });
+      await more.click();
+      await expect(
+        page.getByRole('button', { name: 'Previous steps for Ari', exact: true }),
+      ).toBeEnabled();
+      expect(
+        await person
+          .locator('.morning-step')
+          .first()
+          .evaluate((el) => el === document.activeElement),
+      ).toBe(true);
+      expect(
+        await page.locator('.app-content').evaluate((el) => el.scrollHeight <= el.clientHeight + 1),
+      ).toBe(true);
+      await page.screenshot({ path: info.outputPath('measured-task-pages.png') });
+    });
+}
+
+test('removing the verse gives the space back to tasks without losing any checks', async ({
+  page,
+  request,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1350 });
+  let showVerse = true;
+  await page.route('**/api/v1/households/*/modules', (route) =>
+    route.fulfill({
+      json: {
+        householdId: overview.householdId,
+        enabled: { ...DEFAULT_MODULE_FLAGS, morningRoutine: true, dailyVerse: showVerse },
+      },
+    }),
+  );
+  const people = overview.people.map((person, i) => ({
+    ...person,
+    steps: Array.from({ length: 12 }, (_, j) => ({
+      id: `task_${i}_${j}`,
+      title: `Activity ${j + 1}`,
+      isCompleted: j === 0,
+      version: j === 0 ? 1 : 0,
+    })),
+  }));
+  await page.route('**/api/v1/households/*/morning-routine', (route) =>
+    route.fulfill({ json: { ...overview, people } }),
+  );
+  await page.route('**/api/v1/households/*/daily-verse', (route) => route.fulfill({ json: verse }));
+  await page.goto('/morning-routine');
+  await expect(page.getByRole('button', { name: 'More steps for Ari', exact: true })).toBeVisible();
+  showVerse = false;
+  expect(
+    (
+      await request.put(`${home}/modules/dailyVerse`, {
+        headers: adult,
+        data: { requestId: 'request_verse_space_off', enabled: false },
+      })
+    ).ok(),
+  ).toBe(true);
+  await expect(page.locator('.morning-verse')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /^More steps for / })).toHaveCount(0);
+  await expect(page.locator('.morning-step')).toHaveCount(36);
+  await expect(page.getByRole('button', { name: 'Ari: Activity 1', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  for (const row of await page.locator('.morning-step').all())
+    await expect(row).toBeInViewport({ ratio: 1 });
+  showVerse = true;
+  expect(
+    (
+      await request.put(`${home}/modules/dailyVerse`, {
+        headers: adult,
+        data: { requestId: 'request_verse_space_on', enabled: true },
+      })
+    ).ok(),
+  ).toBe(true);
+  await expect(page.locator('.morning-verse')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'More steps for Ari', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Ari: Activity 1', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+});
+
+test('an empty routine without a verse has a clear focus target and an exit to the rail', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.route('**/api/v1/households/*/modules', (route) =>
+    route.fulfill({
+      json: {
+        householdId: overview.householdId,
+        enabled: { ...DEFAULT_MODULE_FLAGS, morningRoutine: true, dailyVerse: false },
+      },
+    }),
+  );
+  await page.route('**/api/v1/households/*/morning-routine', (route) =>
+    route.fulfill({ json: { ...overview, people: [] } }),
+  );
+  await page.goto('/morning-routine');
+  await expect(page.locator('[data-focus-id="morning-empty"]')).toBeFocused();
+  await page.keyboard.press('ArrowLeft');
+  await expect(page.locator('.tv-rail :focus')).toHaveCount(1);
+  await expect(page.locator('[data-focus-id="morning-today"]')).toHaveCount(0);
+});
