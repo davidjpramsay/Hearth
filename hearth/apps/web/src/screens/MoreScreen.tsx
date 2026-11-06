@@ -17,7 +17,7 @@ const baseGroups: Array<{ title: string; links: MoreLink[] }> = [
     links: [
       { title: 'Fitness', icon: 'weights', path: '/fitness' },
       { title: 'Morning Routine', icon: 'sun', path: '/morning-routine' },
-      { title: 'Afternoon Routine', icon: 'sun', path: '/afternoon-routine' },
+      { title: 'Afternoon Routine', icon: 'sunset', path: '/afternoon-routine' },
       { title: 'Reminders', icon: 'bell', path: '/reminders' },
       { title: 'Lists', icon: 'list', path: '/lists' },
       { title: 'Meals', icon: 'meal', path: '/meals' },
@@ -38,7 +38,7 @@ const baseGroups: Array<{ title: string; links: MoreLink[] }> = [
       { title: 'NBA teams', icon: 'basketball', path: '/admin/nba' },
       { title: 'Fitness settings', icon: 'weights', path: '/admin/fitness' },
       { title: 'Morning Routine settings', icon: 'sun', path: '/admin/morning-routine' },
-      { title: 'Afternoon Routine settings', icon: 'sun', path: '/admin/afternoon-routine' },
+      { title: 'Afternoon Routine settings', icon: 'sunset', path: '/admin/afternoon-routine' },
       {
         title: 'Manage photos',
         icon: 'image',

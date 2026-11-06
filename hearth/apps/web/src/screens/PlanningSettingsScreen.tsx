@@ -18,7 +18,7 @@ const planningAreas: Array<{
   {
     title: 'Afternoon Routine',
     path: '/admin/afternoon-routine',
-    icon: 'sun',
+    icon: 'sunset',
     focusId: 'planning-afternoon',
   },
   {

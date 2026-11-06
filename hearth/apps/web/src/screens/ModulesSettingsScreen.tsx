@@ -24,7 +24,7 @@ const icons: Record<ModuleId, IconName> = {
   dailyVerse: 'book-open',
   nba: 'basketball',
   morningRoutine: 'sun',
-  afternoonRoutine: 'sun',
+  afternoonRoutine: 'sunset',
   fitness: 'weights',
 };
 const help: Partial<Record<ModuleId, string>> = {

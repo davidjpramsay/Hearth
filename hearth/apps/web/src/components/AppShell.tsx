@@ -30,7 +30,7 @@ const baseNavigation: NavigationItem[] = [
   { label: 'Today', path: '/today', icon: 'today', enabled: true },
   { label: 'Fitness', path: '/fitness', icon: 'weights', enabled: true },
   { label: 'Morning', path: '/morning-routine', icon: 'sun', enabled: true },
-  { label: 'Afternoon', path: '/afternoon-routine', icon: 'sun', enabled: true },
+  { label: 'Afternoon', path: '/afternoon-routine', icon: 'sunset', enabled: true },
   { label: 'Calendar', path: '/calendar/agenda', icon: 'calendar', enabled: true },
   { label: 'Weather', path: '/weather', icon: 'cloud-sun', enabled: true },
   { label: 'Reminders', path: '/reminders', icon: 'bell', enabled: true },
@@ -58,7 +58,7 @@ const adminNavigationGroups: Array<{ label: string; items: AdminNavigationItem[]
       { label: 'NBA teams', path: '/admin/nba', icon: 'basketball' },
       { label: 'Fitness', path: '/admin/fitness', icon: 'weights' },
       { label: 'Morning Routine', path: '/admin/morning-routine', icon: 'sun' },
-      { label: 'Afternoon Routine', path: '/admin/afternoon-routine', icon: 'sun' },
+      { label: 'Afternoon Routine', path: '/admin/afternoon-routine', icon: 'sunset' },
       {
         label: 'Planning',
         path: '/admin/planning',

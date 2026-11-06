@@ -2,7 +2,9 @@
 
 ## Morning / Afternoon linked chores (D-136)
 
-Both routines use the existing board and school/weekend editor. Adult settings offer **Add step**
+Both routines use the existing board and school/weekend editor. Morning keeps its sun icon; Afternoon
+uses a distinct setting-sun icon consistently across its board, family/admin menus, module settings
+and activity. Adult settings offer **Add step**
 and **Add one of [person]'s chores**; the latter lists only active chores assigned to that person.
 A small Chore label explains shared checks. A linked row appears only on a real due day; completing
 or reopening it has the same effect in Chores and either routine. Unavailable links stay removable;

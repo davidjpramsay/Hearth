@@ -265,7 +265,7 @@ function MorningBoard({
             heading
           ) : (
             <div className="morning-timer__sun" aria-hidden="true">
-              <Icon name="sun" />
+              <Icon name={period === 'morning' ? 'sun' : 'sunset'} />
             </div>
           )}
           <p className="morning-timer__caption">
@@ -325,7 +325,7 @@ function MorningBoard({
         >
           {people.length === 0 ? (
             <div className="morning-empty">
-              <Icon name="sun" />
+              <Icon name={period === 'morning' ? 'sun' : 'sunset'} />
               <h2>{data.profileId === null ? 'No routine scheduled today' : 'A fresh start'}</h2>
               <p>
                 {data.profileId === null
@@ -439,7 +439,13 @@ function MorningPerson({
           <p>{allDone ? 'Ready to shine!' : `${completed} of ${steps.length} done`}</p>
         </div>
         <span className="morning-person__badge" aria-hidden="true">
-          {allDone ? '★' : '☀'}
+          {allDone ? (
+            '★'
+          ) : period === 'afternoon' ? (
+            <Icon name="sunset" width="1em" height="1em" />
+          ) : (
+            '☀'
+          )}
         </span>
       </header>
       <div className="morning-person__progress" aria-hidden="true">

@@ -1,5 +1,17 @@
 # Hearth v2 acceptance and definition of done
 
+## Afternoon icon — local proof 2026-11-06
+
+Afternoon uses the shared setting-sun SVG on its board, TV/phone navigation, adult menus, Modules,
+Family planning and activity rows. Morning retains its existing sun; completed routine badges keep
+their star. Paths, accessible labels, focus, saved routines and module behavior are unchanged.
+`pnpm --filter @hearth/web typecheck`, `pnpm --filter @hearth/web build`, targeted ESLint/Prettier and
+`git diff --check` pass. The existing rendered command
+`pnpm test:e2e:built tests/e2e/routine-chores.spec.ts --grep 'Afternoon seven steps fit (1920x1080|390x844)' --reporter=line --output=/tmp/hearth-afternoon-icon-results`
+passes all four light/dark phone/TV checks, including accessibility, layout and existing navigation
+checks. Screenshots inspected outside Git. No new unit tests for this decorative change; no server,
+API, Android, live configuration, GitHub publication, deployment or physical-device proof is claimed.
+
 ## Fitness simplicity — D-138, local proof 2026-11-05
 
 - Adult Fitness is workout-first: one compact list per person, activity/day setup, collapsed People
