@@ -459,6 +459,12 @@ actual hardware/deployment evidence explicit. The contract is SHARING_SETUP_CONT
 ## D-113 — Optional NBA, standout teams and honest weekly highlights
 
 - Date: 2026-10-18
+- Feed refinement, 2026-11-21: monthly scoreboards exceeded the existing four-MiB cap.
+  Use sixteen padded US Eastern daily scoreboards plus standings, four concurrent requests
+  sharing one eight-second projection deadline. Validate each day's coverage/season and reject
+  the whole refresh on any failure, retaining the service's stale last-good data. No cap increase,
+  range queries, new provider, API/schema, background task, HA scope or runtime configuration.
+  This supersedes only the original monthly-fetch strategy; NBA_CONTRACT defines the bounds.
 - Status: local implementation; release/physical acceptance separate.
 - Context: David requested season overview, this/next week's games, selected standout teams and
   interesting weekly performers.

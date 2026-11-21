@@ -88,6 +88,9 @@ const standings = z.object({
     )
     .length(2),
 });
+// ESPN's daily scoreboards use US Eastern dates, not UTC or household-local dates.
+const SCOREBOARD_TIMEZONE = 'America/New_York';
+const SCOREBOARD_ORIGIN = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba';
 
 /** Public read feed, no key. Fixed origins only; no browser cookies/third-party assets. */
 export class EspnNbaProvider implements NbaProvider {
@@ -96,19 +99,9 @@ export class EspnNbaProvider implements NbaProvider {
 
   async read(weekStart: string, timezone: string): Promise<NbaData> {
     const end = addLocalDays(weekStart, 14);
-    const months = [...new Set([addLocalDays(weekStart, -1).slice(0, 7), end.slice(0, 7)])];
-    const [rawStandings, ...rawMonths] = await Promise.all([
-      this.json('https://site.api.espn.com/apis/v2/sports/basketball/nba/standings'),
-      ...months.map((month) =>
-        this.json(
-          `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=${month.replace('-', '')}&limit=1000`,
-        ),
-      ),
-    ]);
-    const table = standings.parse(rawStandings);
-    const boards = rawMonths.map((data) => scoreboard.parse(data));
+    const { table, boards } = await this.feeds(weekStart);
     const season = boards[0]!.leagues[0]!.season;
-    if (table.season.displayName !== season.displayName)
+    if (boards.some((board) => board.leagues[0]!.season.displayName !== table.season.displayName))
       throw new Error('NBA season feeds disagree.');
     const rows: NbaData['standings'] = [];
     for (const conference of table.children) {
@@ -218,21 +211,64 @@ export class EspnNbaProvider implements NbaProvider {
     });
   }
 
-  private async json(url: string): Promise<unknown> {
+  private async feeds(weekStart: string) {
+    // One padded day at each edge covers all household timezones, including DST.
+    // Whole months can exceed the byte cap; ESPN rejects multi-day date ranges.
+    const days = Array.from({ length: 16 }, (_, i) => addLocalDays(weekStart, i - 1));
+    const requests = [
+      { day: null, url: 'https://site.api.espn.com/apis/v2/sports/basketball/nba/standings' },
+      ...days.map((day) => ({
+        day,
+        url: `${SCOREBOARD_ORIGIN}/scoreboard?dates=${day.replaceAll('-', '')}&limit=1000`,
+      })),
+    ];
     const controller = new AbortController();
+    // Bound the complete projection, including queued requests and all body reads.
     const timeout = setTimeout(() => controller.abort(), 8_000);
+    let cursor = 0;
+    let table: z.infer<typeof standings> | undefined;
+    const boards: z.infer<typeof scoreboard>[] = new Array(days.length);
+    const worker = async () => {
+      while (cursor < requests.length) {
+        controller.signal.throwIfAborted();
+        const index = cursor++;
+        const request = requests[index]!;
+        const data = await this.json(request.url, controller.signal);
+        controller.signal.throwIfAborted();
+        if (request.day === null) table = standings.parse(data);
+        else {
+          const board = scoreboard.parse(data);
+          // Reject an ignored date parameter/month fallback rather than publish a partial week.
+          if (
+            board.events.some(
+              (event) => localDateInTimezone(event.date, SCOREBOARD_TIMEZONE) !== request.day,
+            )
+          )
+            throw new Error('NBA scoreboard date coverage disagrees.');
+          boards[index - 1] = board;
+        }
+      }
+    };
     try {
-      const response = await this.fetcher(url, {
-        signal: controller.signal,
-        redirect: 'error',
-        headers: { Accept: 'application/json' },
-      });
-      if (!response.ok) throw new Error('NBA feed is unavailable.');
-      const bounded = await boundResponse(response, 4 * 1024 * 1024, controller.signal);
-      return await bounded.json();
+      await Promise.all(Array.from({ length: 4 }, worker));
+      if (!table) throw new Error('Incomplete NBA standings.');
+      return { table, boards };
     } finally {
+      // A failed day must cancel siblings and prevent further queued requests.
+      controller.abort();
       clearTimeout(timeout);
     }
+  }
+
+  private async json(url: string, signal: AbortSignal): Promise<unknown> {
+    const response = await this.fetcher(url, {
+      signal,
+      redirect: 'error',
+      headers: { Accept: 'application/json' },
+    });
+    if (!response.ok) throw new Error('NBA feed is unavailable.');
+    const bounded = await boundResponse(response, 4 * 1024 * 1024, signal);
+    return await bounded.json();
   }
 }
 

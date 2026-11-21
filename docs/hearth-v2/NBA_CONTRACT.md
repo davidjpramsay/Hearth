@@ -69,13 +69,22 @@ is the league's official column order. Public-feed/commercial-source limitations
 
 ### Overview feed
 
-The server alone reads ESPN's public NBA standings and monthly scoreboard feeds
-over fixed HTTPS URLs. Month requests (not unsupported date ranges) cover the
-local fortnight, with UTC-edge padding. Requests are coalesced and cached for
-15 minutes; only two fortnight keys are retained in memory, no historical sports
-database. No timer/background fetch, and disabled modules gate before I/O.
-Each response is timeout/decoded-byte bounded and parsed/projected into typed
-DTOs. A truncated/malformed feed fails safely rather than claiming completeness.
+The server alone reads ESPN's public NBA standings and daily scoreboard feeds
+over fixed HTTPS URLs. Sixteen single-day requests cover the local fortnight plus
+one day at each edge, including timezone/DST/year boundaries. ESPN groups these by
+US Eastern date; verify every event belongs to its requested day, then filter by
+household-local date. Date ranges are not supported. Whole months can exceed the
+existing response-size bound and are no longer requested.
+At most seventeen requests (one standings, sixteen days) run per projection, with
+four concurrent requests and one eight-second deadline including queueing and body
+consumption. Keep the four-MiB decoded-byte cap per response and reject redirects.
+Require every daily response, consistent season identity, valid events and complete
+30-team standings; reject a limit-sized day, malformed feed or ignored date filter.
+Any failure cancels siblings/queued work and rejects the whole projection, retaining
+only the service's explicitly stale last-good fortnight, never partial fresh data.
+Requests remain coalesced and cached for 15 minutes; only two fortnight keys are
+retained in memory, no historical sports database. No timer/background fetch, and
+disabled modules gate before I/O. Responses are projected into typed DTOs.
 No browser third-party requests, odds, advertising, streaming,
 credentials or arbitrary provider URLs. Demo/test data is deterministic and
 explicitly fictional. The public feed is undocumented and has no SLA; a supported
@@ -115,6 +124,13 @@ Existing Home Assistant grants retain their original eleven-module scope. A new
 adult approval explicitly freezes the current module IDs; only such approval can
 grant NBA's module switch. This slice does not grant HA sports-data access or add
 NBA screen-navigation commands. Existing TV/HA behaviour remains unchanged.
+
+NBA is deliberately absent from the paired-display tab allowlist. While a screen
+is on `/nba`, its heartbeat reports `tab:null`, so HA's Visible tab entity is
+unavailable even if Hearth is foreground. An allowed page such as Photos or Today
+is eligible once fresh native-foreground presentation/state polls succeed.
+This is distinct from failed authentication, a missing heartbeat or an obsolete
+native shell; a module switch does not grant a navigation destination.
 
 ## Acceptance
 

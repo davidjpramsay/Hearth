@@ -1,5 +1,64 @@
 # Hearth v2 acceptance and definition of done
 
+## NBA daily-feed recovery — D-113 refinement, local proof 2026-11-21
+
+- Reproduced the oversized monthly feed: November ESPN scoreboard HTTP 200, **4,339,385 decoded
+  bytes / 215 events**, exceeding the existing 4 MiB cap. A multi-day `dates=20261116-20261122`
+  request returned HTTP 400. Single-day requests succeeded. These are public-provider reads,
+  not household data or proof of the deployed fix.
+- Replace monthly reads with sixteen padded daily boards plus standings. Four concurrent requests
+  share one eight-second deadline, including queued work and body consumption; the response cap,
+  fixed HTTPS origins, redirect rejection, schema validation, read-through cache and module gates
+  remain. Validate provider-day/season coverage and require every day. Failed reads cancel remaining
+  work and preserve only the service's explicitly stale whole last-good projection.
+- The changed adapter read the live public feed for `2026-11-16` / `Australia/Perth`: **98 games,
+  30 standings teams, six tied highlights, 17 HTTP 200 responses**, maximum response **284,944 bytes**,
+  total **2,230,011 bytes**, peak concurrency **4**, elapsed **2,244 ms**. An independent monthly-feed
+  comparison yielded the same **98 unique game IDs** in that local fortnight. No household request,
+  provider credential, private content, data write or device command was used.
+- Passed commands from `hearth/`:
+
+  ```sh
+  pnpm install --frozen-lockfile
+  pnpm build:packages
+  pnpm --filter @hearth/server exec vitest run src/integrations/nba-provider.unit.test.ts
+  pnpm --filter @hearth/server typecheck
+  pnpm exec eslint apps/server/src/integrations/nba-provider.ts apps/server/src/integrations/nba-provider.unit.test.ts --max-warnings 0
+  pnpm exec prettier --check apps/server/src/integrations/nba-provider.ts apps/server/src/integrations/nba-provider.unit.test.ts
+  pnpm test:unit
+  pnpm --filter @hearth/server exec vitest run src/nba.integration.test.ts src/home-assistant-bridge.integration.test.ts src/modules.integration.test.ts
+  pnpm build
+  HEARTH_NBA_EVIDENCE_DIR=/tmp/hearth-nba-feed-evidence pnpm test:e2e:built tests/e2e/nba.spec.ts tests/e2e/nba-box-score.spec.ts --reporter=line --output=/tmp/hearth-nba-feed-results
+  ```
+
+  Adapter **15/15**; complete unit suite **800/800** (118 shared, 71 core, 130 server, 481 web);
+  targeted NBA/HA/module integration **76/76**. Production server/web builds pass. The regression
+  covers month/year boundaries, DST, UTC+14/UTC−12 local midnight edges, genuinely empty days,
+  final next-week games, malformed/limit-sized responses, ignored day parameters, inconsistent
+  seasons, four-request concurrency, the shared deadline/cancelled queue and stale recovery.
+- Existing browser suite passes **28/28**: light/dark 320/390px phones, 1080p/4K TV, all NBA views,
+  spoiler-free cards, box-score detail, stale/empty/unavailable states, module/auth isolation,
+  pagination, accessibility and D-pad/Back/focus return. Browser plugin not available; repository
+  Playwright used fictional demo at `http://127.0.0.1:4320`, not the live household. TV/phone
+  screenshots inspected in `/tmp/hearth-nba-feed-evidence/`. A separate Playwright smoke at
+  1920×1080 and 390×844 also verifies `/nba`, title Hearth, meaningful content, no framework
+  overlay, zero console/page errors or warnings, no horizontal overflow and observed Next week →
+  Standings state changes; results/screenshots are `qa.json` / `qa-{width}.png` in that directory.
+  No rendered frontend code changed.
+- HA investigation: `/nba` is intentionally outside `SCREEN_TAB_PATHS`. A visible NBA page sends
+  `tab:null`; server `online:false` and HA Visible tab unavailable follow the existing contract.
+  Module-switch authority is separate. Photos/Today remain allowlisted. Source review found no
+  need to widen grants or remove native foreground/generation checks. From the repository root,
+  `python3 -B -m unittest discover -s hearth/integrations/home_assistant/tests -v` passes **69/69**;
+  shared/web unit and server integration coverage also preserve heartbeat, acknowledgement,
+  offline/unapproved/revoked rejection and adult/screen isolation. These fake-runtime checks do
+  not prove physical HA recovery on an allowed page. That specific live check remains open.
+- `git diff --check` passes. Live read-only health/readiness still report the previous verified
+  release `067e18b`, private and ready. No deployment, push, HA update/restart, household setting,
+  pairing, screen navigation, credential or networking change. Full release workflow, unrelated
+  browser/migration/Android reruns, deployed daily-feed acceptance and physical TV/phone checks
+  are **not run**. This checkpoint prepares a reviewable fix only.
+
 ## Full-height routine boards — D-139, local proof 2026-11-06
 
 - Both TV routines anchor a full-width, content-height Bible verse to the bottom safe edge and

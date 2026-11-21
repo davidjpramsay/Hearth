@@ -100,10 +100,14 @@ Saved/unavailable verse states do not block routine use. This does not change th
 
 ## NBA (D-113)
 
-The keyless server adapter reads fixed ESPN NBA standings and monthly scoreboard HTTPS feeds.
-Filter complete months into the household's Monday–Sunday fortnight with timezone-edge padding.
-Eight-second timeout, four-MiB decoded-byte bound per response, no redirects, schema validation;
-reject limit-sized/truncated feeds. No odds, streams, ads or browser third-party requests.
+The keyless server adapter reads fixed ESPN NBA standings and sixteen single-day scoreboard
+HTTPS feeds, covering the household's Monday–Sunday fortnight with one padded day at each edge.
+Use US Eastern provider-day validation before household timezone filtering, including DST/year
+boundaries. Whole months can exceed the unchanged four-MiB decoded-response cap; ranges return
+HTTP 400. At most seventeen requests, four concurrent, share one eight-second deadline including
+queue/body reads. Reject redirects, inconsistent seasons, ignored date filters and malformed or
+limit-sized/truncated feeds. One failed day rejects the entire refresh and cancels remaining work.
+No odds, streams, ads or browser third-party requests.
 Highlights use completed current-week game leaders. Public feeds are undocumented/no-SLA;
 outages retain explicitly stale data. No commercial licence is claimed: review terms and select a
 supported/licensed provider before commercial use. HA gets only an explicitly approved module
